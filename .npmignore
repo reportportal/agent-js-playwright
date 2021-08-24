@@ -1,0 +1,6 @@
+coverage
+build/__tests__/
+tsconfig.json
+.gitignore
+.editorconfig
+.github/

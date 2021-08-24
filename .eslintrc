@@ -1,0 +1,36 @@
+{
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "extends": [
+    "airbnb-typescript/base",
+    "plugin:@typescript-eslint/recommended",
+    "prettier/@typescript-eslint",
+    "plugin:prettier/recommended"
+  ],
+  "plugins": ["prettier"],
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly"
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module",
+    "project":  "./tsconfig.json"
+  },
+  "rules": {
+    "no-plusplus": 0,
+    "prettier/prettier": 2,
+    "class-methods-use-this": 0,
+    "no-else-return": 0,
+    "lines-between-class-members": 0,
+    "import/no-extraneous-dependencies": 0,
+    "func-names": 0,
+    "import/prefer-default-export": 0,
+    "@typescript-eslint/ban-ts-ignore": 0,
+    "@typescript-eslint/no-implied-eval": 0,
+    "dot-notation": 0
+  }
+}
