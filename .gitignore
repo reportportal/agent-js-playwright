@@ -1,0 +1,18 @@
+# ide
+.idea/
+
+# dependencies
+node_modules/
+
+# reports
+reports/
+
+# logs
+*.log
+
+# compiled
+/build
+/coverage
+
+.npmrc
+.env
