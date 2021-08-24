@@ -1,5 +1,5 @@
-function start() {
-  console.log('Hello world');
+export function printMessage(message: string) {
+  console.log(message);
 }
 
-start();
+printMessage('Hello world');
