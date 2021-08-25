@@ -17,8 +17,8 @@
 
 import { printMessage } from '../index';
 
-describe('printMessage function', function() {
-  test('should call native console.log method with provided message', function() {
+describe('printMessage function', function () {
+  test('should call native console.log method with provided message', function () {
     const spyLog = jest.spyOn(console, 'log');
 
     printMessage('Hello world');
