@@ -1,4 +1,4 @@
-export function printMessage(message: string) {
+export function printMessage(message: string): void {
   console.log(message);
 }
 
