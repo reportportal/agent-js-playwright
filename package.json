@@ -9,12 +9,14 @@
     "lint": "eslint \"src/**/*.ts\"",
     "format": "npm run lint -- --fix",
     "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "start": "npx playwright test --config=playwright.config.ts"
   },
   "dependencies": {
     "@reportportal/client-javascript": "^5.0.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.14.1",
     "@types/jest": "^27.0.1",
     "@typescript-eslint/eslint-plugin": "^4.29.3",
     "@typescript-eslint/parser": "^4.29.3",

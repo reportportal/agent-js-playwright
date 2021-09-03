@@ -15,8 +15,6 @@
  *
  */
 
-export function printMessage(message: string): void {
-  console.log(message);
+declare module '@reportportal/client-javascript/lib/constants/events' {
+  export const EVENTS: Interfaces.ObjUniversal;
 }
-
-printMessage('Hello world');

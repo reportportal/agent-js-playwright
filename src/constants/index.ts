@@ -15,15 +15,7 @@
  *
  */
 
-import { printMessage } from '../index';
+export { LAUNCH_MODES } from './launchModes';
+export { TEST_ITEM_TYPES } from './testItemTypes';
 
-describe('printMessage function', function () {
-  test('should call native console.log method with provided message', function () {
-    const spyLog = jest.spyOn(console, 'log');
-
-    printMessage('Hello world');
-
-    expect(spyLog).toHaveBeenCalledTimes(1);
-    expect(spyLog).toHaveBeenCalledWith('Hello world');
-  });
-});
+export const RP_CONFIG_FILE_NAME = 'rp.json';
