@@ -15,10 +15,13 @@
  *
  */
 
-import { PlaywrightTestConfig } from '@playwright/test';
+import { ReportPortalConfig } from '../../models';
 
-const config: PlaywrightTestConfig = {
-  reporter: './src/reporter.ts',
-  testDir: './examples/tests',
+export const config: ReportPortalConfig = {
+  token: '00000000-0000-0000-0000-000000000000',
+  endpoint: 'https://reportportal.server/api/v1',
+  project: 'ProjectName',
+  launch: 'LaunchName',
+  description: 'Launch description',
+  attributes: [],
 };
-export default config;

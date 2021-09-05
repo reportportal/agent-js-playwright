@@ -18,10 +18,6 @@
 import { test } from '@playwright/test';
 
 test.describe('attributes for suite/test',  () => {
-  test.beforeAll( () => {
-
-  });
-
   test('test should be passed',  () => {
     test.expect(true).toBe(true);
   });

@@ -17,15 +17,7 @@
 
 import { test } from '@playwright/test';
 
-
-
-
 test.describe('description for suite/test',  () => {
-  test.beforeAll( () => {
-
-
-  });
-
   test('test should be failed',  () => {
     test.expect(false).toBe(true);
   });

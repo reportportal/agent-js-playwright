@@ -16,7 +16,7 @@
  */
 
 import RPClient from '@reportportal/client-javascript';
-import { Reporter } from '@playwright/test/reporter';
+import { Reporter, TestCase, TestResult } from '@playwright/test/reporter';
 import { Attribute, ReportPortalConfig } from './models';
 import { TEST_ITEM_TYPES } from './constants';
 import { getConfig } from './utils';
@@ -42,21 +42,32 @@ interface Suite {
   attributes?: Attribute[];
 }
 
+interface TestResp extends TestCase {
+  parent: {
+    title: string;
+    _isDescribe: boolean;
+    parent: {
+      title: string;
+      _isDescribe: boolean;
+    };
+  };
+}
+
 class MyReporter implements Reporter {
-  private RPconfig: ReportPortalConfig;
+  RPconfig: ReportPortalConfig;
 
-  private client: RPClient;
+  client: RPClient;
 
-  private launchId: string;
+  launchId: string;
 
-  private suites: Map<string, Suite>;
+  suites: Map<string, Suite>;
 
-  private testItems: Map<string, TestItem>;
+  testItems: Map<string, TestItem>;
 
-  private promises: Promise<any>[];
+  promises: Promise<any>[];
 
-  constructor() {
-    this.RPconfig = getConfig();
+  constructor(config?: ReportPortalConfig) {
+    this.RPconfig = getConfig(config);
     this.client = new RPClient(this.RPconfig);
     this.suites = new Map();
     this.testItems = new Map();
@@ -91,37 +102,47 @@ class MyReporter implements Reporter {
     this.launchId = tempId;
   }
 
-  onTestBegin(test: any): void {
+  onTestBegin(test: TestResp): void {
     //create suite
-    if (!this.suites.has(test.parent.title)) {
+    const suiteHasParent = test.parent.parent?._isDescribe;
+    const suiteTitle = suiteHasParent ? test.parent.parent?.title : test.parent.title;
+    if (!this.suites.has(suiteTitle)) {
       const startSuiteObj: StartTestObjType = {
-        description: 'suite description',
-        name: test.parent.title,
+        name: suiteTitle,
         startTime: this.client.helpers.now(),
         type: TEST_ITEM_TYPES.SUITE,
       };
       const suiteObj = this.client.startTestItem(startSuiteObj, this.launchId);
       this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
-      this.suites.set(test.parent.title, {
+      this.suites.set(suiteTitle, {
         id: suiteObj.tempId,
-        path: test.location.file,
-        name: test.title,
+        name: suiteTitle,
       });
+    }
+    //suite in suite
+    if (suiteHasParent) {
+      if (!this.suites.has(test.parent.title)) {
+        const { id: parentId } = this.suites.get(suiteTitle);
+        const startChildSuiteObj: StartTestObjType = {
+          name: test.parent.title,
+          startTime: this.client.helpers.now(),
+          type: TEST_ITEM_TYPES.TEST,
+        };
+        const suiteObj = this.client.startTestItem(startChildSuiteObj, this.launchId, parentId);
+        this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
+        this.suites.set(test.parent.title, {
+          id: suiteObj.tempId,
+          name: test.parent.title,
+        });
+      }
     }
 
     //create steps
     if (this.suites.get(test.parent.title)) {
-      const { id: parentId, name: suiteName } = this.suites.get(test.parent.title);
+      const { id: parentId } = this.suites.get(test.parent.title);
       const startTestItem: StartTestObjType = {
-        description: 'description step',
         name: test.title,
         startTime: this.client.helpers.now(),
-        attributes: [
-          {
-            key: 'yourKey',
-            value: 'yourValue',
-          },
-        ],
         type: TEST_ITEM_TYPES.STEP,
       };
       const stepObj = this.client.startTestItem(startTestItem, this.launchId, parentId);
@@ -129,12 +150,11 @@ class MyReporter implements Reporter {
       this.testItems.set(test.title, {
         name: test.title,
         id: stepObj.tempId,
-        description: 'description step',
       });
     }
   }
 
-  onTestEnd(test: any, result: any): void {
+  onTestEnd(test: TestResp, result: TestResult): void {
     const { id: testItemId } = this.testItems.get(test.title);
     const finishTestItemObj: FinishTestItemObjType = {
       endTime: this.client.helpers.now(),
@@ -146,7 +166,7 @@ class MyReporter implements Reporter {
     this.testItems.delete(test.title);
   }
 
-  async onEnd(result: any): Promise<void> {
+  async onEnd(): Promise<void> {
     this.finishSuites();
     const { promise } = this.client.finishLaunch(this.launchId, {
       endTime: this.client.helpers.now(),

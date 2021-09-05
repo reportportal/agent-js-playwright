@@ -17,13 +17,16 @@
 
 import { test, expect } from '@playwright/test';
 
-test.describe('Basic Playwright test', () => {
-  test('Test should be passed', async ({ page }) => {
-    await page.goto('https://playwright.dev/');
-    const title = page.locator('.navbar__inner .navbar__title');
-    await expect(title).toHaveText('Playwright');
-  });
-  test('Test should be failed', async ({ page }) => {
-    await expect('net').toHaveText('Playwright');
-  });
+test.describe('Top level suite', () => {
+  test.describe('Bottom level suite', () => {
+    test('Test should be passed', async ({ page }) => {
+      await page.goto('https://playwright.dev/');
+      const title = page.locator('.navbar__inner .navbar__title');
+      await expect(title).toHaveText('Playwright');
+    });
+
+    test('Test should be failed', async ({ page }) => {
+      await expect('net').toHaveText('Playwright');
+    });
+  })
 });

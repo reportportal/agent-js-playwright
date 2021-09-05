@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "test": "npx playwright test --config=../playwright.config.ts"
+  }
+}
