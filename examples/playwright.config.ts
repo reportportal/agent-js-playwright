@@ -18,7 +18,7 @@
 import { PlaywrightTestConfig } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
-  reporter: './src/reporter.ts',
-  testDir: './examples/tests',
+  reporter: require.resolve('@reportportal/agent-js-playwright'),
+  testDir: './tests',
 };
 export default config;

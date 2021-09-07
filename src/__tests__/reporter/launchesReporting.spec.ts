@@ -16,18 +16,20 @@
  */
 
 import MyReporter from '../../reporter';
-import { config } from '../mocks/configMock';
+import { mockConfig } from '../mocks/configMock';
 import { StartLaunchObjType } from '../../models';
 import { RPClientMock } from '../mocks/RPClientMock';
+import { utils } from '../../utils';
 
 describe('start report launch', () => {
-  const reporter = new MyReporter(config);
-  reporter.client = new RPClientMock(config);
+  jest.spyOn(utils, 'getConfig').mockImplementation(() => mockConfig);
+  const reporter = new MyReporter();
+  reporter.client = new RPClientMock(mockConfig);
   const startLaunchObj: StartLaunchObjType = {
-    name: config.launch,
+    name: mockConfig.launch,
     startTime: reporter.client.helpers.now(),
-    attributes: config.attributes,
-    description: config.description,
+    attributes: mockConfig.attributes,
+    description: mockConfig.description,
   };
   reporter.onBegin();
 
@@ -42,13 +44,15 @@ describe('start report launch', () => {
 });
 
 describe('finish report launch', () => {
-  const reporter = new MyReporter(config);
-  reporter.client = new RPClientMock(config);
+  const reporter = new MyReporter();
+  reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
   reporter.onEnd();
 
   test('launch should be finished', () => {
     expect(reporter.client.finishLaunch).toHaveBeenCalledTimes(1);
-    expect(reporter.client.finishLaunch).toHaveBeenCalledWith('tempLaunchId', { endTime: reporter.client.helpers.now() });
+    expect(reporter.client.finishLaunch).toHaveBeenCalledWith('tempLaunchId', {
+      endTime: reporter.client.helpers.now(),
+    });
   });
 });

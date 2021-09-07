@@ -15,14 +15,16 @@
  */
 
 import MyReporter from '../../reporter';
-import { config } from '../mocks/configMock';
+import { mockConfig } from '../mocks/configMock';
 import { mockedResult, mockedTestParams, RPClientMock } from '../mocks/RPClientMock';
 import { FinishTestItemObjType, StartTestObjType } from '../../models';
 import { TEST_ITEM_TYPES } from '../../constants';
+import { utils } from '../../utils';
 
 describe('start test reporting', () => {
-  const reporter = new MyReporter(config);
-  reporter.client = new RPClientMock(config);
+  jest.spyOn(utils, 'getConfig').mockImplementation(() => mockConfig);
+  const reporter = new MyReporter();
+  reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
   const parentId = 'tempTestItemId';
   const startTestObj: StartTestObjType = {
@@ -51,8 +53,8 @@ describe('start test reporting', () => {
 });
 
 describe('finish test reporting', () => {
-  const reporter = new MyReporter(config);
-  reporter.client = new RPClientMock(config);
+  const reporter = new MyReporter();
+  reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
   reporter.testItems = new Map([['test', { id: 'tempTestItemId', name: 'test' }]]);
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment

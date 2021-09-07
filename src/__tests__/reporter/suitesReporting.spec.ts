@@ -14,16 +14,17 @@
  *  limitations under the License.
  */
 
-
 import MyReporter from '../../reporter';
-import { config } from '../mocks/configMock';
+import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 import { StartTestObjType } from '../../models';
 import { TEST_ITEM_TYPES } from '../../constants';
+import { utils } from '../../utils';
 
 describe('start report suite', () => {
-  const reporter = new MyReporter(config);
-  reporter.client = new RPClientMock(config);
+  jest.spyOn(utils, 'getConfig').mockImplementation(() => mockConfig);
+  const reporter = new MyReporter();
+  reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
   const testParams = {
     title: 'test',
@@ -57,8 +58,8 @@ describe('start report suite', () => {
 });
 
 describe('finish report suite', () => {
-  const reporter = new MyReporter(config);
-  reporter.client = new RPClientMock(config);
+  const reporter = new MyReporter();
+  reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
   reporter.suites = new Map([['suiteName', { id: 'tempTestItemId', name: 'suiteName' }]]);
   reporter.onEnd();

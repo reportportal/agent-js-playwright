@@ -17,7 +17,7 @@
 
 import { ReportPortalConfig } from '../../models';
 
-export const config: ReportPortalConfig = {
+export const mockConfig: ReportPortalConfig = {
   token: '00000000-0000-0000-0000-000000000000',
   endpoint: 'https://reportportal.server/api/v1',
   project: 'ProjectName',
