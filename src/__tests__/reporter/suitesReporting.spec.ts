@@ -19,7 +19,7 @@ import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 import { StartTestObjType } from '../../models';
 import { TEST_ITEM_TYPES } from '../../constants';
-import { utils } from '../../utils';
+import * as utils from '../../utils';
 
 describe('start report suite', () => {
   jest.spyOn(utils, 'getConfig').mockImplementation(() => mockConfig);
@@ -54,6 +54,41 @@ describe('start report suite', () => {
 
   test('reporter.suites should be updated', () => {
     expect(reporter.suites).toEqual(expectedSuite);
+  });
+});
+
+describe('suite in suite case', () => {
+  const reporter = new MyReporter();
+  reporter.client = new RPClientMock(mockConfig);
+  reporter.launchId = 'tempLaunchId';
+  const testParams = {
+    title: 'test',
+    parent: {
+      title: 'suiteName',
+      parent: {
+        title: 'parentSuiteName',
+        _isDescribe: true,
+      },
+    },
+  };
+  reporter.suites.set('parentSuiteName', { id: 'tempTestItemId', name: 'parentSuiteName' });
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  reporter.onTestBegin(testParams);
+
+  const expectedSuites = new Map([
+    [
+      'parentSuiteName',
+      {
+        id: 'tempTestItemId',
+        name: 'parentSuiteName',
+      },
+    ],
+    ['suiteName', { id: 'tempTestItemId', name: 'suiteName' }],
+  ]);
+  test('parent and child suites should be updated', () => {
+    expect(reporter.suites).toEqual(expectedSuites);
   });
 });
 

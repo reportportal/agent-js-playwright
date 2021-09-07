@@ -20,16 +20,11 @@ import fs from 'fs';
 import { ReportPortalConfig } from './models';
 import { RP_CONFIG_FILE_NAME } from './constants';
 
-export const utils = {
-  getConfig(providedConfig?: ReportPortalConfig): ReportPortalConfig {
-    try {
-      if (!providedConfig || Object.keys(providedConfig).length === 0) {
-        return JSON.parse(fs.readFileSync(path.resolve(RP_CONFIG_FILE_NAME)).toString());
-      }
-    } catch (e) {
-      console.error('Cannot correctly parse RP options from rp.json file.', e);
-    }
-
-    return providedConfig;
-  },
+export const getConfig = (): ReportPortalConfig => {
+  return JSON.parse(fs.readFileSync(path.resolve(RP_CONFIG_FILE_NAME)).toString());
 };
+
+export const promiseErrorHandler = (promise: Promise<any>, message = '') =>
+  promise.catch((err) => {
+    console.error(message, err);
+  });

@@ -19,7 +19,7 @@ import MyReporter from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { StartLaunchObjType } from '../../models';
 import { RPClientMock } from '../mocks/RPClientMock';
-import { utils } from '../../utils';
+import * as utils from '../../utils';
 
 describe('start report launch', () => {
   jest.spyOn(utils, 'getConfig').mockImplementation(() => mockConfig);

@@ -19,7 +19,7 @@ import { mockConfig } from '../mocks/configMock';
 import { mockedResult, mockedTestParams, RPClientMock } from '../mocks/RPClientMock';
 import { FinishTestItemObjType, StartTestObjType } from '../../models';
 import { TEST_ITEM_TYPES } from '../../constants';
-import { utils } from '../../utils';
+import * as utils from '../../utils';
 
 describe('start test reporting', () => {
   jest.spyOn(utils, 'getConfig').mockImplementation(() => mockConfig);
