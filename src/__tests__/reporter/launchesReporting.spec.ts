@@ -15,15 +15,13 @@
  *
  */
 
-import MyReporter from '../../reporter';
+import RPReporter from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { StartLaunchObjType } from '../../models';
 import { RPClientMock } from '../mocks/RPClientMock';
-import * as utils from '../../utils';
 
 describe('start report launch', () => {
-  jest.spyOn(utils, 'getConfig').mockImplementation(() => mockConfig);
-  const reporter = new MyReporter();
+  const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
   const startLaunchObj: StartLaunchObjType = {
     name: mockConfig.launch,
@@ -44,7 +42,7 @@ describe('start report launch', () => {
 });
 
 describe('finish report launch', () => {
-  const reporter = new MyReporter();
+  const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
   reporter.onEnd();

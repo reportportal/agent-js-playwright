@@ -15,7 +15,6 @@
  *
  */
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export enum TEST_ITEM_TYPES {
   SUITE = 'SUITE',
   TEST = 'TEST',

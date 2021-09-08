@@ -19,7 +19,7 @@ import RPClient from '@reportportal/client-javascript';
 import { Reporter, TestCase, TestResult } from '@playwright/test/reporter';
 import { Attribute, ReportPortalConfig } from './models';
 import { TEST_ITEM_TYPES } from './constants';
-import { getConfig, promiseErrorHandler } from './utils';
+import { promiseErrorHandler } from './utils';
 import { StartLaunchObjType, StartTestObjType, FinishTestItemObjType } from './models/reporting';
 
 export interface TestItem {
@@ -48,7 +48,7 @@ interface TestResp extends TestCase {
   };
 }
 
-class MyReporter implements Reporter {
+class RPReporter implements Reporter {
   RPconfig: ReportPortalConfig;
 
   client: RPClient;
@@ -61,8 +61,8 @@ class MyReporter implements Reporter {
 
   promises: Promise<any>[];
 
-  constructor() {
-    this.RPconfig = getConfig();
+  constructor(config: ReportPortalConfig) {
+    this.RPconfig = config;
     this.client = new RPClient(this.RPconfig);
     this.suites = new Map();
     this.testItems = new Map();
@@ -172,4 +172,4 @@ class MyReporter implements Reporter {
   }
 }
 
-export default MyReporter;
+export default RPReporter;

@@ -15,16 +15,9 @@
  *
  */
 
-import { mockConfig } from '../mocks/configMock';
-import * as utils from '../../utils';
 import { promiseErrorHandler } from '../../utils';
 
 describe('testing utils', () => {
-  jest.spyOn(utils, 'getConfig').mockImplementation(() => mockConfig);
-  const config = utils.getConfig();
-  test('getConfig should return config', () => {
-    expect(config).toEqual(mockConfig);
-  });
   test('promiseErrorHandler', async () => {
     const log = jest.spyOn(console, 'error');
     const promiseWithError = Promise.reject('error message');

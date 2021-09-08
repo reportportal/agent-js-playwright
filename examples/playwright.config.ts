@@ -17,8 +17,26 @@
 
 import { PlaywrightTestConfig } from '@playwright/test';
 
+const RPconfig = {
+  'token': '00000000-0000-0000-0000-000000000000',
+  'endpoint': 'https://your.reportportal.server/api/v1',
+  'project': 'Your project',
+  'launch': 'Playwright test',
+  'attributes': [
+    {
+      'key': 'key',
+      'value': 'value',
+    },
+    {
+      'value': 'value',
+    },
+  ],
+  'description': 'Your launch description',
+};
+
 const config: PlaywrightTestConfig = {
-  reporter: require.resolve('@reportportal/agent-js-playwright'),
+  reporter: [[require.resolve('@reportportal/agent-js-playwright'), RPconfig]],
+  // reporter: [['../src/reporter', RPconfig]],
   testDir: './tests',
 };
 export default config;

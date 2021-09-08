@@ -15,7 +15,6 @@
  *
  */
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export enum LAUNCH_MODES {
   DEFAULT = 'DEFAULT',
   DEBUG = 'DEBUG',

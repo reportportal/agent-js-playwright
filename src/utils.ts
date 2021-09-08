@@ -15,15 +15,6 @@
  *
  */
 
-import path from 'path';
-import fs from 'fs';
-import { ReportPortalConfig } from './models';
-import { RP_CONFIG_FILE_NAME } from './constants';
-
-export const getConfig = (): ReportPortalConfig => {
-  return JSON.parse(fs.readFileSync(path.resolve(RP_CONFIG_FILE_NAME)).toString());
-};
-
 export const promiseErrorHandler = (promise: Promise<any>, message = '') =>
   promise.catch((err) => {
     console.error(message, err);

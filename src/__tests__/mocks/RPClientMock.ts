@@ -18,13 +18,11 @@
 import { ReportPortalConfig } from '../../models';
 
 const mockedDate = Date.now();
-export const mockedTestItems = new Map([['test', { id: 'tempTestItemId', name: 'test' }]]);
 export const mockedTestParams = {
   title: 'test',
   parent: {
     title: 'suiteName',
   },
-  // location: '', titlePath, expectedStatus, timeout
 };
 export const mockedResult = {
   status: 'passed',
