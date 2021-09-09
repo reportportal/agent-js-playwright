@@ -24,7 +24,6 @@ describe('start reporting suite/test', () => {
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
-  const spyOnTestBegin = jest.spyOn(reporter, 'onTestBegin');
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -39,7 +38,7 @@ describe('start reporting suite/test', () => {
     };
 
     test('client.startTestItem should be called with corresponding params', () => {
-      expect(spyOnTestBegin).toHaveBeenCalledTimes(1);
+      expect(reporter.client.startTestItem).toHaveBeenCalledTimes(2);
       expect(reporter.client.startTestItem).toHaveBeenCalledWith(startSuiteObj, reporter.launchId);
     });
 
@@ -58,7 +57,7 @@ describe('start reporting suite/test', () => {
     };
 
     test('client.startTestItem should be called with corresponding params', () => {
-      expect(spyOnTestBegin).toHaveBeenCalledTimes(1);
+      expect(reporter.client.startTestItem).toHaveBeenCalledTimes(2);
       expect(reporter.client.startTestItem).toHaveBeenCalledWith(
         startTestObj,
         reporter.launchId,
@@ -88,10 +87,6 @@ describe('suite in suite case', () => {
   };
   reporter.suites.set('parentSuiteName', { id: 'tempTestItemId', name: 'parentSuiteName' });
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  reporter.onTestBegin(testParams);
-
   const expectedSuites = new Map([
     [
       'parentSuiteName',
@@ -103,6 +98,9 @@ describe('suite in suite case', () => {
     ['suiteName', { id: 'tempTestItemId', name: 'suiteName' }],
   ]);
   test('parent and child suites should be updated', () => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    reporter.onTestBegin(testParams);
     expect(reporter.suites).toEqual(expectedSuites);
   });
 });

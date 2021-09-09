@@ -23,9 +23,11 @@ describe('finish report suite', () => {
   reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
   reporter.suites = new Map([['suiteName', { id: 'tempTestItemId', name: 'suiteName' }]]);
+
   reporter.onEnd();
 
   test('client.finishTestItem should be called with suite id', () => {
+    expect(reporter.client.finishTestItem).toHaveBeenCalledTimes(1);
     expect(reporter.client.finishTestItem).toHaveBeenCalledWith('tempTestItemId', {
       endTime: reporter.client.helpers.now(),
     });

@@ -49,7 +49,7 @@ interface TestResp extends TestCase {
 }
 
 class RPReporter implements Reporter {
-  RPconfig: ReportPortalConfig;
+  config: ReportPortalConfig;
 
   client: RPClient;
 
@@ -62,8 +62,8 @@ class RPReporter implements Reporter {
   promises: Promise<any>[];
 
   constructor(config: ReportPortalConfig) {
-    this.RPconfig = config;
-    this.client = new RPClient(this.RPconfig);
+    this.config = config;
+    this.client = new RPClient(this.config);
     this.suites = new Map();
     this.testItems = new Map();
     this.promises = [];
@@ -85,7 +85,7 @@ class RPReporter implements Reporter {
   }
 
   onBegin(): void {
-    const { launch, description, attributes } = this.RPconfig;
+    const { launch, description, attributes } = this.config;
     const startLaunchObj: StartLaunchObjType = {
       name: launch,
       startTime: this.client.helpers.now(),

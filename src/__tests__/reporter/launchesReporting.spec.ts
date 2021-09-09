@@ -29,6 +29,7 @@ describe('start report launch', () => {
     attributes: mockConfig.attributes,
     description: mockConfig.description,
   };
+
   reporter.onBegin();
 
   test('client.startLaunch should be called with corresponding params', () => {
@@ -45,9 +46,9 @@ describe('finish report launch', () => {
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
-  reporter.onEnd();
 
   test('launch should be finished', () => {
+    reporter.onEnd();
     expect(reporter.client.finishLaunch).toHaveBeenCalledTimes(1);
     expect(reporter.client.finishLaunch).toHaveBeenCalledWith('tempLaunchId', {
       endTime: reporter.client.helpers.now(),

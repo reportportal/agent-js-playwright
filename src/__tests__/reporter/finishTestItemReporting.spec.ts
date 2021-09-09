@@ -24,16 +24,18 @@ describe('finish test reporting', () => {
   reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
   reporter.testItems = new Map([['test', { id: 'tempTestItemId', name: 'test' }]]);
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  reporter.onTestEnd(mockedTestParams, mockedResult);
 
   const finishTestItemObj: FinishTestItemObjType = {
     endTime: reporter.client.helpers.now(),
     status: mockedResult.status,
   };
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  reporter.onTestEnd(mockedTestParams, mockedResult);
+
   test('client.finishTestItem should be called with suite id', () => {
+    expect(reporter.client.finishTestItem).toHaveBeenCalledTimes(1);
     expect(reporter.client.finishTestItem).toHaveBeenCalledWith(
       'tempTestItemId',
       finishTestItemObj,

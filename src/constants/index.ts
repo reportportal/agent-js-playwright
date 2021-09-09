@@ -17,5 +17,3 @@
 
 export { LAUNCH_MODES } from './launchModes';
 export { TEST_ITEM_TYPES } from './testItemTypes';
-
-export const RP_CONFIG_FILE_NAME = 'rp.json';
