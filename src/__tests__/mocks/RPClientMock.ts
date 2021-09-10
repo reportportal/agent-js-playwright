@@ -18,15 +18,6 @@
 import { ReportPortalConfig } from '../../models';
 
 const mockedDate = Date.now();
-export const mockedTestParams = {
-  title: 'test',
-  parent: {
-    title: 'suiteName',
-  },
-};
-export const mockedResult = {
-  status: 'passed',
-};
 
 export class RPClientMock {
   private config: ReportPortalConfig;

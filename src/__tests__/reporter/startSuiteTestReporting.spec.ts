@@ -16,7 +16,7 @@
 
 import RPReporter from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
-import { mockedTestParams, RPClientMock } from '../mocks/RPClientMock';
+import { RPClientMock } from '../mocks/RPClientMock';
 import { StartTestObjType } from '../../models';
 import { TEST_ITEM_TYPES } from '../../constants';
 
@@ -25,20 +25,26 @@ describe('start reporting suite/test', () => {
   reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
 
+  const testParams = {
+    title: 'test',
+    parent: {
+      title: 'suiteName',
+    },
+  };
+
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  reporter.onTestBegin(mockedTestParams);
+  reporter.onTestBegin(testParams);
 
   describe('start suite report', () => {
     const expectedSuite = new Map([['suiteName', { id: 'tempTestItemId', name: 'suiteName' }]]);
     const startSuiteObj: StartTestObjType = {
       startTime: reporter.client.helpers.now(),
-      name: mockedTestParams.parent.title,
+      name: testParams.parent.title,
       type: TEST_ITEM_TYPES.SUITE,
     };
 
     test('client.startTestItem should be called with corresponding params', () => {
-      expect(reporter.client.startTestItem).toHaveBeenCalledTimes(2);
       expect(reporter.client.startTestItem).toHaveBeenCalledWith(startSuiteObj, reporter.launchId);
     });
 
@@ -52,12 +58,11 @@ describe('start reporting suite/test', () => {
     const parentId = 'tempTestItemId';
     const startTestObj: StartTestObjType = {
       startTime: reporter.client.helpers.now(),
-      name: mockedTestParams.title,
+      name: testParams.title,
       type: TEST_ITEM_TYPES.STEP,
     };
 
     test('client.startTestItem should be called with corresponding params', () => {
-      expect(reporter.client.startTestItem).toHaveBeenCalledTimes(2);
       expect(reporter.client.startTestItem).toHaveBeenCalledWith(
         startTestObj,
         reporter.launchId,

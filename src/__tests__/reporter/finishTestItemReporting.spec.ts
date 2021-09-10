@@ -16,7 +16,7 @@
 
 import RPReporter from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
-import { mockedResult, mockedTestParams, RPClientMock } from '../mocks/RPClientMock';
+import { RPClientMock } from '../mocks/RPClientMock';
 import { FinishTestItemObjType } from '../../models';
 
 describe('finish test reporting', () => {
@@ -25,14 +25,25 @@ describe('finish test reporting', () => {
   reporter.launchId = 'tempLaunchId';
   reporter.testItems = new Map([['test', { id: 'tempTestItemId', name: 'test' }]]);
 
+  const testParams = {
+    title: 'test',
+    parent: {
+      title: 'suiteName',
+    },
+  };
+
+  const result = {
+    status: 'passed',
+  };
+
   const finishTestItemObj: FinishTestItemObjType = {
     endTime: reporter.client.helpers.now(),
-    status: mockedResult.status,
+    status: result.status,
   };
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  reporter.onTestEnd(mockedTestParams, mockedResult);
+  reporter.onTestEnd(testParams, result);
 
   test('client.finishTestItem should be called with suite id', () => {
     expect(reporter.client.finishTestItem).toHaveBeenCalledTimes(1);
@@ -42,7 +53,7 @@ describe('finish test reporting', () => {
     );
   });
 
-  test('testItems size should be less than mocked', () => {
-    expect(reporter.testItems.size).toBeLessThan(1);
+  test('testItems size should be 0', () => {
+    expect(reporter.testItems.size).toBe(0);
   });
 });
