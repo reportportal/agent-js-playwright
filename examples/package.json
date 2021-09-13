@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "test": "npx playwright test --config=playwright.config.ts"
+  },
+  "devDependencies": {
+    "@reportportal/agent-js-playwright": "file://../../agent-js-playwright"
+  }
+}

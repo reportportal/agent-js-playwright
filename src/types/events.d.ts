@@ -15,15 +15,6 @@
  *
  */
 
-import { printMessage } from '../index';
-
-describe('printMessage function', function () {
-  test('should call native console.log method with provided message', function () {
-    const spyLog = jest.spyOn(console, 'log');
-
-    printMessage('Hello world');
-
-    expect(spyLog).toHaveBeenCalledTimes(1);
-    expect(spyLog).toHaveBeenCalledWith('Hello world');
-  });
-});
+declare module '@reportportal/client-javascript/lib/constants/events' {
+  export const EVENTS: Interfaces.ObjUniversal;
+}

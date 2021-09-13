@@ -15,8 +15,15 @@
  *
  */
 
-export function printMessage(message: string): void {
-  console.log(message);
-}
+import { promiseErrorHandler } from '../../utils';
 
-printMessage('Hello world');
+describe('testing utils', () => {
+  test('promiseErrorHandler', async () => {
+    const log = jest.spyOn(console, 'error');
+    const promiseWithError = Promise.reject('error message');
+    await promiseErrorHandler(promiseWithError, 'Failed to finish suite');
+
+    expect(log).toBeCalledTimes(1);
+    expect(log).toBeCalledWith('Failed to finish suite', 'error message');
+  });
+});
