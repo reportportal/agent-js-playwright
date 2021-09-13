@@ -15,8 +15,10 @@
  *
  */
 
-import { version as pjsonVersion, name as pjsonName } from '../package.json';
-import { Attribute } from './models';
+import { name as pjsonName, version as pjsonVersion } from '../package.json';
+import { Attribute, TestResp } from './models';
+import path from 'path';
+import { TEST_ITEM_TYPES } from './constants';
 
 export const promiseErrorHandler = (promise: Promise<any>, message = '') =>
   promise.catch((err) => {
@@ -47,4 +49,28 @@ export const getSystemAttributes = (skippedIssue = true): Array<Attribute> => {
   }
 
   return systemAttributes;
+};
+
+type testItemPick = Pick<TestResp, 'location' | 'titlePath'>;
+
+export const getCodeRef = (testItem: testItemPick, itemType: TEST_ITEM_TYPES): string => {
+  const testFileDir = path
+    .parse(path.normalize(path.relative(process.cwd(), testItem.location.file)))
+    .dir.replace(new RegExp('\\'.concat(path.sep), 'g'), '/');
+  const filteredTitlesPath = testItem.titlePath().filter((itemPath) => itemPath !== '');
+
+  switch (itemType) {
+    case TEST_ITEM_TYPES.TEST: {
+      const testHierarchicalPath = filteredTitlesPath.slice(0, -1).join('/');
+      return `${testFileDir}/${testHierarchicalPath}`;
+    }
+    case TEST_ITEM_TYPES.SUITE: {
+      const testHierarchicalPath = filteredTitlesPath.slice(0, 2).join('/');
+      return `${testFileDir}/${testHierarchicalPath}`;
+    }
+    default: {
+      const testHierarchicalPath = filteredTitlesPath.join('/');
+      return `${testFileDir}/${testHierarchicalPath}`;
+    }
+  }
 };

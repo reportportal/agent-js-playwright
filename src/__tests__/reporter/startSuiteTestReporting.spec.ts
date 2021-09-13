@@ -19,6 +19,7 @@ import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 import { StartTestObjType } from '../../models';
 import { TEST_ITEM_TYPES } from '../../constants';
+import path from 'path';
 
 describe('start reporting suite/test', () => {
   const reporter = new RPReporter(mockConfig);
@@ -30,7 +31,15 @@ describe('start reporting suite/test', () => {
     parent: {
       title: 'suiteName',
     },
+    location: {
+      file: `C:${path.sep}testProject${path.sep}test${path.sep}example.js`,
+      line: 5,
+      column: 3,
+    },
+    titlePath: () => ['example.js', 'rootDescribe', 'parentDescribe', 'testTitle'],
   };
+
+  jest.spyOn(process, 'cwd').mockImplementation(() => `C:${path.sep}testProject`);
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -42,6 +51,7 @@ describe('start reporting suite/test', () => {
       startTime: reporter.client.helpers.now(),
       name: testParams.parent.title,
       type: TEST_ITEM_TYPES.SUITE,
+      codeRef: `test/example.js/rootDescribe`,
     };
 
     test('client.startTestItem should be called with corresponding params', () => {
@@ -60,6 +70,7 @@ describe('start reporting suite/test', () => {
       startTime: reporter.client.helpers.now(),
       name: testParams.title,
       type: TEST_ITEM_TYPES.STEP,
+      codeRef: 'test/example.js/rootDescribe/parentDescribe/testTitle',
     };
 
     test('client.startTestItem should be called with corresponding params', () => {
@@ -89,6 +100,12 @@ describe('suite in suite case', () => {
         _isDescribe: true,
       },
     },
+    location: {
+      file: `C:${path.sep}testProject${path.sep}test${path.sep}example.js`,
+      line: 5,
+      column: 3,
+    },
+    titlePath: () => ['example.js', 'rootDescribe', 'parentDescribe', 'testTitle'],
   };
   reporter.suites.set('parentSuiteName', { id: 'tempTestItemId', name: 'parentSuiteName' });
 

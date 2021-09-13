@@ -15,8 +15,21 @@
  *
  */
 
+import { TestCase } from '@playwright/test/reporter';
+
 export interface Attribute {
   value: string;
   key?: string;
   system?: boolean;
+}
+
+export interface TestResp extends TestCase {
+  parent: {
+    title: string;
+    _isDescribe: boolean;
+    parent: {
+      title: string;
+      _isDescribe: boolean;
+    };
+  };
 }
