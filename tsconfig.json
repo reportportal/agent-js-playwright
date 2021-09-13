@@ -4,6 +4,7 @@
     "esModuleInterop": true,
     "allowJs": false,
     "noImplicitAny": true,
+    "resolveJsonModule": true,
     "moduleResolution": "node",
     "lib": [
       "es2016",

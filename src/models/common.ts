@@ -18,4 +18,5 @@
 export interface Attribute {
   value: string;
   key?: string;
+  system?: boolean;
 }

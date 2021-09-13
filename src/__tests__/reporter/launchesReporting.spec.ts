@@ -26,7 +26,13 @@ describe('start report launch', () => {
   const startLaunchObj: StartLaunchObjType = {
     name: mockConfig.launch,
     startTime: reporter.client.helpers.now(),
-    attributes: mockConfig.attributes,
+    attributes: [
+      {
+        key: 'agent',
+        system: true,
+        value: '@reportportal/agent-js-playwright|4.0.0',
+      },
+    ],
     description: mockConfig.description,
   };
 

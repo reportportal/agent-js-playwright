@@ -19,7 +19,7 @@ import RPClient from '@reportportal/client-javascript';
 import { Reporter, TestCase, TestResult } from '@playwright/test/reporter';
 import { Attribute, ReportPortalConfig } from './models';
 import { TEST_ITEM_TYPES } from './constants';
-import { promiseErrorHandler } from './utils';
+import { getAgentInfo, getSystemAttributes, promiseErrorHandler } from './utils';
 import { StartLaunchObjType, StartTestObjType, FinishTestItemObjType } from './models/reporting';
 
 export interface TestItem {
@@ -63,10 +63,13 @@ class RPReporter implements Reporter {
 
   constructor(config: ReportPortalConfig) {
     this.config = config;
-    this.client = new RPClient(this.config);
     this.suites = new Map();
     this.testItems = new Map();
     this.promises = [];
+
+    const agentInfo = getAgentInfo();
+
+    this.client = new RPClient(this.config, agentInfo);
   }
 
   addRequestToPromisesQueue(promise: any, failMessage: string): void {
@@ -85,12 +88,15 @@ class RPReporter implements Reporter {
   }
 
   onBegin(): void {
-    const { launch, description, attributes } = this.config;
+    const { launch, description, attributes, skippedIssue } = this.config;
+    const systemAttributes: Attribute[] = getSystemAttributes(skippedIssue);
+
     const startLaunchObj: StartLaunchObjType = {
       name: launch,
       startTime: this.client.helpers.now(),
-      attributes,
       description,
+      attributes:
+        attributes && attributes.length ? attributes.concat(systemAttributes) : systemAttributes,
     };
     const { tempId, promise } = this.client.startLaunch(startLaunchObj);
     this.addRequestToPromisesQueue(promise, 'Failed to launch run.');
@@ -151,9 +157,15 @@ class RPReporter implements Reporter {
 
   onTestEnd(test: TestResp, result: TestResult): void {
     const { id: testItemId } = this.testItems.get(test.title);
+    let withoutIssue;
+    if (result.status === 'skipped') {
+      withoutIssue = this.config.skippedIssue === false;
+    }
+
     const finishTestItemObj: FinishTestItemObjType = {
       endTime: this.client.helpers.now(),
       status: result.status,
+      ...(withoutIssue && { issue: { issueType: 'NOT_ISSUE' } }),
     };
     const { promise } = this.client.finishTestItem(testItemId, finishTestItemObj);
 
