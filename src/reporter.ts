@@ -21,6 +21,7 @@ import { Attribute, ReportPortalConfig } from './models';
 import { TEST_ITEM_TYPES } from './constants';
 import { getAgentInfo, getSystemAttributes, promiseErrorHandler } from './utils';
 import { StartLaunchObjType, StartTestObjType, FinishTestItemObjType } from './models/reporting';
+import { STATUSES } from './constants/statuses';
 
 export interface TestItem {
   id: string;
@@ -158,7 +159,7 @@ class RPReporter implements Reporter {
   onTestEnd(test: TestResp, result: TestResult): void {
     const { id: testItemId } = this.testItems.get(test.title);
     let withoutIssue;
-    if (result.status === 'skipped') {
+    if (result.status === STATUSES.SKIPPED) {
       withoutIssue = this.config.skippedIssue === false;
     }
 
