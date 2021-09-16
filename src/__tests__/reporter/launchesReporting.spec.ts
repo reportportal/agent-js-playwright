@@ -19,6 +19,7 @@ import RPReporter from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { StartLaunchObjType } from '../../models';
 import { RPClientMock } from '../mocks/RPClientMock';
+import { getSystemAttributes } from '../../utils';
 
 describe('start report launch', () => {
   const reporter = new RPReporter(mockConfig);
@@ -26,7 +27,7 @@ describe('start report launch', () => {
   const startLaunchObj: StartLaunchObjType = {
     name: mockConfig.launch,
     startTime: reporter.client.helpers.now(),
-    attributes: mockConfig.attributes,
+    attributes: getSystemAttributes(),
     description: mockConfig.description,
   };
 

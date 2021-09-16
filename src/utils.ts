@@ -15,7 +15,36 @@
  *
  */
 
+import { version as pjsonVersion, name as pjsonName } from '../package.json';
+import { Attribute } from './models';
+
 export const promiseErrorHandler = (promise: Promise<any>, message = '') =>
   promise.catch((err) => {
     console.error(message, err);
   });
+
+export const getAgentInfo = (): { version: string; name: string } => ({
+  version: pjsonVersion,
+  name: pjsonName,
+});
+
+export const getSystemAttributes = (skippedIssue = true): Array<Attribute> => {
+  const systemAttributes = [
+    {
+      key: 'agent',
+      value: `${pjsonName}|${pjsonVersion}`,
+      system: true,
+    },
+  ];
+
+  if (skippedIssue === false) {
+    const skippedIssueAttribute = {
+      key: 'skippedIssue',
+      value: 'false',
+      system: true,
+    };
+    systemAttributes.push(skippedIssueAttribute);
+  }
+
+  return systemAttributes;
+};

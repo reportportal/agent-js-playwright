@@ -2,7 +2,7 @@
   "name": "@reportportal/agent-js-playwright",
   "version": "4.0.0",
   "description": "Agent to integrate Playwright with ReportPortal.",
-  "main": "build/reporter.js",
+  "main": "build/src/reporter.js",
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "rimraf ./build",

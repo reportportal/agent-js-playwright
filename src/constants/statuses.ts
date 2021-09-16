@@ -15,8 +15,13 @@
  *
  */
 
-export interface Attribute {
-  value: string;
-  key?: string;
-  system?: boolean;
+export enum STATUSES {
+  FAILED = 'failed',
+  PASSED = 'passed',
+  SKIPPED = 'skipped',
+  STOPPED = 'stopped',
+  INTERRUPTED = 'interrupted',
+  CANCELLED = 'cancelled',
+  INFO = 'info',
+  WARN = 'warn',
 }

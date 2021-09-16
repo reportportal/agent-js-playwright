@@ -15,7 +15,8 @@
  *
  */
 
-import { promiseErrorHandler } from '../../utils';
+import { version as pjsonVersion, name as pjsonName } from '../../../package.json';
+import { getAgentInfo, getSystemAttributes, promiseErrorHandler } from '../../utils';
 
 describe('testing utils', () => {
   test('promiseErrorHandler', async () => {
@@ -25,5 +26,40 @@ describe('testing utils', () => {
 
     expect(log).toBeCalledTimes(1);
     expect(log).toBeCalledWith('Failed to finish suite', 'error message');
+  });
+
+  describe('getAgentInfo', () => {
+    test('should return the name and version of application from package.json file', () => {
+      const agentInfo = getAgentInfo();
+
+      expect(agentInfo.name).toBe(pjsonName);
+      expect(agentInfo.version).toBe(pjsonVersion);
+    });
+  });
+
+  describe('getSystemAttributes', () => {
+    const expectedRes = [
+      {
+        key: 'agent',
+        value: `${pjsonName}|${pjsonVersion}`,
+        system: true,
+      },
+    ];
+    test('should return the list of system attributes', () => {
+      const systemAttributes = getSystemAttributes();
+
+      expect(systemAttributes).toEqual(expectedRes);
+    });
+
+    test('should return expected list of system attributes in case skippedIssue=false', () => {
+      const systemAttributes = getSystemAttributes(false);
+      const skippedIssueAttribute = {
+        key: 'skippedIssue',
+        value: 'false',
+        system: true,
+      };
+
+      expect(systemAttributes).toEqual([...expectedRes, skippedIssueAttribute]);
+    });
   });
 });
