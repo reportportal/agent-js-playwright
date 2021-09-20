@@ -16,12 +16,17 @@
  */
 
 import RPClient from '@reportportal/client-javascript';
-import { Reporter, TestCase, TestResult } from '@playwright/test/reporter';
-import { Attribute, ReportPortalConfig } from './models';
-import { TEST_ITEM_TYPES } from './constants';
-import { getAgentInfo, getSystemAttributes, promiseErrorHandler } from './utils';
-import { StartLaunchObjType, StartTestObjType, FinishTestItemObjType } from './models/reporting';
-import { STATUSES } from './constants/statuses';
+import { Reporter, TestResult } from '@playwright/test/reporter';
+import {
+  Attribute,
+  ReportPortalConfig,
+  TestResp,
+  FinishTestItemObjType,
+  StartLaunchObjType,
+  StartTestObjType,
+} from './models';
+import { TEST_ITEM_TYPES, STATUSES } from './constants';
+import { getAgentInfo, getCodeRef, getSystemAttributes, promiseErrorHandler } from './utils';
 
 export interface TestItem {
   id: string;
@@ -36,17 +41,6 @@ interface Suite {
   name: string;
   path?: string;
   attributes?: Attribute[];
-}
-
-interface TestResp extends TestCase {
-  parent: {
-    title: string;
-    _isDescribe: boolean;
-    parent: {
-      title: string;
-      _isDescribe: boolean;
-    };
-  };
 }
 
 class RPReporter implements Reporter {
@@ -109,10 +103,12 @@ class RPReporter implements Reporter {
     const suiteHasParent = test.parent.parent?._isDescribe;
     const suiteTitle = suiteHasParent ? test.parent.parent?.title : test.parent.title;
     if (!this.suites.has(suiteTitle)) {
+      const codeRef = getCodeRef(test, TEST_ITEM_TYPES.SUITE);
       const startSuiteObj: StartTestObjType = {
         name: suiteTitle,
         startTime: this.client.helpers.now(),
         type: TEST_ITEM_TYPES.SUITE,
+        codeRef,
       };
       const suiteObj = this.client.startTestItem(startSuiteObj, this.launchId);
       this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
@@ -124,11 +120,13 @@ class RPReporter implements Reporter {
     //suite in suite
     if (suiteHasParent) {
       if (!this.suites.has(test.parent.title)) {
+        const codeRef = getCodeRef(test, TEST_ITEM_TYPES.TEST);
         const { id: parentId } = this.suites.get(suiteTitle);
         const startChildSuiteObj: StartTestObjType = {
           name: test.parent.title,
           startTime: this.client.helpers.now(),
           type: TEST_ITEM_TYPES.TEST,
+          codeRef,
         };
         const suiteObj = this.client.startTestItem(startChildSuiteObj, this.launchId, parentId);
         this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
@@ -141,11 +139,13 @@ class RPReporter implements Reporter {
 
     //create steps
     if (this.suites.get(test.parent.title)) {
+      const codeRef = getCodeRef(test, TEST_ITEM_TYPES.STEP);
       const { id: parentId } = this.suites.get(test.parent.title);
       const startTestItem: StartTestObjType = {
         name: test.title,
         startTime: this.client.helpers.now(),
         type: TEST_ITEM_TYPES.STEP,
+        codeRef,
       };
       const stepObj = this.client.startTestItem(startTestItem, this.launchId, parentId);
       this.addRequestToPromisesQueue(stepObj.promise, 'Failed to start test.');

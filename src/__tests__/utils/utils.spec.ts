@@ -15,8 +15,10 @@
  *
  */
 
-import { version as pjsonVersion, name as pjsonName } from '../../../package.json';
-import { getAgentInfo, getSystemAttributes, promiseErrorHandler } from '../../utils';
+import { name as pjsonName, version as pjsonVersion } from '../../../package.json';
+import { getAgentInfo, getCodeRef, getSystemAttributes, promiseErrorHandler } from '../../utils';
+import path from 'path';
+import { TEST_ITEM_TYPES } from '../../constants';
 
 describe('testing utils', () => {
   test('promiseErrorHandler', async () => {
@@ -60,6 +62,39 @@ describe('testing utils', () => {
       };
 
       expect(systemAttributes).toEqual([...expectedRes, skippedIssueAttribute]);
+    });
+  });
+
+  describe('getCodeRef', () => {
+    jest.spyOn(process, 'cwd').mockImplementation(() => `C:${path.sep}testProject`);
+    const mockedTest = {
+      location: {
+        file: `C:${path.sep}testProject${path.sep}test${path.sep}example.js`,
+        line: 5,
+        column: 3,
+      },
+      titlePath: () => ['example.js', 'rootDescribe', 'parentDescribe', 'testTitle'],
+    };
+
+    test('codeRef should be correct for TEST_ITEM_TYPES.SUITE', () => {
+      const expectedCodeRef = `test/example.js/rootDescribe`;
+      const codeRef = getCodeRef(mockedTest, TEST_ITEM_TYPES.SUITE);
+
+      expect(codeRef).toEqual(expectedCodeRef);
+    });
+
+    test('codeRef should be correct for TEST_ITEM_TYPES.TEST', () => {
+      const expectedCodeRef = `test/example.js/rootDescribe/parentDescribe`;
+      const codeRef = getCodeRef(mockedTest, TEST_ITEM_TYPES.TEST);
+
+      expect(codeRef).toEqual(expectedCodeRef);
+    });
+
+    test('codeRef should be correct for TEST_ITEM_TYPES.STEP', () => {
+      const expectedCodeRef = `test/example.js/rootDescribe/parentDescribe/testTitle`;
+      const codeRef = getCodeRef(mockedTest, TEST_ITEM_TYPES.STEP);
+
+      expect(codeRef).toEqual(expectedCodeRef);
     });
   });
 });

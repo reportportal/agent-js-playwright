@@ -31,6 +31,7 @@ export interface StartTestObjType {
   attributes?: Array<Attribute>;
   description?: string;
   startTime?: Date | number;
+  codeRef?: string;
 }
 
 export interface FinishTestItemObjType {
