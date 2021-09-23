@@ -15,22 +15,9 @@
  *
  */
 
-import { test } from '@playwright/test';
-import { ReportingApi } from '../../src/reportingApi';
+import ClientPublicReportingAPI from '@reportportal/client-javascript/lib/publicReportingAPI';
 
-test.describe('attributes for suite/test',  () => {
-  test('test should be passed',  () => {
-    ReportingApi.setDescription('description for test')
-    ReportingApi.addAttributes([
-      {
-        key: 'keyy',
-        value: 'value',
-      },
-    ]);
-    test.expect(true).toBe(true);
-  });
-
-  test('test should be failed',  () => {
-    test.expect(false).toBe(true);
-  });
-});
+export const ReportingApi = {
+  addAttributes: ClientPublicReportingAPI.addAttributes,
+  setDescription: ClientPublicReportingAPI.setDescription,
+};

@@ -27,6 +27,8 @@ import {
 } from './models';
 import { TEST_ITEM_TYPES, STATUSES } from './constants';
 import { getAgentInfo, getCodeRef, getSystemAttributes, promiseErrorHandler } from './utils';
+import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
+import { ReportingApi } from './reportingApi';
 
 export interface TestItem {
   id: string;
@@ -71,6 +73,20 @@ class RPReporter implements Reporter {
     this.promises.push(promiseErrorHandler(promise, failMessage));
   }
 
+  registerRPListeners(): void {
+    console.log('RegisterRPListeners should be called');
+    process.on(EVENTS.ADD_ATTRIBUTES, this.addAttributes.bind(this));
+    process.on(EVENTS.SET_DESCRIPTION, this.setDescription.bind(this));
+  }
+
+  addAttributes(): void {
+    console.log('Add attributes function should be called');
+  }
+
+  setDescription(): void {
+    console.log('Set description function should be called');
+  }
+
   finishSuites(): void {
     this.suites.forEach(({ id }) => {
       const finishSuiteObj: FinishTestItemObjType = {
@@ -83,8 +99,11 @@ class RPReporter implements Reporter {
   }
 
   onBegin(): void {
+    this.registerRPListeners();
     const { launch, description, attributes, skippedIssue } = this.config;
     const systemAttributes: Attribute[] = getSystemAttributes(skippedIssue);
+
+    // ReportingApi.setDescription('test');
 
     const startLaunchObj: StartLaunchObjType = {
       name: launch,
