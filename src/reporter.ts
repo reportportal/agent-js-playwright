@@ -86,9 +86,7 @@ class RPReporter implements Reporter {
         default:
           break;
       }
-    } catch (e) {
-      console.error('Failed to parse Reporting API data', e);
-    }
+    } catch (e) {}
   }
 
   addAttributes(attributes: Attribute[]): void {}
