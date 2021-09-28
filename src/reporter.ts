@@ -16,7 +16,7 @@
  */
 
 import RPClient from '@reportportal/client-javascript';
-import { Reporter, TestResult } from '@playwright/test/reporter';
+import { Reporter, TestResult, TestCase } from '@playwright/test/reporter';
 import {
   Attribute,
   ReportPortalConfig,
@@ -27,6 +27,7 @@ import {
 } from './models';
 import { TEST_ITEM_TYPES, STATUSES } from './constants';
 import { getAgentInfo, getCodeRef, getSystemAttributes, promiseErrorHandler } from './utils';
+import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 
 export interface TestItem {
   id: string;
@@ -70,6 +71,27 @@ class RPReporter implements Reporter {
   addRequestToPromisesQueue(promise: any, failMessage: string): void {
     this.promises.push(promiseErrorHandler(promise, failMessage));
   }
+
+  onStdOut(chunk: string | Buffer, test?: TestCase, result?: TestResult): void {
+    try {
+      const { type, data } = JSON.parse(String(chunk));
+
+      switch (type) {
+        case EVENTS.ADD_ATTRIBUTES:
+          this.addAttributes(data);
+          break;
+        case EVENTS.SET_DESCRIPTION:
+          this.setDescription(data);
+          break;
+        default:
+          break;
+      }
+    } catch (e) {}
+  }
+
+  addAttributes(attributes: Attribute[]): void {}
+
+  setDescription(description: string): void {}
 
   finishSuites(): void {
     this.suites.forEach(({ id }) => {

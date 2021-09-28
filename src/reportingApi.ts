@@ -15,22 +15,10 @@
  *
  */
 
-import { test, expect } from '@playwright/test';
-import { ReportingApi } from '../../src/reportingApi';
+import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
+import { sendEventToReporter } from './utils';
+import { Attribute } from './models';
 
-test.describe('attributes for suite/test',  () => {
-
-  test('test should be passed',  () => {
-    ReportingApi.addAttributes([
-      {
-        key: 'keyy',
-        value: 'value',
-      },
-    ]);
-    expect(true).toBe(true);
-  });
-
-  test('test should be failed',  () => {
-    expect(false).toBe(true);
-  });
-});
+export const ReportingApi = {
+  addAttributes: (attrs: Attribute[]) => sendEventToReporter(EVENTS.ADD_ATTRIBUTES, attrs),
+};
