@@ -15,22 +15,22 @@
  *
  */
 
-import { test } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { ReportingApi } from '../../src/reportingApi';
 
 test.describe('attributes for suite/test',  () => {
+
   test('test should be passed',  () => {
-    ReportingApi.setDescription('description for test')
     ReportingApi.addAttributes([
       {
         key: 'keyy',
         value: 'value',
       },
     ]);
-    test.expect(true).toBe(true);
+    expect(true).toBe(true);
   });
 
   test('test should be failed',  () => {
-    test.expect(false).toBe(true);
+    expect(false).toBe(true);
   });
 });

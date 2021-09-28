@@ -15,9 +15,10 @@
  *
  */
 
-import ClientPublicReportingAPI from '@reportportal/client-javascript/lib/publicReportingAPI';
+import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
+import { sendEventToReporter } from './utils';
+import { Attribute } from './models';
 
 export const ReportingApi = {
-  addAttributes: ClientPublicReportingAPI.addAttributes,
-  setDescription: ClientPublicReportingAPI.setDescription,
+  addAttributes: (attrs: Attribute[]) => sendEventToReporter(EVENTS.ADD_ATTRIBUTES, attrs),
 };

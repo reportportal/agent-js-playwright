@@ -15,7 +15,7 @@
     "@reportportal/client-javascript": "^5.0.5"
   },
   "devDependencies": {
-    "@playwright/test": "^1.14.1",
+    "@playwright/test": "^1.15.0",
     "@types/jest": "^27.0.1",
     "@types/node": "^15.14.1",
     "@typescript-eslint/eslint-plugin": "^4.29.3",
