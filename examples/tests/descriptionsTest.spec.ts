@@ -15,10 +15,10 @@
  *
  */
 
-import { test } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 test.describe('description for suite/test',  () => {
   test('test should be failed',  () => {
-    test.expect(false).toBe(true);
+    expect(false).toBe(true);
   });
 });

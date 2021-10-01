@@ -15,28 +15,21 @@
  *
  */
 
-import { test, expect } from '@playwright/test';
-import { ReportingApi } from '../../src/reportingApi';
+import { ReportingApi } from '../../reportingApi';
+import * as utils from '../../utils';
 
-test.describe('attributes for suite/test',  () => {
-  ReportingApi.addAttributes([
-    {
-      key: 'suitekey',
-      value: 'suitevalue',
-    },
-  ]);
-
-  test('test should be passed',  () => {
-    ReportingApi.addAttributes([
+describe('reportingApi', () => {
+  test('addAttributes should call sendEventToReporter with params', () => {
+    const attrs = [
       {
-        key: 'keyy',
+        key: 'key',
         value: 'value',
       },
-    ]);
-    expect(true).toBe(true);
-  });
+    ];
+    const event = 'rp:addAttributes';
+    const spySendEventToReporter = jest.spyOn(utils, 'sendEventToReporter');
+    ReportingApi.addAttributes(attrs);
 
-  test('test should be failed',  () => {
-    expect(false).toBe(true);
+    expect(spySendEventToReporter).toHaveBeenCalledWith(event, attrs);
   });
 });

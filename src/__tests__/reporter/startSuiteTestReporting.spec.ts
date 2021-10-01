@@ -46,7 +46,9 @@ describe('start reporting suite/test', () => {
   reporter.onTestBegin(testParams);
 
   describe('start suite report', () => {
-    const expectedSuite = new Map([['suiteName', { id: 'tempTestItemId', name: 'suiteName' }]]);
+    const expectedSuite = new Map([
+      ['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }],
+    ]);
     const startSuiteObj: StartTestObjType = {
       startTime: reporter.client.helpers.now(),
       name: testParams.parent.title,
@@ -64,7 +66,7 @@ describe('start reporting suite/test', () => {
   });
 
   describe('start tests report', () => {
-    const expectedTestItems = new Map([['test', { id: 'tempTestItemId', name: 'test' }]]);
+    const expectedTestItems = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'test' }]]);
     const parentId = 'tempTestItemId';
     const startTestObj: StartTestObjType = {
       startTime: reporter.client.helpers.now(),
@@ -107,17 +109,17 @@ describe('suite in suite case', () => {
     },
     titlePath: () => ['example.js', 'rootDescribe', 'parentDescribe', 'testTitle'],
   };
-  reporter.suites.set('parentSuiteName', { id: 'tempTestItemId', name: 'parentSuiteName' });
+  reporter.suites.set('tempTestItemId', { id: 'tempTestItemId', name: 'parentSuiteName' });
 
   const expectedSuites = new Map([
     [
-      'parentSuiteName',
+      'tempTestItemId',
       {
         id: 'tempTestItemId',
         name: 'parentSuiteName',
       },
     ],
-    ['suiteName', { id: 'tempTestItemId', name: 'suiteName' }],
+    ['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }],
   ]);
   test('parent and child suites should be updated', () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment

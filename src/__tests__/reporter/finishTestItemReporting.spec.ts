@@ -23,7 +23,13 @@ describe('finish test reporting', () => {
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
-  reporter.testItems = new Map([['test', { id: 'tempTestItemId', name: 'test' }]]);
+  reporter.testItems = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'test' }]]);
+  const attributes = [
+    {
+      key: 'key',
+      value: 'value',
+    },
+  ];
 
   const testParams = {
     title: 'test',
@@ -33,13 +39,18 @@ describe('finish test reporting', () => {
   };
 
   const result = {
-    status: 'passed',
+    status: 'skipped',
   };
 
   const finishTestItemObj: FinishTestItemObjType = {
     endTime: reporter.client.helpers.now(),
     status: result.status,
+    attributes,
   };
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  reporter.addAttributes(attributes, testParams);
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -53,7 +64,7 @@ describe('finish test reporting', () => {
     );
   });
 
-  test('testItems size should be 0', () => {
+  test('reporter.testItems size should be 0', () => {
     expect(reporter.testItems.size).toBe(0);
   });
 });

@@ -16,15 +16,43 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { ReportingApi } from '../../src/reportingApi';
 
 test.describe('Top level suite', () => {
+  ReportingApi.addAttributes([
+    {
+      key: 'suitekey',
+      value: 'suitevalue',
+    },
+  ]);
   test.describe('Bottom level suite', () => {
+    ReportingApi.addAttributes([
+      {
+        key: 'suitekey2',
+        value: 'suitevalue2',
+      },
+    ]);
     test('Test should be passed', async ({ page }) => {
+      ReportingApi.addAttributes([
+        {
+          key: 'key',
+          value: 'value',
+        },
+      ]);
       await page.goto('https://playwright.dev/');
       const title = page.locator('.navbar__inner .navbar__title');
       await expect(title).toHaveText('Playwright');
     });
 
+  })
+
+  test.describe('second bottom level suite', () => {
+    ReportingApi.addAttributes([
+      {
+        key: 'suitekey3',
+        value: 'suitevalue3',
+      },
+    ]);
     test('Test should be failed', async ({ page }) => {
       await expect('net').toHaveText('Playwright');
     });
