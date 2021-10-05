@@ -12,31 +12,27 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- *
  */
 
-import { test, expect } from '@playwright/test';
-import { ReportingApi } from '../../src/reportingApi';
+import RPReporter from '../../reporter';
+import { mockConfig } from '../mocks/configMock';
+import { RPClientMock } from '../mocks/RPClientMock';
 
-test.describe('attributes for suite/test',  () => {
-  ReportingApi.addAttributes([
-    {
-      key: 'suitekey',
-      value: 'suitevalue',
-    },
-  ]);
+describe('onStdOut testing', () => {
+  const reporter = new RPReporter(mockConfig);
+  reporter.client = new RPClientMock(mockConfig);
 
-  test('test should be passed',  () => {
-    ReportingApi.addAttributes([
+  test('case rp:addAttributes should call addAttributes', () => {
+    const type = 'rp:addAttributes';
+    const data = [
       {
-        key: 'keyy',
+        key: 'key',
         value: 'value',
       },
-    ]);
-    expect(true).toBe(true);
-  });
-
-  test('test should be failed',  () => {
-    expect(false).toBe(true);
+    ];
+    jest.spyOn(reporter, 'addAttributes');
+    const chunk = JSON.stringify({ type, data });
+    reporter.onStdOut(chunk);
+    expect(reporter.addAttributes).toHaveBeenCalled();
   });
 });

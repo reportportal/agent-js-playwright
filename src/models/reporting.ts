@@ -37,4 +37,5 @@ export interface StartTestObjType {
 export interface FinishTestItemObjType {
   endTime?: Date | number;
   status?: string;
+  attributes?: Attribute[];
 }

@@ -53,15 +53,18 @@ class RPReporter implements Reporter {
 
   suites: Map<string, Suite>;
 
+  promises: Promise<any>[];
+
   testItems: Map<string, TestItem>;
 
-  promises: Promise<any>[];
+  suitesAttributes: Array<Attribute[]>;
 
   constructor(config: ReportPortalConfig) {
     this.config = config;
     this.suites = new Map();
     this.testItems = new Map();
     this.promises = [];
+    this.suitesAttributes = [];
 
     const agentInfo = getAgentInfo();
 
@@ -78,20 +81,20 @@ class RPReporter implements Reporter {
 
       switch (type) {
         case EVENTS.ADD_ATTRIBUTES:
-          this.addAttributes(data);
-          break;
-        case EVENTS.SET_DESCRIPTION:
-          this.setDescription(data);
-          break;
-        default:
+          this.addAttributes(data, test);
           break;
       }
     } catch (e) {}
   }
 
-  addAttributes(attributes: Attribute[]): void {}
-
-  setDescription(description: string): void {}
+  addAttributes(attributes: Attribute[], test: TestCase): void {
+    const testItem = this.findTestItem(this.testItems, test?.title);
+    if (testItem) {
+      this.testItems.set(testItem.id, { ...this.testItems.get(testItem.id), attributes });
+    } else {
+      this.suitesAttributes.push(attributes);
+    }
+  }
 
   finishSuites(): void {
     this.suites.forEach(({ id }) => {
@@ -120,39 +123,51 @@ class RPReporter implements Reporter {
     this.launchId = tempId;
   }
 
+  findTestItem(testItem: Map<string, Suite> | Map<string, TestItem>, title: string): Suite {
+    for (const [key, value] of testItem) {
+      if (value.name === title) {
+        return value;
+      }
+    }
+  }
+
   onTestBegin(test: TestResp): void {
     //create suite
     const suiteHasParent = test.parent.parent?._isDescribe;
     const suiteTitle = suiteHasParent ? test.parent.parent?.title : test.parent.title;
-    if (!this.suites.has(suiteTitle)) {
+    if (!this.findTestItem(this.suites, suiteTitle)) {
       const codeRef = getCodeRef(test, TEST_ITEM_TYPES.SUITE);
+      const attributes = this.suitesAttributes.shift();
       const startSuiteObj: StartTestObjType = {
         name: suiteTitle,
         startTime: this.client.helpers.now(),
         type: TEST_ITEM_TYPES.SUITE,
         codeRef,
+        attributes,
       };
       const suiteObj = this.client.startTestItem(startSuiteObj, this.launchId);
       this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
-      this.suites.set(suiteTitle, {
+      this.suites.set(suiteObj.tempId, {
         id: suiteObj.tempId,
         name: suiteTitle,
       });
     }
     //suite in suite
     if (suiteHasParent) {
-      if (!this.suites.has(test.parent.title)) {
+      if (!this.findTestItem(this.suites, test.parent.title)) {
         const codeRef = getCodeRef(test, TEST_ITEM_TYPES.TEST);
-        const { id: parentId } = this.suites.get(suiteTitle);
+        const { id: parentId } = this.findTestItem(this.suites, suiteTitle);
+        const attributes = this.suitesAttributes.shift();
         const startChildSuiteObj: StartTestObjType = {
           name: test.parent.title,
           startTime: this.client.helpers.now(),
           type: TEST_ITEM_TYPES.TEST,
           codeRef,
+          attributes,
         };
         const suiteObj = this.client.startTestItem(startChildSuiteObj, this.launchId, parentId);
         this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
-        this.suites.set(test.parent.title, {
+        this.suites.set(suiteObj.tempId, {
           id: suiteObj.tempId,
           name: test.parent.title,
         });
@@ -160,9 +175,9 @@ class RPReporter implements Reporter {
     }
 
     //create steps
-    if (this.suites.get(test.parent.title)) {
+    if (this.findTestItem(this.suites, test.parent.title)) {
       const codeRef = getCodeRef(test, TEST_ITEM_TYPES.STEP);
-      const { id: parentId } = this.suites.get(test.parent.title);
+      const { id: parentId } = this.findTestItem(this.suites, test.parent.title);
       const startTestItem: StartTestObjType = {
         name: test.title,
         startTime: this.client.helpers.now(),
@@ -171,7 +186,7 @@ class RPReporter implements Reporter {
       };
       const stepObj = this.client.startTestItem(startTestItem, this.launchId, parentId);
       this.addRequestToPromisesQueue(stepObj.promise, 'Failed to start test.');
-      this.testItems.set(test.title, {
+      this.testItems.set(stepObj.tempId, {
         name: test.title,
         id: stepObj.tempId,
       });
@@ -179,7 +194,7 @@ class RPReporter implements Reporter {
   }
 
   onTestEnd(test: TestResp, result: TestResult): void {
-    const { id: testItemId } = this.testItems.get(test.title);
+    const { id: testItemId, attributes } = this.findTestItem(this.testItems, test.title);
     let withoutIssue;
     if (result.status === STATUSES.SKIPPED) {
       withoutIssue = this.config.skippedIssue === false;
@@ -189,11 +204,12 @@ class RPReporter implements Reporter {
       endTime: this.client.helpers.now(),
       status: result.status,
       ...(withoutIssue && { issue: { issueType: 'NOT_ISSUE' } }),
+      ...(attributes && { attributes }),
     };
     const { promise } = this.client.finishTestItem(testItemId, finishTestItemObj);
 
     this.addRequestToPromisesQueue(promise, 'Failed to finish test.');
-    this.testItems.delete(test.title);
+    this.testItems.delete(testItemId);
   }
 
   async onEnd(): Promise<void> {

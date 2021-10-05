@@ -22,7 +22,7 @@ describe('finish report suite', () => {
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
-  reporter.suites = new Map([['suiteName', { id: 'tempTestItemId', name: 'suiteName' }]]);
+  reporter.suites = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }]]);
 
   reporter.onEnd();
 

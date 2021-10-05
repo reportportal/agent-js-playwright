@@ -16,7 +16,13 @@
  */
 
 import { name as pjsonName, version as pjsonVersion } from '../../../package.json';
-import { getAgentInfo, getCodeRef, getSystemAttributes, promiseErrorHandler } from '../../utils';
+import {
+  getAgentInfo,
+  getCodeRef,
+  getSystemAttributes,
+  promiseErrorHandler,
+  sendEventToReporter,
+} from '../../utils';
 import path from 'path';
 import { TEST_ITEM_TYPES } from '../../constants';
 
@@ -95,6 +101,20 @@ describe('testing utils', () => {
       const codeRef = getCodeRef(mockedTest, TEST_ITEM_TYPES.STEP);
 
       expect(codeRef).toEqual(expectedCodeRef);
+    });
+  });
+  describe('sendEventToReporter', () => {
+    test('func must send event to reporter', () => {
+      const type = 'ADD_ATTRIBUTES';
+      const data = [
+        {
+          key: 'key',
+          value: 'value',
+        },
+      ];
+      const spyProcess = jest.spyOn(process.stdout, 'write');
+      sendEventToReporter(type, data);
+      expect(spyProcess).toHaveBeenCalledWith(JSON.stringify({ type, data }));
     });
   });
 });
