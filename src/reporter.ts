@@ -53,8 +53,6 @@ class RPReporter implements Reporter {
 
   suites: Map<string, Suite>;
 
-  suitesStackTempId: Array<string>;
-
   promises: Promise<any>[];
 
   testItems: Map<string, TestItem>;
@@ -66,7 +64,6 @@ class RPReporter implements Reporter {
     this.suites = new Map();
     this.testItems = new Map();
     this.promises = [];
-    this.suitesStackTempId = [];
     this.suitesAttributes = [];
 
     const agentInfo = getAgentInfo();
@@ -91,7 +88,7 @@ class RPReporter implements Reporter {
   }
 
   addAttributes(attributes: Attribute[], test: TestCase): void {
-    const testItem = this.isMapElementExist(this.testItems, test?.title);
+    const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
       this.testItems.set(testItem.id, { ...this.testItems.get(testItem.id), attributes });
     } else {
@@ -100,10 +97,9 @@ class RPReporter implements Reporter {
   }
 
   finishSuites(): void {
-    this.suites.forEach(({ id, attributes }) => {
+    this.suites.forEach(({ id }) => {
       const finishSuiteObj: FinishTestItemObjType = {
         endTime: this.client.helpers.now(),
-        ...(attributes && { attributes }),
       };
       const { promise } = this.client.finishTestItem(id, finishSuiteObj);
       this.addRequestToPromisesQueue(promise, 'Failed to finish suite.');
@@ -127,8 +123,8 @@ class RPReporter implements Reporter {
     this.launchId = tempId;
   }
 
-  isMapElementExist(suite: Map<string, Suite>, title: string): Suite {
-    for (const [key, value] of suite) {
+  findTestItem(testItem: Map<string, Suite> | Map<string, TestItem>, title: string): Suite {
+    for (const [key, value] of testItem) {
       if (value.name === title) {
         return value;
       }
@@ -139,53 +135,49 @@ class RPReporter implements Reporter {
     //create suite
     const suiteHasParent = test.parent.parent?._isDescribe;
     const suiteTitle = suiteHasParent ? test.parent.parent?.title : test.parent.title;
-    if (!this.isMapElementExist(this.suites, suiteTitle)) {
+    if (!this.findTestItem(this.suites, suiteTitle)) {
       const codeRef = getCodeRef(test, TEST_ITEM_TYPES.SUITE);
+      const attributes = this.suitesAttributes.shift();
       const startSuiteObj: StartTestObjType = {
         name: suiteTitle,
         startTime: this.client.helpers.now(),
         type: TEST_ITEM_TYPES.SUITE,
         codeRef,
+        attributes,
       };
       const suiteObj = this.client.startTestItem(startSuiteObj, this.launchId);
       this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
-      this.suitesStackTempId.push(suiteObj.tempId);
       this.suites.set(suiteObj.tempId, {
         id: suiteObj.tempId,
         name: suiteTitle,
-        ...(this.suitesAttributes.length && {
-          attributes: this.suitesAttributes[this.suitesStackTempId.length - 1],
-        }),
       });
     }
     //suite in suite
     if (suiteHasParent) {
-      if (!this.isMapElementExist(this.suites, test.parent.title)) {
+      if (!this.findTestItem(this.suites, test.parent.title)) {
         const codeRef = getCodeRef(test, TEST_ITEM_TYPES.TEST);
-        const { id: parentId } = this.isMapElementExist(this.suites, suiteTitle);
+        const { id: parentId } = this.findTestItem(this.suites, suiteTitle);
+        const attributes = this.suitesAttributes.shift();
         const startChildSuiteObj: StartTestObjType = {
           name: test.parent.title,
           startTime: this.client.helpers.now(),
           type: TEST_ITEM_TYPES.TEST,
           codeRef,
+          attributes,
         };
         const suiteObj = this.client.startTestItem(startChildSuiteObj, this.launchId, parentId);
         this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
-        this.suitesStackTempId.push(suiteObj.tempId);
         this.suites.set(suiteObj.tempId, {
           id: suiteObj.tempId,
           name: test.parent.title,
-          ...(this.suitesAttributes.length && {
-            attributes: this.suitesAttributes[this.suitesStackTempId.length - 1],
-          }),
         });
       }
     }
 
     //create steps
-    if (this.isMapElementExist(this.suites, test.parent.title)) {
+    if (this.findTestItem(this.suites, test.parent.title)) {
       const codeRef = getCodeRef(test, TEST_ITEM_TYPES.STEP);
-      const { id: parentId } = this.isMapElementExist(this.suites, test.parent.title);
+      const { id: parentId } = this.findTestItem(this.suites, test.parent.title);
       const startTestItem: StartTestObjType = {
         name: test.title,
         startTime: this.client.helpers.now(),
@@ -199,17 +191,10 @@ class RPReporter implements Reporter {
         id: stepObj.tempId,
       });
     }
-    if (
-      this.suitesStackTempId.length === this.suitesAttributes.length ||
-      this.suitesAttributes.length === 0
-    ) {
-      this.suitesAttributes = [];
-      this.suitesStackTempId = [];
-    }
   }
 
   onTestEnd(test: TestResp, result: TestResult): void {
-    const { id: testItemId, attributes } = this.isMapElementExist(this.testItems, test.title);
+    const { id: testItemId, attributes } = this.findTestItem(this.testItems, test.title);
     let withoutIssue;
     if (result.status === STATUSES.SKIPPED) {
       withoutIssue = this.config.skippedIssue === false;

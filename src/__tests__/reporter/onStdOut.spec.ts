@@ -18,7 +18,7 @@ import RPReporter from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 
-describe('stdOut testing', () => {
+describe('onStdOut testing', () => {
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
 
