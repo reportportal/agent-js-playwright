@@ -18,44 +18,32 @@ import RPReporter from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 
-describe('attributes reporting', () => {
+describe('description reporting', () => {
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
 
-  const attributes = [
-    {
-      key: 'key',
-      value: 'value',
-    },
-  ];
+  const description = 'Description';
 
   const testParams = {
     title: 'testName',
   };
 
-  test('reporter.testItems should be updated with attributes', () => {
+  test('reporter.testItems should be updated with description', () => {
     reporter.testItems = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'testName' }]]);
     // @ts-ignore
-    reporter.addAttributes(attributes, testParams);
+    reporter.setDescription(description, testParams);
     const expectedTestItems = new Map([
-      ['tempTestItemId', { id: 'tempTestItemId', name: 'testName', attributes }],
+      ['tempTestItemId', { id: 'tempTestItemId', name: 'testName', description }],
     ]);
     expect(reporter.testItems).toEqual(expectedTestItems);
     reporter.testItems.delete('tempTestItemId');
   });
 
-  test('reporter.suitesAttributes should be with attributes', () => {
+  test('reporter.suiteDescription should be with description', () => {
     reporter.suites = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }]]);
     // @ts-ignore
-    reporter.addAttributes(attributes, testParams);
-    const expectedSuitesAttributes = [
-      [
-        {
-          key: 'key',
-          value: 'value',
-        },
-      ],
-    ];
-    expect(reporter.suitesAttributes).toEqual(expectedSuitesAttributes);
+    reporter.setDescription(description, testParams);
+    const expectedSuitesDescription = ['Description'];
+    expect(reporter.suitesDescription).toEqual(expectedSuitesDescription);
   });
 });

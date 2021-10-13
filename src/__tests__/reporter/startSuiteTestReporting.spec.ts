@@ -41,7 +41,6 @@ describe('start reporting suite/test', () => {
 
   jest.spyOn(process, 'cwd').mockImplementation(() => `C:${path.sep}testProject`);
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   reporter.onTestBegin(testParams);
 
@@ -122,7 +121,6 @@ describe('suite in suite case', () => {
     ['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }],
   ]);
   test('parent and child suites should be updated', () => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     reporter.onTestBegin(testParams);
     expect(reporter.suites).toEqual(expectedSuites);

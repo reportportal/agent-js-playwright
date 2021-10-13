@@ -31,6 +31,8 @@ describe('finish test reporting', () => {
     },
   ];
 
+  const description = 'description';
+
   const testParams = {
     title: 'test',
     parent: {
@@ -46,13 +48,13 @@ describe('finish test reporting', () => {
     endTime: reporter.client.helpers.now(),
     status: result.status,
     attributes,
+    description,
   };
-
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   reporter.addAttributes(attributes, testParams);
+  // @ts-ignore
+  reporter.setDescription(description, testParams);
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   reporter.onTestEnd(testParams, result);
 
