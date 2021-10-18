@@ -28,10 +28,12 @@ describe('description reporting', () => {
     title: 'testName',
   };
 
+  const suite = 'tempTestItemId';
+
   test('reporter.testItems should be updated with description', () => {
     reporter.testItems = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'testName' }]]);
     // @ts-ignore
-    reporter.setDescription(description, testParams);
+    reporter.setDescription(description, suite, testParams);
     const expectedTestItems = new Map([
       ['tempTestItemId', { id: 'tempTestItemId', name: 'testName', description }],
     ]);
@@ -42,8 +44,8 @@ describe('description reporting', () => {
   test('reporter.suiteDescription should be with description', () => {
     reporter.suites = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }]]);
     // @ts-ignore
-    reporter.setDescription(description, testParams);
-    const expectedSuitesDescription = ['Description'];
+    reporter.setDescription(description, suite, testParams);
+    const expectedSuitesDescription = new Map([['tempTestItemId', 'Description']]);
     expect(reporter.suitesDescription).toEqual(expectedSuitesDescription);
   });
 });

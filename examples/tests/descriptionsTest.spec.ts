@@ -19,7 +19,7 @@ import { test, expect } from '@playwright/test';
 import { ReportingApi } from '../../src/reportingApi';
 
 test.describe('description for suite/test',  () => {
-  ReportingApi.setDescription('Description for suite');
+  ReportingApi.setDescription('Description for suite', 'description for suite/test');
 
   test('test should be failed',  () => {
     ReportingApi.setDescription('Description for testItem');

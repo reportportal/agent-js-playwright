@@ -20,6 +20,8 @@ import { sendEventToReporter } from './utils';
 import { Attribute } from './models';
 
 export const ReportingApi = {
-  addAttributes: (attrs: Attribute[]) => sendEventToReporter(EVENTS.ADD_ATTRIBUTES, attrs),
-  setDescription: (description: string) => sendEventToReporter(EVENTS.SET_DESCRIPTION, description),
+  addAttributes: (attrs: Attribute[], suite?: string) =>
+    sendEventToReporter(EVENTS.ADD_ATTRIBUTES, attrs, suite),
+  setDescription: (description: string, suite?: string) =>
+    sendEventToReporter(EVENTS.SET_DESCRIPTION, description, suite),
 };

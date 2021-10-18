@@ -44,6 +44,8 @@ describe('finish test reporting', () => {
     status: 'skipped',
   };
 
+  const suite = 'tempTestItemId';
+
   const finishTestItemObj: FinishTestItemObjType = {
     endTime: reporter.client.helpers.now(),
     status: result.status,
@@ -51,9 +53,9 @@ describe('finish test reporting', () => {
     description,
   };
   // @ts-ignore
-  reporter.addAttributes(attributes, testParams);
+  reporter.addAttributes(attributes, suite, testParams);
   // @ts-ignore
-  reporter.setDescription(description, testParams);
+  reporter.setDescription(description, suite, testParams);
 
   // @ts-ignore
   reporter.onTestEnd(testParams, result);

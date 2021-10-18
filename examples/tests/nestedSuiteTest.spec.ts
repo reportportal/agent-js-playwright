@@ -21,27 +21,46 @@ import { ReportingApi } from '../../src/reportingApi';
 test.describe('Top level suite', () => {
   ReportingApi.addAttributes([
     {
-      key: 'suitekey',
-      value: 'suitevalue',
+      key: 'key',
+      value: 'Top_level_suite_1',
     },
-  ]);
-  ReportingApi.setDescription('Description for top level suite');
+    {
+      value: 'Top_level_suite_1',
+    },
+  ], 'Top level suite');
+  ReportingApi.addAttributes([
+    {
+      value: 'Top_level_suite_2',
+    },
+  ], 'Top level suite');
+  ReportingApi.setDescription('Description for top level suite_1', 'Top level suite');
+  ReportingApi.setDescription('Description for top level suite_2', 'Top level suite');
   test.describe('Bottom level suite', () => {
     ReportingApi.addAttributes([
       {
-        key: 'suitekey2',
-        value: 'suitevalue2',
+        value: 'Bottom_level_suite_1',
       },
-    ]);
-    ReportingApi.setDescription('Description for bottom level suite');
+    ], 'Bottom level suite');
+    ReportingApi.addAttributes([
+      {
+        value: 'Bottom_level_suite_2',
+      },
+    ], 'Bottom level suite');
+    ReportingApi.setDescription('Description for bottom level suite_1', 'Bottom level suite');
+    ReportingApi.setDescription('Description for bottom level suite_2', 'Bottom level suite');
     test('Test should be passed', async ({ page }) => {
       ReportingApi.addAttributes([
         {
-          key: 'key',
-          value: 'value',
+          value: 'Test_should_be_passed_1',
         },
       ]);
-      ReportingApi.setDescription('Description for testItem');
+      ReportingApi.addAttributes([
+        {
+          value: 'Test_should_be_passed_2',
+        },
+      ]);
+      ReportingApi.setDescription('Description for testItem_1');
+      ReportingApi.setDescription('Description for testItem_2');
       await page.goto('https://playwright.dev/');
       const title = page.locator('.navbar__inner .navbar__title');
       await expect(title).toHaveText('Playwright');
@@ -52,11 +71,16 @@ test.describe('Top level suite', () => {
   test.describe('second bottom level suite', () => {
     ReportingApi.addAttributes([
       {
-        key: 'suitekey3',
-        value: 'suitevalue3',
+        value: 'second bottom level suite_1',
       },
-    ]);
-    ReportingApi.setDescription('Description for second bottom level suite');
+    ], 'second bottom level suite');
+    ReportingApi.addAttributes([
+      {
+        value: 'second bottom level suite_2',
+      },
+    ], 'second bottom level suite');
+    ReportingApi.setDescription('Description for second bottom level suite_1', 'second bottom level suite');
+    ReportingApi.setDescription('Description for second bottom level suite_2', 'second bottom level suite');
     test('Test should be failed', async ({ page }) => {
       await expect('net').toHaveText('Playwright');
     });
