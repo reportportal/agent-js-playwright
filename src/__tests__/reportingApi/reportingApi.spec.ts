@@ -26,10 +26,11 @@ describe('reportingApi', () => {
         value: 'value',
       },
     ];
+    const suite = 'suite';
     const event = 'rp:addAttributes';
     const spySendEventToReporter = jest.spyOn(utils, 'sendEventToReporter');
-    ReportingApi.addAttributes(attrs);
+    ReportingApi.addAttributes(attrs, suite);
 
-    expect(spySendEventToReporter).toHaveBeenCalledWith(event, attrs);
+    expect(spySendEventToReporter).toHaveBeenCalledWith(event, attrs, suite);
   });
 });

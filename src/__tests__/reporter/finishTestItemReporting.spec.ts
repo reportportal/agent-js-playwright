@@ -31,6 +31,8 @@ describe('finish test reporting', () => {
     },
   ];
 
+  const description = 'description';
+
   const testParams = {
     title: 'test',
     parent: {
@@ -42,17 +44,19 @@ describe('finish test reporting', () => {
     status: 'skipped',
   };
 
+  const suite = 'tempTestItemId';
+
   const finishTestItemObj: FinishTestItemObjType = {
     endTime: reporter.client.helpers.now(),
     status: result.status,
     attributes,
+    description,
   };
-
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  reporter.addAttributes(attributes, testParams);
+  reporter.addAttributes(attributes, testParams, suite);
+  // @ts-ignore
+  reporter.setDescription(description, testParams, suite);
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   reporter.onTestEnd(testParams, result);
 

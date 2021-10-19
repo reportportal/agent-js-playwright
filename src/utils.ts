@@ -75,6 +75,6 @@ export const getCodeRef = (testItem: testItemPick, itemType: TEST_ITEM_TYPES): s
   }
 };
 
-export const sendEventToReporter = (type: string, data: any): void => {
-  process.stdout.write(JSON.stringify({ type, data }));
+export const sendEventToReporter = (type: string, data: any, suite?: string): void => {
+  process.stdout.write(JSON.stringify({ type, data, suite }));
 };

@@ -35,4 +35,12 @@ describe('onStdOut testing', () => {
     reporter.onStdOut(chunk);
     expect(reporter.addAttributes).toHaveBeenCalled();
   });
+  test('case rp:setDescription should call setDescription', () => {
+    const type = 'rp:setDescription';
+    const data = 'Description';
+    jest.spyOn(reporter, 'setDescription');
+    const chunk = JSON.stringify({ type, data });
+    reporter.onStdOut(chunk);
+    expect(reporter.setDescription).toHaveBeenCalled();
+  });
 });

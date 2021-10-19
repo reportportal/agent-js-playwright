@@ -18,16 +18,11 @@ import RPReporter from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 
-describe('attributes reporting', () => {
+describe('description reporting', () => {
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
 
-  const attributes = [
-    {
-      key: 'key',
-      value: 'value',
-    },
-  ];
+  const description = 'Description';
 
   const testParams = {
     title: 'testName',
@@ -35,34 +30,22 @@ describe('attributes reporting', () => {
 
   const suite = 'tempTestItemId';
 
-  test('reporter.testItems should be updated with attributes', () => {
+  test('reporter.testItems should be updated with description', () => {
     reporter.testItems = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'testName' }]]);
     // @ts-ignore
-    reporter.addAttributes(attributes, testParams, suite);
+    reporter.setDescription(description, testParams, suite);
     const expectedTestItems = new Map([
-      ['tempTestItemId', { id: 'tempTestItemId', name: 'testName', attributes }],
+      ['tempTestItemId', { id: 'tempTestItemId', name: 'testName', description }],
     ]);
     expect(reporter.testItems).toEqual(expectedTestItems);
     reporter.testItems.delete('tempTestItemId');
   });
 
-  test('reporter.suitesInfo should be with attributes', () => {
+  test('reporter.suitesInfo should be with description', () => {
     reporter.suites = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }]]);
     // @ts-ignore
-    reporter.addAttributes(attributes, testParams, suite);
-    const expectedSuitesInfo = new Map([
-      [
-        'tempTestItemId',
-        {
-          attributes: [
-            {
-              key: 'key',
-              value: 'value',
-            },
-          ],
-        },
-      ],
-    ]);
+    reporter.setDescription(description, testParams, suite);
+    const expectedSuitesInfo = new Map([['tempTestItemId', { description: 'Description' }]]);
     expect(reporter.suitesInfo).toEqual(expectedSuitesInfo);
   });
 });

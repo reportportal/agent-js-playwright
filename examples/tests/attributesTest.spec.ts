@@ -24,7 +24,7 @@ test.describe('attributes for suite/test',  () => {
       key: 'suitekey',
       value: 'suitevalue',
     },
-  ]);
+  ], 'attributes for suite/test');
 
   test('test should be passed',  () => {
     ReportingApi.addAttributes([
