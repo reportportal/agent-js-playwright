@@ -53,9 +53,9 @@ describe('finish test reporting', () => {
     description,
   };
   // @ts-ignore
-  reporter.addAttributes(attributes, suite, testParams);
+  reporter.addAttributes(attributes, testParams, suite);
   // @ts-ignore
-  reporter.setDescription(description, suite, testParams);
+  reporter.setDescription(description, testParams, suite);
 
   // @ts-ignore
   reporter.onTestEnd(testParams, result);

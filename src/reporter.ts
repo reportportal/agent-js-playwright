@@ -58,17 +58,14 @@ class RPReporter implements Reporter {
 
   testItems: Map<string, TestItem>;
 
-  suitesAttributes: Map<string, Array<Attribute>>;
-
-  suitesDescription: Map<string, string>;
+  suitesInfo: Map<string, any>;
 
   constructor(config: ReportPortalConfig) {
     this.config = config;
     this.suites = new Map();
     this.testItems = new Map();
     this.promises = [];
-    this.suitesAttributes = new Map();
-    this.suitesDescription = new Map();
+    this.suitesInfo = new Map();
 
     const agentInfo = getAgentInfo();
 
@@ -85,32 +82,32 @@ class RPReporter implements Reporter {
 
       switch (type) {
         case EVENTS.ADD_ATTRIBUTES:
-          this.addAttributes(data, suite, test);
+          this.addAttributes(data, test, suite);
           break;
         case EVENTS.SET_DESCRIPTION:
-          this.setDescription(data, suite, test);
+          this.setDescription(data, test, suite);
           break;
       }
     } catch (e) {}
   }
 
-  addAttributes(attr: Attribute[], suite: string, test: TestCase): void {
+  addAttributes(attr: Attribute[], test: TestCase, suite: string): void {
     const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
       const attributes = (this.testItems.get(testItem.id).attributes || []).concat(attr);
       this.testItems.set(testItem.id, { ...this.testItems.get(testItem.id), attributes });
     } else {
-      const attributes = (this.suitesAttributes.get(suite) || []).concat(attr);
-      this.suitesAttributes.set(suite, attributes);
+      const attributes = (this.suitesInfo.get(suite)?.attributes || []).concat(attr);
+      this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), attributes });
     }
   }
 
-  setDescription(description: string, suite: string, test: TestCase): void {
+  setDescription(description: string, test: TestCase, suite: string): void {
     const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
       this.testItems.set(testItem.id, { ...this.testItems.get(testItem.id), description });
     } else {
-      this.suitesDescription.set(suite, description);
+      this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), description });
     }
   }
 
@@ -155,8 +152,8 @@ class RPReporter implements Reporter {
     const suiteTitle = suiteHasParent ? test.parent.parent?.title : test.parent.title;
     if (!this.findTestItem(this.suites, suiteTitle)) {
       const codeRef = getCodeRef(test, TEST_ITEM_TYPES.SUITE);
-      const attributes = this.suitesAttributes.get(suiteTitle);
-      const description = this.suitesDescription.get(suiteTitle);
+      const attributes = this.suitesInfo.get(suiteTitle)?.attributes;
+      const description = this.suitesInfo.get(suiteTitle)?.description;
       const startSuiteObj: StartTestObjType = {
         name: suiteTitle,
         startTime: this.client.helpers.now(),
@@ -177,8 +174,8 @@ class RPReporter implements Reporter {
       if (!this.findTestItem(this.suites, test.parent.title)) {
         const codeRef = getCodeRef(test, TEST_ITEM_TYPES.TEST);
         const { id: parentId } = this.findTestItem(this.suites, suiteTitle);
-        const attributes = this.suitesAttributes.get(test.parent.title);
-        const description = this.suitesDescription.get(test.parent.title);
+        const attributes = this.suitesInfo.get(test.parent.title)?.attributes;
+        const description = this.suitesInfo.get(test.parent.title)?.description;
         const startChildSuiteObj: StartTestObjType = {
           name: test.parent.title,
           startTime: this.client.helpers.now(),

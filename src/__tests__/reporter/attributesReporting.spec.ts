@@ -38,7 +38,7 @@ describe('attributes reporting', () => {
   test('reporter.testItems should be updated with attributes', () => {
     reporter.testItems = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'testName' }]]);
     // @ts-ignore
-    reporter.addAttributes(attributes, suite, testParams);
+    reporter.addAttributes(attributes, testParams, suite);
     const expectedTestItems = new Map([
       ['tempTestItemId', { id: 'tempTestItemId', name: 'testName', attributes }],
     ]);
@@ -46,21 +46,23 @@ describe('attributes reporting', () => {
     reporter.testItems.delete('tempTestItemId');
   });
 
-  test('reporter.suitesAttributes should be with attributes', () => {
+  test('reporter.suitesInfo should be with attributes', () => {
     reporter.suites = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }]]);
     // @ts-ignore
-    reporter.addAttributes(attributes, suite, testParams);
-    const expectedSuitesAttributes = new Map([
+    reporter.addAttributes(attributes, testParams, suite);
+    const expectedSuitesInfo = new Map([
       [
         'tempTestItemId',
-        [
-          {
-            key: 'key',
-            value: 'value',
-          },
-        ],
+        {
+          attributes: [
+            {
+              key: 'key',
+              value: 'value',
+            },
+          ],
+        },
       ],
     ]);
-    expect(reporter.suitesAttributes).toEqual(expectedSuitesAttributes);
+    expect(reporter.suitesInfo).toEqual(expectedSuitesInfo);
   });
 });
