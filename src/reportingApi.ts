@@ -24,4 +24,6 @@ export const ReportingApi = {
     sendEventToReporter(EVENTS.ADD_ATTRIBUTES, attrs, suite),
   setDescription: (description: string, suite?: string) =>
     sendEventToReporter(EVENTS.SET_DESCRIPTION, description, suite),
+  setTestCaseId: (testCaseId: string, suite?: string) =>
+    sendEventToReporter(EVENTS.SET_TEST_CASE_ID, testCaseId, suite),
 };

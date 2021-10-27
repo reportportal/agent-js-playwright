@@ -32,6 +32,7 @@ export interface StartTestObjType {
   description?: string;
   startTime?: Date | number;
   codeRef?: string;
+  testCaseId?: string;
 }
 
 export interface FinishTestItemObjType {
@@ -39,4 +40,5 @@ export interface FinishTestItemObjType {
   status?: string;
   attributes?: Attribute[];
   description?: string;
+  testCaseId?: string;
 }
