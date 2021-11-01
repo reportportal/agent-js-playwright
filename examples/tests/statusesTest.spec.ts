@@ -22,6 +22,10 @@ test.describe('statuses for suite/test', () => {
   ReportingApi.setLaunchStatusInfo();
   ReportingApi.setStatusInfo('statuses for suite/test');
 
+  test('Test with PASSED status entered by user', () => {
+    ReportingApi.setStatus('PASSED')
+  })
+
   test('Test with PASSED status', () => {
     ReportingApi.setStatusPassed();
     expect(true).toBe(true);

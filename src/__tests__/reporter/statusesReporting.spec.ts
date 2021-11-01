@@ -19,7 +19,7 @@ import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 import { expect } from '@playwright/test';
 
-describe('testCaseId reporting', () => {
+describe('statuses reporting', () => {
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
 
@@ -31,7 +31,7 @@ describe('testCaseId reporting', () => {
 
   test('reporter.testItems should be updated with statuses', () => {
     reporter.testItems = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'testName' }]]);
-    const status = 'customStatusForTests';
+    const status = 'PASSED';
     // @ts-ignore
     reporter.setStatus(status, testParams, suite);
     const expectedTestItems = new Map([
@@ -43,7 +43,7 @@ describe('testCaseId reporting', () => {
 
   test('reporter.suitesInfo should be with statuses', () => {
     reporter.suites = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }]]);
-    const status = 'customStatusForSuites';
+    const status = 'PASSED';
     // @ts-ignore
     reporter.setStatus(status, testParams, suite);
     const expectedSuitesInfo = new Map([['tempTestItemId', { status }]]);
@@ -51,7 +51,7 @@ describe('testCaseId reporting', () => {
   });
 
   test('reporter.customLaunchStatus should be updated with status', () => {
-    const status = 'statusForLaunch';
+    const status = 'PASSED';
     reporter.setLaunchStatus(status);
 
     expect(reporter.customLaunchStatus).toBe(status);

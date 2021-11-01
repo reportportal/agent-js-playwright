@@ -32,7 +32,7 @@ import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 export interface TestItem {
   id: string;
   name: string;
-  status?: string;
+  status?: keyof typeof STATUSES;
   attributes?: Attribute[];
   description?: string;
   testCaseId?: string;
@@ -45,7 +45,7 @@ interface Suite {
   attributes?: Attribute[];
   description?: string;
   testCaseId?: string;
-  status?: string;
+  status?: keyof typeof STATUSES;
 }
 
 class RPReporter implements Reporter {
@@ -135,7 +135,7 @@ class RPReporter implements Reporter {
     }
   }
 
-  setStatus(status: string, test: TestCase, suite: string): void {
+  setStatus(status: keyof typeof STATUSES, test: TestCase, suite: string): void {
     const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
       this.testItems.set(testItem.id, { ...this.testItems.get(testItem.id), status });
@@ -144,7 +144,7 @@ class RPReporter implements Reporter {
     }
   }
 
-  setLaunchStatus(status: string): void {
+  setLaunchStatus(status: keyof typeof STATUSES): void {
     this.customLaunchStatus = status;
   }
 
