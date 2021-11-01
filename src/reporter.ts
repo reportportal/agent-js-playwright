@@ -166,17 +166,15 @@ class RPReporter implements Reporter {
     const suiteTitle = suiteHasParent ? test.parent.parent?.title : test.parent.title;
     if (!this.findTestItem(this.suites, suiteTitle)) {
       const codeRef = getCodeRef(test, TEST_ITEM_TYPES.SUITE);
-      const attributes = this.suitesInfo.get(suiteTitle)?.attributes;
-      const description = this.suitesInfo.get(suiteTitle)?.description;
-      const testCaseId = this.suitesInfo.get(suiteTitle)?.testCaseId;
+      const { attributes, description, testCaseId } = this.suitesInfo?.get(suiteTitle) || {};
       const startSuiteObj: StartTestObjType = {
         name: suiteTitle,
         startTime: this.client.helpers.now(),
         type: TEST_ITEM_TYPES.SUITE,
         codeRef,
-        attributes,
-        description,
-        testCaseId,
+        ...(attributes && { attributes }),
+        ...(description && { description }),
+        ...(testCaseId && { testCaseId }),
       };
       const suiteObj = this.client.startTestItem(startSuiteObj, this.launchId);
       this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
@@ -190,17 +188,16 @@ class RPReporter implements Reporter {
       if (!this.findTestItem(this.suites, test.parent.title)) {
         const codeRef = getCodeRef(test, TEST_ITEM_TYPES.TEST);
         const { id: parentId } = this.findTestItem(this.suites, suiteTitle);
-        const attributes = this.suitesInfo.get(test.parent.title)?.attributes;
-        const description = this.suitesInfo.get(test.parent.title)?.description;
-        const testCaseId = this.suitesInfo.get(test.parent.title)?.testCaseId;
+        const { attributes, description, testCaseId } =
+          this.suitesInfo.get(test.parent.title) || {};
         const startChildSuiteObj: StartTestObjType = {
           name: test.parent.title,
           startTime: this.client.helpers.now(),
           type: TEST_ITEM_TYPES.TEST,
           codeRef,
-          attributes,
-          description,
-          testCaseId,
+          ...(attributes && { attributes }),
+          ...(description && { description }),
+          ...(testCaseId && { testCaseId }),
         };
         const suiteObj = this.client.startTestItem(startChildSuiteObj, this.launchId, parentId);
         this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
