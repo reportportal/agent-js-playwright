@@ -28,7 +28,7 @@ test.describe('statuses for suite/test', () => {
 
   test('Test with PASSED status', () => {
     ReportingApi.setStatusPassed();
-    expect(true).toBe(true);
+    expect(true).toBe(false);
   });
 
   test('Test with FAILED status', () => {
