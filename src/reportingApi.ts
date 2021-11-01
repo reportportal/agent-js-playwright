@@ -16,6 +16,7 @@
  */
 
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
+import { RP_STATUSES } from '@reportportal/client-javascript/lib/constants/statuses';
 import { sendEventToReporter } from './utils';
 import { Attribute } from './models';
 
@@ -26,4 +27,30 @@ export const ReportingApi = {
     sendEventToReporter(EVENTS.SET_DESCRIPTION, description, suite),
   setTestCaseId: (testCaseId: string, suite?: string) =>
     sendEventToReporter(EVENTS.SET_TEST_CASE_ID, testCaseId, suite),
+  setStatusPassed: (suite?: string) =>
+    sendEventToReporter(EVENTS.SET_STATUS, RP_STATUSES.PASSED, suite),
+  setStatusFailed: (suite?: string) =>
+    sendEventToReporter(EVENTS.SET_STATUS, RP_STATUSES.FAILED, suite),
+  setStatusSkipped: (suite?: string) =>
+    sendEventToReporter(EVENTS.SET_STATUS, RP_STATUSES.SKIPPED, suite),
+  setStatusStopped: (suite?: string) =>
+    sendEventToReporter(EVENTS.SET_STATUS, RP_STATUSES.STOPPED, suite),
+  setStatusInterrupted: (suite?: string) =>
+    sendEventToReporter(EVENTS.SET_STATUS, RP_STATUSES.INTERRUPTED, suite),
+  setStatusCancelled: (suite?: string) =>
+    sendEventToReporter(EVENTS.SET_STATUS, RP_STATUSES.CANCELLED, suite),
+  setStatusInfo: (suite?: string) =>
+    sendEventToReporter(EVENTS.SET_STATUS, RP_STATUSES.INFO, suite),
+  setStatusWarn: (suite?: string) =>
+    sendEventToReporter(EVENTS.SET_STATUS, RP_STATUSES.WARN, suite),
+  setLaunchStatusPassed: () => sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, RP_STATUSES.PASSED),
+  setLaunchStatusFailed: () => sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, RP_STATUSES.FAILED),
+  setLaunchStatusSkipped: () => sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, RP_STATUSES.SKIPPED),
+  setLaunchStatusStopped: () => sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, RP_STATUSES.STOPPED),
+  setLaunchStatusInterrupted: () =>
+    sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, RP_STATUSES.INTERRUPTED),
+  setLaunchStatusCancelled: () =>
+    sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, RP_STATUSES.CANCELLED),
+  setLaunchStatusInfo: () => sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, RP_STATUSES.INFO),
+  setLaunchStatusWarn: () => sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, RP_STATUSES.WARN),
 };

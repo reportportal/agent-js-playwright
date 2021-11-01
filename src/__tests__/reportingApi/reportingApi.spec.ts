@@ -18,6 +18,28 @@
 import { ReportingApi } from '../../reportingApi';
 import * as utils from '../../utils';
 
+const reportingApiStatusMethods = [
+  { method: 'setStatusPassed', status: 'passed' },
+  { method: 'setStatusFailed', status: 'failed' },
+  { method: 'setStatusSkipped', status: 'skipped' },
+  { method: 'setStatusStopped', status: 'stopped' },
+  { method: 'setStatusInterrupted', status: 'interrupted' },
+  { method: 'setStatusCancelled', status: 'cancelled' },
+  { method: 'setStatusInfo', status: 'info' },
+  { method: 'setStatusWarn', status: 'warn' },
+];
+
+const reportingApiLaunchStatusMethods = [
+  { method: 'setLaunchStatusPassed', status: 'passed' },
+  { method: 'setLaunchStatusFailed', status: 'failed' },
+  { method: 'setLaunchStatusSkipped', status: 'skipped' },
+  { method: 'setLaunchStatusStopped', status: 'stopped' },
+  { method: 'setLaunchStatusInterrupted', status: 'interrupted' },
+  { method: 'setLaunchStatusCancelled', status: 'cancelled' },
+  { method: 'setLaunchStatusInfo', status: 'info' },
+  { method: 'setLaunchStatusWarn', status: 'warn' },
+];
+
 describe('reportingApi', () => {
   test('addAttributes should call sendEventToReporter with params', () => {
     const attrs = [
@@ -52,5 +74,32 @@ describe('reportingApi', () => {
     ReportingApi.setTestCaseId(testCaseId, suite);
 
     expect(spySendEventToReporter).toHaveBeenCalledWith(event, testCaseId, suite);
+  });
+
+  describe('Item status reporting', () => {
+    reportingApiStatusMethods.map(({ method, status }) => {
+      test(`${method} should call sendEventToreporter with ${status} status`, () => {
+        const suite = 'suite';
+        const event = 'rp:setStatus';
+        const spySendEventToReporter = jest.spyOn(utils, 'sendEventToReporter');
+        // @ts-ignore
+        ReportingApi[method](suite);
+
+        expect(spySendEventToReporter).toHaveBeenCalledWith(event, status, suite);
+      });
+    });
+  });
+
+  describe('Launch status reporting', () => {
+    reportingApiLaunchStatusMethods.map(({ method, status }) => {
+      test(`${method} should call sendEventToreporter with ${status} status`, () => {
+        const event = 'rp:setLaunchStatus';
+        const spySendEventToReporter = jest.spyOn(utils, 'sendEventToReporter');
+        // @ts-ignore
+        ReportingApi[method]();
+
+        expect(spySendEventToReporter).toHaveBeenCalledWith(event, status);
+      });
+    });
   });
 });

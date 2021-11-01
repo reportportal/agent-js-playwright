@@ -45,6 +45,7 @@ interface Suite {
   attributes?: Attribute[];
   description?: string;
   testCaseId?: string;
+  status?: string;
 }
 
 class RPReporter implements Reporter {
@@ -62,12 +63,15 @@ class RPReporter implements Reporter {
 
   suitesInfo: Map<string, any>;
 
+  customLaunchStatus: string;
+
   constructor(config: ReportPortalConfig) {
     this.config = config;
     this.suites = new Map();
     this.testItems = new Map();
     this.promises = [];
     this.suitesInfo = new Map();
+    this.customLaunchStatus = '';
 
     const agentInfo = getAgentInfo();
 
@@ -91,6 +95,12 @@ class RPReporter implements Reporter {
           break;
         case EVENTS.SET_TEST_CASE_ID:
           this.setTestCaseId(data, test, suite);
+          break;
+        case EVENTS.SET_STATUS:
+          this.setStatus(data, test, suite);
+          break;
+        case EVENTS.SET_LAUNCH_STATUS:
+          this.setLaunchStatus(data);
           break;
       }
     } catch (e) {}
@@ -125,10 +135,24 @@ class RPReporter implements Reporter {
     }
   }
 
+  setStatus(status: string, test: TestCase, suite: string): void {
+    const testItem = this.findTestItem(this.testItems, test?.title);
+    if (testItem) {
+      this.testItems.set(testItem.id, { ...this.testItems.get(testItem.id), status });
+    } else {
+      this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), status });
+    }
+  }
+
+  setLaunchStatus(status: string): void {
+    this.customLaunchStatus = status;
+  }
+
   finishSuites(): void {
-    this.suites.forEach(({ id }) => {
+    this.suites.forEach(({ id, status }) => {
       const finishSuiteObj: FinishTestItemObjType = {
         endTime: this.client.helpers.now(),
+        ...(status && { status }),
       };
       const { promise } = this.client.finishTestItem(id, finishSuiteObj);
       this.addRequestToPromisesQueue(promise, 'Failed to finish suite.');
@@ -166,7 +190,7 @@ class RPReporter implements Reporter {
     const suiteTitle = suiteHasParent ? test.parent.parent?.title : test.parent.title;
     if (!this.findTestItem(this.suites, suiteTitle)) {
       const codeRef = getCodeRef(test, TEST_ITEM_TYPES.SUITE);
-      const { attributes, description, testCaseId } = this.suitesInfo?.get(suiteTitle) || {};
+      const { attributes, description, testCaseId, status } = this.suitesInfo.get(suiteTitle) || {};
       const startSuiteObj: StartTestObjType = {
         name: suiteTitle,
         startTime: this.client.helpers.now(),
@@ -181,6 +205,7 @@ class RPReporter implements Reporter {
       this.suites.set(suiteObj.tempId, {
         id: suiteObj.tempId,
         name: suiteTitle,
+        ...(status && { status }),
       });
     }
     //suite in suite
@@ -188,7 +213,7 @@ class RPReporter implements Reporter {
       if (!this.findTestItem(this.suites, test.parent.title)) {
         const codeRef = getCodeRef(test, TEST_ITEM_TYPES.TEST);
         const { id: parentId } = this.findTestItem(this.suites, suiteTitle);
-        const { attributes, description, testCaseId } =
+        const { attributes, description, testCaseId, status } =
           this.suitesInfo.get(test.parent.title) || {};
         const startChildSuiteObj: StartTestObjType = {
           name: test.parent.title,
@@ -204,6 +229,7 @@ class RPReporter implements Reporter {
         this.suites.set(suiteObj.tempId, {
           id: suiteObj.tempId,
           name: test.parent.title,
+          ...(status && { status }),
         });
       }
     }
@@ -233,6 +259,7 @@ class RPReporter implements Reporter {
       attributes,
       description,
       testCaseId,
+      status,
     } = this.findTestItem(this.testItems, test.title);
     let withoutIssue;
     if (result.status === STATUSES.SKIPPED) {
@@ -241,7 +268,7 @@ class RPReporter implements Reporter {
 
     const finishTestItemObj: FinishTestItemObjType = {
       endTime: this.client.helpers.now(),
-      status: result.status,
+      status: status ? status : result.status,
       ...(withoutIssue && { issue: { issueType: 'NOT_ISSUE' } }),
       ...(attributes && { attributes }),
       ...(description && { description }),
@@ -257,6 +284,7 @@ class RPReporter implements Reporter {
     this.finishSuites();
     const { promise } = this.client.finishLaunch(this.launchId, {
       endTime: this.client.helpers.now(),
+      ...(this.customLaunchStatus && { status: this.customLaunchStatus }),
     });
     this.addRequestToPromisesQueue(promise, 'Failed to finish launch.');
     await Promise.all(this.promises);
