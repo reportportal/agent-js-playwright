@@ -35,6 +35,7 @@ test.describe('Top level suite', () => {
   ], 'Top level suite');
   ReportingApi.setDescription('Description for top level suite_1', 'Top level suite');
   ReportingApi.setDescription('Description for top level suite_2', 'Top level suite');
+  ReportingApi.setTestCaseId('TestCaseIdForTheSuite', 'Top level suite');
   test.describe('Bottom level suite', () => {
     ReportingApi.addAttributes([
       {
@@ -48,6 +49,7 @@ test.describe('Top level suite', () => {
     ], 'Bottom level suite');
     ReportingApi.setDescription('Description for bottom level suite_1', 'Bottom level suite');
     ReportingApi.setDescription('Description for bottom level suite_2', 'Bottom level suite');
+    ReportingApi.setTestCaseId('TestCaseIdForTheSuite', 'Bottom level suite');
     test('Test should be passed', async ({ page }) => {
       ReportingApi.addAttributes([
         {
@@ -61,6 +63,7 @@ test.describe('Top level suite', () => {
       ]);
       ReportingApi.setDescription('Description for testItem_1');
       ReportingApi.setDescription('Description for testItem_2');
+      ReportingApi.setTestCaseId('TestCaseIdForTheTest');
       await page.goto('https://playwright.dev/');
       const title = page.locator('.navbar__inner .navbar__title');
       await expect(title).toHaveText('Playwright');

@@ -25,6 +25,7 @@ test.describe('attributes for suite/test',  () => {
       value: 'suitevalue',
     },
   ], 'attributes for suite/test');
+  ReportingApi.setTestCaseId('TestCaseIdForTheSuite', 'attributes for suite/test');
 
   test('test should be passed',  () => {
     ReportingApi.addAttributes([
@@ -33,6 +34,7 @@ test.describe('attributes for suite/test',  () => {
         value: 'value',
       },
     ]);
+    ReportingApi.setTestCaseId('TestCaseIdForTheTest');
     expect(true).toBe(true);
   });
 
