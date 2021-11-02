@@ -268,7 +268,7 @@ class RPReporter implements Reporter {
 
     const finishTestItemObj: FinishTestItemObjType = {
       endTime: this.client.helpers.now(),
-      status: status ? status : result.status,
+      status: status || result.status,
       ...(withoutIssue && { issue: { issueType: 'NOT_ISSUE' } }),
       ...(attributes && { attributes }),
       ...(description && { description }),
