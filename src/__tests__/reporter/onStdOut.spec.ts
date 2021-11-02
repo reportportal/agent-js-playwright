@@ -53,4 +53,22 @@ describe('onStdOut testing', () => {
     reporter.onStdOut(chunk);
     expect(reporter.setTestCaseId).toHaveBeenCalled();
   });
+
+  test('case rp:setStatus should call setStatus', () => {
+    const type = 'rp:setStatus';
+    const data = 'status';
+    jest.spyOn(reporter, 'setStatus');
+    const chunk = JSON.stringify({ type, data });
+    reporter.onStdOut(chunk);
+    expect(reporter.setStatus).toHaveBeenCalled();
+  });
+
+  test('case rp:setLaunchStatus should call setLaunchStatus', () => {
+    const type = 'rp:setLaunchStatus';
+    const data = 'statusForLaunch';
+    jest.spyOn(reporter, 'setLaunchStatus');
+    const chunk = JSON.stringify({ type, data });
+    reporter.onStdOut(chunk);
+    expect(reporter.setLaunchStatus).toHaveBeenCalled();
+  });
 });
