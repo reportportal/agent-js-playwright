@@ -243,7 +243,7 @@ class RPReporter implements Reporter {
         startTime: this.client.helpers.now(),
         type: TEST_ITEM_TYPES.STEP,
         codeRef,
-        retry: test.results.length > 1
+        retry: test.results.length > 1,
       };
       const stepObj = this.client.startTestItem(startTestItem, this.launchId, parentId);
       this.addRequestToPromisesQueue(stepObj.promise, 'Failed to start test.');
