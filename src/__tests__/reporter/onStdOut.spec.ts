@@ -71,4 +71,28 @@ describe('onStdOut testing', () => {
     reporter.onStdOut(chunk);
     expect(reporter.setLaunchStatus).toHaveBeenCalled();
   });
+
+  test('case rp:addLog should call sendTestItemLog', () => {
+    const type = 'rp:addLog';
+    const data = {
+      level: 'INFO',
+      message: 'info log',
+    };
+    jest.spyOn(reporter, 'sendTestItemLog');
+    const chunk = JSON.stringify({ type, data });
+    reporter.onStdOut(chunk);
+    expect(reporter.sendTestItemLog).toHaveBeenCalled();
+  });
+
+  test('case rp:addLaunchLog should call sendLaunchLog', () => {
+    const type = 'rp:addLaunchLog';
+    const data = {
+      level: 'INFO',
+      message: 'info log',
+    };
+    jest.spyOn(reporter, 'sendLaunchLog');
+    const chunk = JSON.stringify({ type, data });
+    reporter.onStdOut(chunk);
+    expect(reporter.sendLaunchLog).toHaveBeenCalled();
+  });
 });

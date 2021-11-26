@@ -17,6 +17,7 @@
 
 import { Attribute } from './common';
 import { TEST_ITEM_TYPES } from '../constants';
+import { LOG_LEVELS } from '../constants/logLevels';
 
 export interface StartLaunchObjType {
   startTime?: Date | number;
@@ -41,4 +42,17 @@ export interface FinishTestItemObjType {
   attributes?: Attribute[];
   description?: string;
   testCaseId?: string;
+}
+
+export interface Attachment {
+  name: string;
+  type: string;
+  content: string | Buffer;
+}
+
+export interface LogRQ {
+  level?: LOG_LEVELS;
+  message?: string;
+  time?: number;
+  file?: Attachment;
 }

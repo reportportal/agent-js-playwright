@@ -28,6 +28,8 @@ import {
 import { TEST_ITEM_TYPES, STATUSES } from './constants';
 import { getAgentInfo, getCodeRef, getSystemAttributes, promiseErrorHandler } from './utils';
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
+import { LogRQ } from './models/reporting';
+import { LOG_LEVELS } from './constants/logLevels';
 
 export interface TestItem {
   id: string;
@@ -46,6 +48,7 @@ interface Suite {
   description?: string;
   testCaseId?: string;
   status?: keyof typeof STATUSES;
+  logs?: LogRQ[];
 }
 
 class RPReporter implements Reporter {
@@ -65,6 +68,8 @@ class RPReporter implements Reporter {
 
   customLaunchStatus: string;
 
+  launchLogs: Map<string, LogRQ>;
+
   constructor(config: ReportPortalConfig) {
     this.config = config;
     this.suites = new Map();
@@ -72,6 +77,7 @@ class RPReporter implements Reporter {
     this.promises = [];
     this.suitesInfo = new Map();
     this.customLaunchStatus = '';
+    this.launchLogs = new Map();
 
     const agentInfo = getAgentInfo();
 
@@ -101,6 +107,12 @@ class RPReporter implements Reporter {
           break;
         case EVENTS.SET_LAUNCH_STATUS:
           this.setLaunchStatus(data);
+          break;
+        case EVENTS.ADD_LOG:
+          this.sendTestItemLog(data, test, suite);
+          break;
+        case EVENTS.ADD_LAUNCH_LOG:
+          this.sendLaunchLog(data);
           break;
       }
     } catch (e) {}
@@ -148,8 +160,51 @@ class RPReporter implements Reporter {
     this.customLaunchStatus = status;
   }
 
+  sendTestItemLog(log: LogRQ, test: TestCase, suite: string): void {
+    const testItem = this.findTestItem(this.testItems, test?.title);
+    if (testItem) {
+      this.sendCustomLog(testItem.id, log);
+    } else {
+      const logs = (this.suitesInfo.get(suite)?.logs || []).concat(log);
+      this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), logs });
+    }
+  }
+
+  sendLaunchLog(log: LogRQ): void {
+    const currentLog = this.findLaunchLog(log);
+    if (!currentLog) {
+      this.sendCustomLog(this.launchId, log);
+      this.launchLogs.set(log.message, log);
+    }
+  }
+
+  sendCustomLog(tempId: string, { level, message = '', file }: LogRQ): void {
+    this.client.sendLog(
+      tempId,
+      {
+        message,
+        level,
+        time: this.client.helpers.now(),
+      },
+      file,
+    );
+  }
+
+  sendLogOnFail(tempId: string, error: any): void {
+    const { promise } = this.client.sendLog(tempId, {
+      level: LOG_LEVELS.ERROR,
+      message: error.stack || error.message,
+    });
+    promiseErrorHandler(promise, 'Failed to send error log');
+  }
+
   finishSuites(): void {
-    this.suites.forEach(({ id, status }) => {
+    this.suites.forEach(({ id, status, logs }) => {
+      if (logs) {
+        logs.map((log) => {
+          this.sendCustomLog(id, log);
+        });
+      }
       const finishSuiteObj: FinishTestItemObjType = {
         endTime: this.client.helpers.now(),
         ...(status && { status }),
@@ -184,13 +239,22 @@ class RPReporter implements Reporter {
     }
   }
 
+  findLaunchLog(log: LogRQ): LogRQ {
+    for (const [key, value] of this.launchLogs) {
+      if (value.message === log.message) {
+        return value;
+      }
+    }
+  }
+
   onTestBegin(test: TestResp): void {
     //create suite
     const suiteHasParent = test.parent.parent?._isDescribe;
     const suiteTitle = suiteHasParent ? test.parent.parent?.title : test.parent.title;
     if (!this.findTestItem(this.suites, suiteTitle)) {
       const codeRef = getCodeRef(test, TEST_ITEM_TYPES.SUITE);
-      const { attributes, description, testCaseId, status } = this.suitesInfo.get(suiteTitle) || {};
+      const { attributes, description, testCaseId, status, logs } =
+        this.suitesInfo.get(suiteTitle) || {};
       const startSuiteObj: StartTestObjType = {
         name: suiteTitle,
         startTime: this.client.helpers.now(),
@@ -206,6 +270,7 @@ class RPReporter implements Reporter {
         id: suiteObj.tempId,
         name: suiteTitle,
         ...(status && { status }),
+        ...(logs && { logs }),
       });
     }
     //suite in suite
@@ -262,8 +327,16 @@ class RPReporter implements Reporter {
       status,
     } = this.findTestItem(this.testItems, test.title);
     let withoutIssue;
+    let descriptionWithError;
     if (result.status === STATUSES.SKIPPED) {
       withoutIssue = this.config.skippedIssue === false;
+    }
+
+    if (result.error) {
+      this.sendLogOnFail(testItemId, result.error);
+      descriptionWithError = (description || '').concat(
+        `\n\`\`\`error\n${result.error.message}\n\`\`\``,
+      );
     }
 
     const finishTestItemObj: FinishTestItemObjType = {
@@ -271,7 +344,8 @@ class RPReporter implements Reporter {
       status: status || result.status,
       ...(withoutIssue && { issue: { issueType: 'NOT_ISSUE' } }),
       ...(attributes && { attributes }),
-      ...(description && { description }),
+      ...((descriptionWithError && { description: descriptionWithError }) ||
+        (description && { description })),
       ...(testCaseId && { testCaseId }),
     };
     const { promise } = this.client.finishTestItem(testItemId, finishTestItemObj);
