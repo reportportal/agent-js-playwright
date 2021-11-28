@@ -26,7 +26,13 @@ import {
   StartTestObjType,
 } from './models';
 import { TEST_ITEM_TYPES, STATUSES } from './constants';
-import { getAgentInfo, getCodeRef, getSystemAttributes, promiseErrorHandler } from './utils';
+import {
+  getAgentInfo,
+  getAttachments,
+  getCodeRef,
+  getSystemAttributes,
+  promiseErrorHandler,
+} from './utils';
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 import { LogRQ } from './models/reporting';
 import { LOG_LEVELS } from './constants/logLevels';
@@ -318,7 +324,7 @@ class RPReporter implements Reporter {
     }
   }
 
-  onTestEnd(test: TestResp, result: TestResult): void {
+  async onTestEnd(test: TestResp, result: TestResult) {
     const {
       id: testItemId,
       attributes,
@@ -330,6 +336,19 @@ class RPReporter implements Reporter {
     let descriptionWithError;
     if (result.status === STATUSES.SKIPPED) {
       withoutIssue = this.config.skippedIssue === false;
+    }
+
+    if (result.attachments.length) {
+      console.log(await getAttachments(result.attachments))
+      const attachmentsFiles = await getAttachments(result.attachments);
+      // console.log(attachmentsFiles)
+      attachmentsFiles.map((file) => {
+        this.sendTestItemLog(
+          { level: LOG_LEVELS.INFO, message: `Attachments for ${test.title}`, file },
+          test,
+          '',
+        );
+      });
     }
 
     if (result.error) {

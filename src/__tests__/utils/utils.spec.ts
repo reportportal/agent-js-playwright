@@ -18,6 +18,7 @@
 import { name as pjsonName, version as pjsonVersion } from '../../../package.json';
 import {
   getAgentInfo,
+  getAttachments,
   getCodeRef,
   getSystemAttributes,
   promiseErrorHandler,
@@ -116,5 +117,33 @@ describe('testing utils', () => {
       sendEventToReporter(type, data);
       expect(spyProcess).toHaveBeenCalledWith(JSON.stringify({ type, data }));
     });
+  });
+
+  test('getAttachments', async () => {
+    const attachments = [
+      {
+        name: 'filename',
+        path: 'path',
+        contentType: 'image/png',
+      },
+    ];
+
+    const expectedResult = [
+      {
+        name: 'fileName',
+        type: 'image/png',
+        content: Buffer.from([1, 2, 3, 4, 5, 6, 7]).toString('base64'),
+      },
+    ];
+
+    // jest.spyOn(fs, 'readFile').mockImplementation(() => ({
+    //   name: 'filename',
+    //   type: 'image/png',
+    //   content: Buffer.from([1, 2, 3, 4, 5, 6, 7]).toString('base64'),
+    // }));
+
+    const attachmentResult = await getAttachments(attachments);
+
+    expect(attachmentResult).toEqual(expectedResult);
   });
 });

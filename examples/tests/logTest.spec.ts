@@ -101,4 +101,14 @@ test.describe('logs for suite/test', () => {
 
     await expect(true).toBe(true);
   })
+
+  test('should contain logs with attachments via native playwright methods', async ({page}, testInfo) => {
+    const txtFile = testInfo.outputPath( 'temporary-file.txt');
+    await fs.promises.writeFile(txtFile, 'Report portal awesome', 'utf8');
+    const pngFile = testInfo.outputPath('screenshot.png');
+    await page.screenshot({ path: pngFile });
+    testInfo.attachments.push({ name: 'screenshot', path: pngFile, contentType: 'image/png' }, { name: 'txtFile', path: txtFile, contentType: 'text/plain' } );
+
+    await expect(true).toBe(true);
+  })
 });

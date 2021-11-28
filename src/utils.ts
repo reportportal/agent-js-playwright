@@ -19,6 +19,9 @@ import { name as pjsonName, version as pjsonVersion } from '../package.json';
 import { Attribute, TestResp } from './models';
 import path from 'path';
 import { TEST_ITEM_TYPES } from './constants';
+import { Attachment } from './models/reporting';
+import fs from 'fs';
+const fsPromises = fs.promises;
 
 export const promiseErrorHandler = (promise: Promise<any>, message = '') =>
   promise.catch((err) => {
@@ -77,4 +80,16 @@ export const getCodeRef = (testItem: testItemPick, itemType: TEST_ITEM_TYPES): s
 
 export const sendEventToReporter = (type: string, data: any, suite?: string): void => {
   process.stdout.write(JSON.stringify({ type, data, suite }));
+};
+
+type attachments = { name: string; path?: string; body?: Buffer; contentType: string }[];
+
+export const getAttachments = async (attachments: attachments): Promise<Attachment[]> => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  const readFilePromises = attachments.map(async ({ name, path, contentType }) => ({
+    name,
+    type: contentType,
+    content: await fsPromises.readFile(path),
+  }));
+  return Promise.all(readFilePromises);
 };
