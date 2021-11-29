@@ -163,7 +163,7 @@ class RPReporter implements Reporter {
   sendTestItemLog(log: LogRQ, test: TestCase, suite: string): void {
     const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
-      this.sendCustomLog(testItem.id, log);
+      this.sendLog(testItem.id, log);
     } else {
       const logs = (this.suitesInfo.get(suite)?.logs || []).concat(log);
       this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), logs });
@@ -173,13 +173,13 @@ class RPReporter implements Reporter {
   sendLaunchLog(log: LogRQ): void {
     const currentLog = this.findLaunchLog(log);
     if (!currentLog) {
-      this.sendCustomLog(this.launchId, log);
+      this.sendLog(this.launchId, log);
       this.launchLogs.set(log.message, log);
     }
   }
 
-  sendCustomLog(tempId: string, { level, message = '', file }: LogRQ): void {
-    this.client.sendLog(
+  sendLog(tempId: string, { level, message = '', file }: LogRQ): void {
+    const { promise } = this.client.sendLog(
       tempId,
       {
         message,
@@ -188,6 +188,7 @@ class RPReporter implements Reporter {
       },
       file,
     );
+    promiseErrorHandler(promise, 'Failed to send log');
   }
 
   sendLogOnFail(tempId: string, error: any): void {
@@ -202,7 +203,7 @@ class RPReporter implements Reporter {
     this.suites.forEach(({ id, status, logs }) => {
       if (logs) {
         logs.map((log) => {
-          this.sendCustomLog(id, log);
+          this.sendLog(id, log);
         });
       }
       const finishSuiteObj: FinishTestItemObjType = {

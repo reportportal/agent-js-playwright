@@ -48,7 +48,7 @@ describe('logs reporting', () => {
         message: 'info log',
       };
 
-      reporter.sendCustomLog(currentTest.tempId, log);
+      reporter.sendLog(currentTest.tempId, log);
 
       expect(spySendLog).toHaveBeenCalledWith('testItemId', expectedSendLogObj, file);
     });
