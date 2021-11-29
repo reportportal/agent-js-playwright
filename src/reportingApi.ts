@@ -58,16 +58,13 @@ export const ReportingApi = {
   setLaunchStatusWarn: () => sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, STATUSES.WARN),
 
   log: (
-    level: LOG_LEVELS | string = LOG_LEVELS.INFO,
+    level: LOG_LEVELS = LOG_LEVELS.INFO,
     message = '',
     file?: Attachment,
     suite?: string,
   ): void => sendEventToReporter(EVENTS.ADD_LOG, { level, message, file }, suite),
-  launchLog: (
-    level: LOG_LEVELS | string = LOG_LEVELS.INFO,
-    message = '',
-    file?: Attachment,
-  ): void => sendEventToReporter(EVENTS.ADD_LAUNCH_LOG, { level, message, file }),
+  launchLog: (level: LOG_LEVELS = LOG_LEVELS.INFO, message = '', file?: Attachment): void =>
+    sendEventToReporter(EVENTS.ADD_LAUNCH_LOG, { level, message, file }),
   trace: (message: string, file?: Attachment, suite?: string): void =>
     ReportingApi.log(LOG_LEVELS.TRACE, message, file, suite),
   debug: (message: string, file?: Attachment, suite?: string): void =>

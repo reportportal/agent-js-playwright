@@ -171,7 +171,7 @@ class RPReporter implements Reporter {
   }
 
   sendLaunchLog(log: LogRQ): void {
-    const currentLog = this.findLaunchLog(log);
+    const currentLog = this.launchLogs.get(log.message);
     if (!currentLog) {
       this.sendLog(this.launchId, log);
       this.launchLogs.set(log.message, log);
@@ -235,14 +235,6 @@ class RPReporter implements Reporter {
   findTestItem(testItem: Map<string, Suite> | Map<string, TestItem>, title: string): Suite {
     for (const [key, value] of testItem) {
       if (value.name === title) {
-        return value;
-      }
-    }
-  }
-
-  findLaunchLog(log: LogRQ): LogRQ {
-    for (const [key, value] of this.launchLogs) {
-      if (value.message === log.message) {
         return value;
       }
     }
@@ -336,7 +328,7 @@ class RPReporter implements Reporter {
     if (result.error) {
       this.sendLogOnFail(testItemId, result.error);
       descriptionWithError = (description || '').concat(
-        `\n\`\`\`error\n${result.error.message}\n\`\`\``,
+        `\n\`\`\`error\n${result.error.stack}\n\`\`\``,
       );
     }
 

@@ -17,6 +17,7 @@
 
 import { ReportingApi } from '../../reportingApi';
 import * as utils from '../../utils';
+import { LOG_LEVELS } from '../../constants/logLevels';
 
 const reportingApiStatusMethods = [
   { method: 'setStatusPassed', status: 'passed' },
@@ -167,7 +168,7 @@ describe('reportingApi', () => {
         message: 'message',
       };
       const spySendEventToReporter = jest.spyOn(utils, 'sendEventToReporter');
-      ReportingApi.log('INFO', 'message', file, suite);
+      ReportingApi.log(LOG_LEVELS.INFO, 'message', file, suite);
 
       expect(spySendEventToReporter).toHaveBeenCalledWith(event, expectedData, suite);
     });
@@ -199,7 +200,7 @@ describe('reportingApi', () => {
         message: 'message',
       };
       const spySendEventToReporter = jest.spyOn(utils, 'sendEventToReporter');
-      ReportingApi.launchLog('INFO', 'message', file);
+      ReportingApi.launchLog(LOG_LEVELS.INFO, 'message', file);
 
       expect(spySendEventToReporter).toHaveBeenCalledWith(event, expectedData);
     });
