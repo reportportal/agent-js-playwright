@@ -301,6 +301,7 @@ class RPReporter implements Reporter {
         startTime: this.client.helpers.now(),
         type: TEST_ITEM_TYPES.STEP,
         codeRef,
+        retry: test.results?.length > 1,
       };
       const stepObj = this.client.startTestItem(startTestItem, this.launchId, parentId);
       this.addRequestToPromisesQueue(stepObj.promise, 'Failed to start test.');
@@ -331,7 +332,6 @@ class RPReporter implements Reporter {
         `\n\`\`\`error\n${result.error.stack}\n\`\`\``,
       );
     }
-
     const finishTestItemObj: FinishTestItemObjType = {
       endTime: this.client.helpers.now(),
       status: status || result.status,

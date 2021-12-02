@@ -72,6 +72,7 @@ describe('start reporting suite/test', () => {
       name: testParams.title,
       type: TEST_ITEM_TYPES.STEP,
       codeRef: 'test/example.js/rootDescribe/parentDescribe/testTitle',
+      retry: false,
     };
 
     test('client.startTestItem should be called with corresponding params', () => {
