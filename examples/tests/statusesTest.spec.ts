@@ -28,12 +28,12 @@ test.describe('statuses for suite/test', () => {
 
   test('Test with PASSED status', () => {
     ReportingApi.setStatusPassed();
-    expect(true).toBe(true);
+    expect(false).toBe(true);
   });
 
   test('Test with FAILED status', () => {
     ReportingApi.setStatusFailed();
-    expect(false).toBe(true);
+    expect(true).toBe(true);
   });
 
   test('Test with SKIPPED status', () => {
