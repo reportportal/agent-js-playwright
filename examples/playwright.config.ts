@@ -37,5 +37,6 @@ const RPconfig = {
 const config: PlaywrightTestConfig = {
   reporter: [[require.resolve('@reportportal/agent-js-playwright'), RPconfig]],
   testDir: './tests',
+  retries: 1,
 };
 export default config;

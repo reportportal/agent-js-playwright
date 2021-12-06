@@ -34,6 +34,7 @@ export interface StartTestObjType {
   startTime?: Date | number;
   codeRef?: string;
   testCaseId?: string;
+  retry?: boolean;
 }
 
 export interface FinishTestItemObjType {
