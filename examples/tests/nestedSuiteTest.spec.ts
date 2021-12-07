@@ -50,7 +50,7 @@ test.describe('Top level suite', () => {
     ReportingApi.setDescription('Description for bottom level suite_1', 'Bottom level suite');
     ReportingApi.setDescription('Description for bottom level suite_2', 'Bottom level suite');
     ReportingApi.setTestCaseId('TestCaseIdForTheSuite', 'Bottom level suite');
-    test('Test should be passed', async ({ page }) => {
+    test('Test should be passed',  () => {
       ReportingApi.addAttributes([
         {
           value: 'Test_should_be_passed_1',
@@ -64,9 +64,7 @@ test.describe('Top level suite', () => {
       ReportingApi.setDescription('Description for testItem_1');
       ReportingApi.setDescription('Description for testItem_2');
       ReportingApi.setTestCaseId('TestCaseIdForTheTest');
-      await page.goto('https://playwright.dev/');
-      const title = page.locator('.navbar__inner .navbar__title');
-      await expect(title).toHaveText('Playwright');
+      expect(true).toBe(true)
     });
 
   })
@@ -84,8 +82,47 @@ test.describe('Top level suite', () => {
     ], 'second bottom level suite');
     ReportingApi.setDescription('Description for second bottom level suite_1', 'second bottom level suite');
     ReportingApi.setDescription('Description for second bottom level suite_2', 'second bottom level suite');
-    test('Test should be failed', async ({ page }) => {
-      await expect('net').toHaveText('Playwright');
+    test('Test should be failed', () => {
+     expect(false).toBe(true);
     });
   })
+
+  test.describe('third bottom level suite', () => {
+    ReportingApi.addAttributes([
+      {
+        value: 'third bottom level suite_1',
+      },
+    ], 'third bottom level suite');
+    ReportingApi.addAttributes([
+      {
+        value: 'third bottom level suite_2',
+      },
+    ], 'third bottom level suite');
+    ReportingApi.setDescription('Description for third bottom level suite_1', 'third bottom level suite');
+    ReportingApi.setDescription('Description for third bottom level suite_2', 'third bottom level suite');
+    test.describe('the lowest level suite', () => {
+      ReportingApi.addAttributes([
+        {
+          value: 'the lowest level suite suite_1',
+        },
+      ], 'the lowest level suite');
+      ReportingApi.addAttributes([
+        {
+          value: 'the lowest level suite suite_2',
+        },
+      ], 'the lowest level suite');
+      ReportingApi.setDescription('Description for the lowest level suite suite_1', 'the lowest level suite');
+      ReportingApi.setDescription('Description for the lowest level suite suite_2', 'the lowest level suite');
+      test('should be failed', () => {
+        ReportingApi.addAttributes([
+          {
+            value: 'test',
+          },
+        ]);
+        ReportingApi.setDescription('test');
+        expect(false).toBe(true);
+      })
+    })
+  })
+
 });

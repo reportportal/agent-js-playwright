@@ -30,6 +30,7 @@ describe('start reporting suite/test', () => {
     title: 'test',
     parent: {
       title: 'suiteName',
+      _isDescribe: true,
     },
     location: {
       file: `C:${path.sep}testProject${path.sep}test${path.sep}example.js`,
@@ -97,6 +98,7 @@ describe('suite in suite case', () => {
     title: 'test',
     parent: {
       title: 'suiteName',
+      _isDescribe: true,
       parent: {
         title: 'parentSuiteName',
         _isDescribe: true,

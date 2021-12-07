@@ -241,55 +241,46 @@ class RPReporter implements Reporter {
   }
 
   onTestBegin(test: TestResp): void {
-    //create suite
-    const suiteHasParent = test.parent.parent?._isDescribe;
-    const suiteTitle = suiteHasParent ? test.parent.parent?.title : test.parent.title;
-    if (!this.findTestItem(this.suites, suiteTitle)) {
-      const codeRef = getCodeRef(test, TEST_ITEM_TYPES.SUITE);
+    const suitesOrder: string[] = [];
+    const createSuitesOrder = (suite: any) => {
+      if (!suite?._isDescribe) {
+        return;
+      }
+      suitesOrder.push(suite.title);
+      createSuitesOrder(suite.parent);
+    };
+    createSuitesOrder(test.parent);
+
+    //create suites
+    for (let i = 0; i < suitesOrder.length; i++) {
+      const index = suitesOrder.length - i - 1;
+      if (this.findTestItem(this.suites, suitesOrder[index])) {
+        continue;
+      }
+      const testItemType = i === 0 ? TEST_ITEM_TYPES.SUITE : TEST_ITEM_TYPES.TEST;
+      const codeRef = getCodeRef(test, testItemType);
       const { attributes, description, testCaseId, status, logs } =
-        this.suitesInfo.get(suiteTitle) || {};
+        this.suitesInfo.get(suitesOrder[index]) || {};
       const startSuiteObj: StartTestObjType = {
-        name: suiteTitle,
+        name: suitesOrder[index],
         startTime: this.client.helpers.now(),
-        type: TEST_ITEM_TYPES.SUITE,
+        type: testItemType,
         codeRef,
         ...(attributes && { attributes }),
         ...(description && { description }),
         ...(testCaseId && { testCaseId }),
       };
-      const suiteObj = this.client.startTestItem(startSuiteObj, this.launchId);
+      const parentId = i !== 0 ? this.findTestItem(this.suites, suitesOrder[index + 1])?.id : null;
+      const suiteObj = parentId
+        ? this.client.startTestItem(startSuiteObj, this.launchId, parentId)
+        : this.client.startTestItem(startSuiteObj, this.launchId);
       this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
       this.suites.set(suiteObj.tempId, {
         id: suiteObj.tempId,
-        name: suiteTitle,
+        name: suitesOrder[index],
         ...(status && { status }),
         ...(logs && { logs }),
       });
-    }
-    //suite in suite
-    if (suiteHasParent) {
-      if (!this.findTestItem(this.suites, test.parent.title)) {
-        const codeRef = getCodeRef(test, TEST_ITEM_TYPES.TEST);
-        const { id: parentId } = this.findTestItem(this.suites, suiteTitle);
-        const { attributes, description, testCaseId, status } =
-          this.suitesInfo.get(test.parent.title) || {};
-        const startChildSuiteObj: StartTestObjType = {
-          name: test.parent.title,
-          startTime: this.client.helpers.now(),
-          type: TEST_ITEM_TYPES.TEST,
-          codeRef,
-          ...(attributes && { attributes }),
-          ...(description && { description }),
-          ...(testCaseId && { testCaseId }),
-        };
-        const suiteObj = this.client.startTestItem(startChildSuiteObj, this.launchId, parentId);
-        this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
-        this.suites.set(suiteObj.tempId, {
-          id: suiteObj.tempId,
-          name: test.parent.title,
-          ...(status && { status }),
-        });
-      }
     }
 
     //create steps
