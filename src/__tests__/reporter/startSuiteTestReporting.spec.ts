@@ -57,7 +57,11 @@ describe('start reporting suite/test', () => {
     };
 
     test('client.startTestItem should be called with corresponding params', () => {
-      expect(reporter.client.startTestItem).toHaveBeenCalledWith(startSuiteObj, reporter.launchId);
+      expect(reporter.client.startTestItem).toHaveBeenCalledWith(
+        startSuiteObj,
+        reporter.launchId,
+        undefined,
+      );
     });
 
     test('reporter.suites should be updated', () => {

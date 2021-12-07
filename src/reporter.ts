@@ -252,17 +252,17 @@ class RPReporter implements Reporter {
     createSuitesOrder(test.parent);
 
     //create suites
-    for (let i = 0; i < suitesOrder.length; i++) {
-      const index = suitesOrder.length - i - 1;
-      if (this.findTestItem(this.suites, suitesOrder[index])) {
+    for (let i = suitesOrder.length - 1; i >= 0; i--) {
+      if (this.findTestItem(this.suites, suitesOrder[i])) {
         continue;
       }
-      const testItemType = i === 0 ? TEST_ITEM_TYPES.SUITE : TEST_ITEM_TYPES.TEST;
-      const codeRef = getCodeRef(test, testItemType);
+      const testItemType =
+        i === suitesOrder.length - 1 ? TEST_ITEM_TYPES.SUITE : TEST_ITEM_TYPES.TEST;
+      const codeRef = getCodeRef(test, testItemType, i);
       const { attributes, description, testCaseId, status, logs } =
-        this.suitesInfo.get(suitesOrder[index]) || {};
+        this.suitesInfo.get(suitesOrder[i]) || {};
       const startSuiteObj: StartTestObjType = {
-        name: suitesOrder[index],
+        name: suitesOrder[i],
         startTime: this.client.helpers.now(),
         type: testItemType,
         codeRef,
@@ -270,14 +270,12 @@ class RPReporter implements Reporter {
         ...(description && { description }),
         ...(testCaseId && { testCaseId }),
       };
-      const parentId = i !== 0 ? this.findTestItem(this.suites, suitesOrder[index + 1])?.id : null;
-      const suiteObj = parentId
-        ? this.client.startTestItem(startSuiteObj, this.launchId, parentId)
-        : this.client.startTestItem(startSuiteObj, this.launchId);
+      const parentId = this.findTestItem(this.suites, suitesOrder[i + 1])?.id;
+      const suiteObj = this.client.startTestItem(startSuiteObj, this.launchId, parentId);
       this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
       this.suites.set(suiteObj.tempId, {
         id: suiteObj.tempId,
-        name: suitesOrder[index],
+        name: suitesOrder[i],
         ...(status && { status }),
         ...(logs && { logs }),
       });
