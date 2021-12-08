@@ -15,8 +15,8 @@
  */
 
 import { expect, test } from '@playwright/test';
-import { ReportingApi } from '../../src/reportingApi';
-import { LOG_LEVELS } from '../../src/constants/logLevels';
+import { ReportingApi } from '@reportportal/agent-js-playwright/src/reportingApi';
+import { LOG_LEVELS } from '@reportportal/agent-js-playwright/src/constants/';
 
 const fs = require('fs');
 const path = require('path');

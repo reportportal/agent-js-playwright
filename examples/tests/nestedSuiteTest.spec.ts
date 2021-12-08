@@ -16,7 +16,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { ReportingApi } from '../../src/reportingApi';
+import { ReportingApi } from '@reportportal/agent-js-playwright/src/reportingApi';
 
 test.describe('Top level suite', () => {
   ReportingApi.addAttributes([

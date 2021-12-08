@@ -16,14 +16,15 @@
  */
 
 import { Attribute } from './common';
-import { TEST_ITEM_TYPES } from '../constants';
-import { LOG_LEVELS } from '../constants/logLevels';
+import { TEST_ITEM_TYPES, LOG_LEVELS } from '../constants';
 
 export interface StartLaunchObjType {
   startTime?: Date | number;
   attributes?: Array<Attribute>;
   description?: string;
   name?: string;
+  rerun?: boolean;
+  rerunOf?: string;
 }
 
 export interface StartTestObjType {
