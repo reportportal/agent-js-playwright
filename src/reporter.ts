@@ -70,8 +70,6 @@ class RPReporter implements Reporter {
 
   launchLogs: Map<string, LogRQ>;
 
-  suitesOrder: Array<string>;
-
   constructor(config: ReportPortalConfig) {
     this.config = config;
     this.suites = new Map();
@@ -80,7 +78,6 @@ class RPReporter implements Reporter {
     this.suitesInfo = new Map();
     this.customLaunchStatus = '';
     this.launchLogs = new Map();
-    this.suitesOrder = [];
 
     const agentInfo = getAgentInfo();
 
@@ -243,24 +240,25 @@ class RPReporter implements Reporter {
     }
   }
 
-  createSuitesOrder(suite: any): void {
+  createSuitesOrder(suite: any, suitesOrder: string[]): void {
     if (!suite?._isDescribe) {
       return;
     }
-    this.suitesOrder.push(suite.title);
-    this.createSuitesOrder(suite.parent);
+    suitesOrder.push(suite.title);
+    this.createSuitesOrder(suite.parent, suitesOrder);
   }
 
   onTestBegin(test: TestResp): void {
-    this.createSuitesOrder(test.parent);
+    const suitesOrder: string[] = [];
+    this.createSuitesOrder(test.parent, suitesOrder);
     //create suites
-    for (let i = this.suitesOrder.length - 1; i >= 0; i--) {
-      const suiteTitle = this.suitesOrder[i];
+    for (let i = suitesOrder.length - 1; i >= 0; i--) {
+      const suiteTitle = suitesOrder[i];
       if (this.findTestItem(this.suites, suiteTitle)) {
         continue;
       }
       const testItemType =
-        i === this.suitesOrder.length - 1 ? TEST_ITEM_TYPES.SUITE : TEST_ITEM_TYPES.TEST;
+        i === suitesOrder.length - 1 ? TEST_ITEM_TYPES.SUITE : TEST_ITEM_TYPES.TEST;
       const codeRef = getCodeRef(test, testItemType, i);
       const { attributes, description, testCaseId, status, logs } =
         this.suitesInfo.get(suiteTitle) || {};
@@ -273,7 +271,7 @@ class RPReporter implements Reporter {
         ...(description && { description }),
         ...(testCaseId && { testCaseId }),
       };
-      const parentId = this.findTestItem(this.suites, this.suitesOrder[i + 1])?.id;
+      const parentId = this.findTestItem(this.suites, suitesOrder[i + 1])?.id;
       const suiteObj = this.client.startTestItem(startSuiteObj, this.launchId, parentId);
       this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
       this.suites.set(suiteObj.tempId, {
@@ -302,7 +300,6 @@ class RPReporter implements Reporter {
         id: stepObj.tempId,
       });
     }
-    this.suitesOrder = [];
   }
 
   onTestEnd(test: TestResp, result: TestResult): void {
