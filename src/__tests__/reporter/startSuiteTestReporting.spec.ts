@@ -30,6 +30,7 @@ describe('start reporting suite/test', () => {
     title: 'test',
     parent: {
       title: 'suiteName',
+      _isDescribe: true,
     },
     location: {
       file: `C:${path.sep}testProject${path.sep}test${path.sep}example.js`,
@@ -56,7 +57,11 @@ describe('start reporting suite/test', () => {
     };
 
     test('client.startTestItem should be called with corresponding params', () => {
-      expect(reporter.client.startTestItem).toHaveBeenCalledWith(startSuiteObj, reporter.launchId);
+      expect(reporter.client.startTestItem).toHaveBeenCalledWith(
+        startSuiteObj,
+        reporter.launchId,
+        undefined,
+      );
     });
 
     test('reporter.suites should be updated', () => {
@@ -97,6 +102,7 @@ describe('suite in suite case', () => {
     title: 'test',
     parent: {
       title: 'suiteName',
+      _isDescribe: true,
       parent: {
         title: 'parentSuiteName',
         _isDescribe: true,

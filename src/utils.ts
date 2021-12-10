@@ -53,7 +53,11 @@ export const getSystemAttributes = (skippedIssue = true): Array<Attribute> => {
 
 type testItemPick = Pick<TestResp, 'location' | 'titlePath'>;
 
-export const getCodeRef = (testItem: testItemPick, itemType: TEST_ITEM_TYPES): string => {
+export const getCodeRef = (
+  testItem: testItemPick,
+  itemType: TEST_ITEM_TYPES,
+  sliceIndex = 0,
+): string => {
   const testFileDir = path
     .parse(path.normalize(path.relative(process.cwd(), testItem.location.file)))
     .dir.replace(new RegExp('\\'.concat(path.sep), 'g'), '/');
@@ -61,7 +65,7 @@ export const getCodeRef = (testItem: testItemPick, itemType: TEST_ITEM_TYPES): s
 
   switch (itemType) {
     case TEST_ITEM_TYPES.TEST: {
-      const testHierarchicalPath = filteredTitlesPath.slice(0, -1).join('/');
+      const testHierarchicalPath = filteredTitlesPath.slice(0, -1 - sliceIndex).join('/');
       return `${testFileDir}/${testHierarchicalPath}`;
     }
     case TEST_ITEM_TYPES.SUITE: {
