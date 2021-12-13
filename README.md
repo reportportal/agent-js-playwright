@@ -10,8 +10,6 @@ Install the agent in your project:
 npm install --save-dev @reportportal/agent-js-playwright
 ```
 
-
-
 ## Configuration
 
 **1.** Create `playwright.config.ts` file with reportportal configuration:
@@ -62,14 +60,10 @@ npm install --save-dev @reportportal/agent-js-playwright
     "test": "npx playwright test --config=playwright.config.ts"
   }
 }
-
 ```
-
-
 ## Reporting
 
 This reporter provides Reporting API to use it directly in tests to send some additional data to the report.
-
 
 To start using the `ReportingApi` in tests, just import it from `'@reportportal/agent-js-playwright'`:
 ```javascript
@@ -81,7 +75,6 @@ import { ReportingApi } from '@reportportal/agent-js-playwright/src/reportingApi
 The API provide methods for attaching data (logs, attributes, testCaseId, status).
 All ReportingApi methods have an optional suite parameter.
 If you want to add a data to the suite, you must pass the suite name as the last parameter
-
 
 ##### addAttributes
 Add attributes(tags) to the current test. Should be called inside of corresponding test.<br/>
