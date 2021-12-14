@@ -18,8 +18,7 @@
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 import { sendEventToReporter } from './utils';
 import { Attribute } from './models';
-import { STATUSES } from './constants';
-import { LOG_LEVELS } from './constants/logLevels';
+import { STATUSES, LOG_LEVELS } from './constants';
 import { Attachment } from './models/reporting';
 
 export const ReportingApi = {

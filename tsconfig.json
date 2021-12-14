@@ -4,7 +4,6 @@
     "esModuleInterop": true,
     "allowJs": false,
     "noImplicitAny": true,
-    "resolveJsonModule": true,
     "moduleResolution": "node",
     "downlevelIteration": true,
     "lib": [
@@ -22,5 +21,5 @@
     "outDir": "./build"
   },
   "include": ["./src/**/*"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "./src/__tests__"]
 }

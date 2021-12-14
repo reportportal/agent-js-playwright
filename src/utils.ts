@@ -15,6 +15,7 @@
  *
  */
 
+// @ts-ignore
 import { name as pjsonName, version as pjsonVersion } from '../package.json';
 import { Attribute, TestResp } from './models';
 import path from 'path';

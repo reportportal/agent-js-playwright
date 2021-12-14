@@ -24,11 +24,11 @@ import {
   FinishTestItemObjType,
   StartLaunchObjType,
   StartTestObjType,
+  LogRQ,
 } from './models';
 import { TEST_ITEM_TYPES, STATUSES, LOG_LEVELS } from './constants';
 import { getAgentInfo, getCodeRef, getSystemAttributes, promiseErrorHandler } from './utils';
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
-import { LogRQ } from './models/reporting';
 
 export interface TestItem {
   id: string;
@@ -50,7 +50,7 @@ interface Suite {
   logs?: LogRQ[];
 }
 
-class RPReporter implements Reporter {
+export class RPReporter implements Reporter {
   config: ReportPortalConfig;
 
   client: RPClient;
@@ -349,5 +349,3 @@ class RPReporter implements Reporter {
     this.launchId = null;
   }
 }
-
-export default RPReporter;

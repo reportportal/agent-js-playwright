@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-import RPReporter from '../../reporter';
+import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 import { StartTestObjType } from '../../models';
