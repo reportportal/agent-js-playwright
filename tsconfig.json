@@ -5,9 +5,11 @@
     "allowJs": false,
     "noImplicitAny": true,
     "moduleResolution": "node",
+    "downlevelIteration": true,
     "lib": [
       "es2016",
-      "es2016.array.include"
+      "es2016.array.include",
+      "dom"
     ],
     "module": "commonjs",
     "target": "es5",

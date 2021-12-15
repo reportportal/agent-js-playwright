@@ -1,6 +1,14 @@
-coverage
-build/__tests__/
+# configs
 tsconfig.json
 .gitignore
 .editorconfig
+.eslintignore
+.prettierrc
+
+# tests
+src/__tests__
+build/__tests__/
+/coverage
+
+# workflow files
 .github/

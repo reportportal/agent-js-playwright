@@ -30,7 +30,9 @@
     "func-names": 0,
     "import/prefer-default-export": 0,
     "@typescript-eslint/ban-ts-ignore": 0,
+    "@typescript-eslint/ban-ts-comment": 0,
     "@typescript-eslint/no-implied-eval": 0,
-    "dot-notation": 0
+    "dot-notation": 0,
+    "@typescript-eslint/naming-convention": 0
   }
 }

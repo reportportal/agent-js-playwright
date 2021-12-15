@@ -1,0 +1,351 @@
+/*
+ *  Copyright 2021 EPAM Systems
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+import RPClient from '@reportportal/client-javascript';
+import { Reporter, TestResult, TestCase } from '@playwright/test/reporter';
+import {
+  Attribute,
+  ReportPortalConfig,
+  TestResp,
+  FinishTestItemObjType,
+  StartLaunchObjType,
+  StartTestObjType,
+  LogRQ,
+} from './models';
+import { TEST_ITEM_TYPES, STATUSES, LOG_LEVELS } from './constants';
+import { getAgentInfo, getCodeRef, getSystemAttributes, promiseErrorHandler } from './utils';
+import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
+
+export interface TestItem {
+  id: string;
+  name: string;
+  status?: keyof typeof STATUSES;
+  attributes?: Attribute[];
+  description?: string;
+  testCaseId?: string;
+}
+
+interface Suite {
+  id: string;
+  name: string;
+  path?: string;
+  attributes?: Attribute[];
+  description?: string;
+  testCaseId?: string;
+  status?: keyof typeof STATUSES;
+  logs?: LogRQ[];
+}
+
+export class RPReporter implements Reporter {
+  config: ReportPortalConfig;
+
+  client: RPClient;
+
+  launchId: string;
+
+  suites: Map<string, Suite>;
+
+  promises: Promise<any>[];
+
+  testItems: Map<string, TestItem>;
+
+  suitesInfo: Map<string, any>;
+
+  customLaunchStatus: string;
+
+  launchLogs: Map<string, LogRQ>;
+
+  constructor(config: ReportPortalConfig) {
+    this.config = config;
+    this.suites = new Map();
+    this.testItems = new Map();
+    this.promises = [];
+    this.suitesInfo = new Map();
+    this.customLaunchStatus = '';
+    this.launchLogs = new Map();
+
+    const agentInfo = getAgentInfo();
+
+    this.client = new RPClient(this.config, agentInfo);
+  }
+
+  addRequestToPromisesQueue(promise: any, failMessage: string): void {
+    this.promises.push(promiseErrorHandler(promise, failMessage));
+  }
+
+  onStdOut(chunk: string | Buffer, test?: TestCase, result?: TestResult): void {
+    try {
+      const { type, data, suite } = JSON.parse(String(chunk));
+
+      switch (type) {
+        case EVENTS.ADD_ATTRIBUTES:
+          this.addAttributes(data, test, suite);
+          break;
+        case EVENTS.SET_DESCRIPTION:
+          this.setDescription(data, test, suite);
+          break;
+        case EVENTS.SET_TEST_CASE_ID:
+          this.setTestCaseId(data, test, suite);
+          break;
+        case EVENTS.SET_STATUS:
+          this.setStatus(data, test, suite);
+          break;
+        case EVENTS.SET_LAUNCH_STATUS:
+          this.setLaunchStatus(data);
+          break;
+        case EVENTS.ADD_LOG:
+          this.sendTestItemLog(data, test, suite);
+          break;
+        case EVENTS.ADD_LAUNCH_LOG:
+          this.sendLaunchLog(data);
+          break;
+      }
+    } catch (e) {}
+  }
+
+  addAttributes(attr: Attribute[], test: TestCase, suite: string): void {
+    const testItem = this.findTestItem(this.testItems, test?.title);
+    if (testItem) {
+      const attributes = (this.testItems.get(testItem.id).attributes || []).concat(attr);
+      this.testItems.set(testItem.id, { ...this.testItems.get(testItem.id), attributes });
+    } else {
+      const attributes = (this.suitesInfo.get(suite)?.attributes || []).concat(attr);
+      this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), attributes });
+    }
+  }
+
+  setDescription(description: string, test: TestCase, suite: string): void {
+    const testItem = this.findTestItem(this.testItems, test?.title);
+    if (testItem) {
+      this.testItems.set(testItem.id, { ...this.testItems.get(testItem.id), description });
+    } else {
+      this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), description });
+    }
+  }
+
+  setTestCaseId(testCaseId: string, test: TestCase, suite: string): void {
+    const testItem = this.findTestItem(this.testItems, test?.title);
+    if (testItem) {
+      this.testItems.set(testItem.id, { ...this.testItems.get(testItem.id), testCaseId });
+    } else {
+      this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), testCaseId });
+    }
+  }
+
+  setStatus(status: keyof typeof STATUSES, test: TestCase, suite: string): void {
+    const testItem = this.findTestItem(this.testItems, test?.title);
+    if (testItem) {
+      this.testItems.set(testItem.id, { ...this.testItems.get(testItem.id), status });
+    } else {
+      this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), status });
+    }
+  }
+
+  setLaunchStatus(status: keyof typeof STATUSES): void {
+    this.customLaunchStatus = status;
+  }
+
+  sendTestItemLog(log: LogRQ, test: TestCase, suite: string): void {
+    const testItem = this.findTestItem(this.testItems, test?.title);
+    if (testItem) {
+      this.sendLog(testItem.id, log);
+    } else {
+      const logs = (this.suitesInfo.get(suite)?.logs || []).concat(log);
+      this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), logs });
+    }
+  }
+
+  sendLaunchLog(log: LogRQ): void {
+    const currentLog = this.launchLogs.get(log.message);
+    if (!currentLog) {
+      this.sendLog(this.launchId, log);
+      this.launchLogs.set(log.message, log);
+    }
+  }
+
+  sendLog(tempId: string, { level, message = '', file }: LogRQ): void {
+    const { promise } = this.client.sendLog(
+      tempId,
+      {
+        message,
+        level,
+        time: this.client.helpers.now(),
+      },
+      file,
+    );
+    promiseErrorHandler(promise, 'Failed to send log');
+  }
+
+  sendLogOnFail(tempId: string, error: any): void {
+    const { promise } = this.client.sendLog(tempId, {
+      level: LOG_LEVELS.ERROR,
+      message: error.stack || error.message,
+    });
+    promiseErrorHandler(promise, 'Failed to send error log');
+  }
+
+  finishSuites(): void {
+    this.suites.forEach(({ id, status, logs }) => {
+      if (logs) {
+        logs.map((log) => {
+          this.sendLog(id, log);
+        });
+      }
+      const finishSuiteObj: FinishTestItemObjType = {
+        endTime: this.client.helpers.now(),
+        ...(status && { status }),
+      };
+      const { promise } = this.client.finishTestItem(id, finishSuiteObj);
+      this.addRequestToPromisesQueue(promise, 'Failed to finish suite.');
+    });
+    this.suites.clear();
+  }
+
+  onBegin(): void {
+    const { launch, description, attributes, skippedIssue, rerun, rerunOf } = this.config;
+    const systemAttributes: Attribute[] = getSystemAttributes(skippedIssue);
+
+    const startLaunchObj: StartLaunchObjType = {
+      name: launch,
+      startTime: this.client.helpers.now(),
+      description,
+      attributes:
+        attributes && attributes.length ? attributes.concat(systemAttributes) : systemAttributes,
+      rerun,
+      rerunOf,
+    };
+    const { tempId, promise } = this.client.startLaunch(startLaunchObj);
+    this.addRequestToPromisesQueue(promise, 'Failed to launch run.');
+    this.launchId = tempId;
+  }
+
+  findTestItem(testItem: Map<string, Suite> | Map<string, TestItem>, title: string): Suite {
+    for (const [key, value] of testItem) {
+      if (value.name === title) {
+        return value;
+      }
+    }
+  }
+
+  createSuitesOrder(suite: any, suitesOrder: string[]): void {
+    if (!suite?._isDescribe) {
+      return;
+    }
+    suitesOrder.push(suite.title);
+    this.createSuitesOrder(suite.parent, suitesOrder);
+  }
+
+  onTestBegin(test: TestResp): void {
+    const suitesOrder: string[] = [];
+    this.createSuitesOrder(test.parent, suitesOrder);
+    //create suites
+    for (let i = suitesOrder.length - 1; i >= 0; i--) {
+      const suiteTitle = suitesOrder[i];
+      if (this.findTestItem(this.suites, suiteTitle)) {
+        continue;
+      }
+      const testItemType =
+        i === suitesOrder.length - 1 ? TEST_ITEM_TYPES.SUITE : TEST_ITEM_TYPES.TEST;
+      const codeRef = getCodeRef(test, testItemType, i);
+      const { attributes, description, testCaseId, status, logs } =
+        this.suitesInfo.get(suiteTitle) || {};
+      const startSuiteObj: StartTestObjType = {
+        name: suiteTitle,
+        startTime: this.client.helpers.now(),
+        type: testItemType,
+        codeRef,
+        ...(attributes && { attributes }),
+        ...(description && { description }),
+        ...(testCaseId && { testCaseId }),
+      };
+      const parentId = this.findTestItem(this.suites, suitesOrder[i + 1])?.id;
+      const suiteObj = this.client.startTestItem(startSuiteObj, this.launchId, parentId);
+      this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
+      this.suites.set(suiteObj.tempId, {
+        id: suiteObj.tempId,
+        name: suiteTitle,
+        ...(status && { status }),
+        ...(logs && { logs }),
+      });
+    }
+
+    //create steps
+    if (this.findTestItem(this.suites, test.parent.title)) {
+      const codeRef = getCodeRef(test, TEST_ITEM_TYPES.STEP);
+      const { id: parentId } = this.findTestItem(this.suites, test.parent.title);
+      const startTestItem: StartTestObjType = {
+        name: test.title,
+        startTime: this.client.helpers.now(),
+        type: TEST_ITEM_TYPES.STEP,
+        codeRef,
+        retry: test.results?.length > 1,
+      };
+      const stepObj = this.client.startTestItem(startTestItem, this.launchId, parentId);
+      this.addRequestToPromisesQueue(stepObj.promise, 'Failed to start test.');
+      this.testItems.set(stepObj.tempId, {
+        name: test.title,
+        id: stepObj.tempId,
+      });
+    }
+  }
+
+  onTestEnd(test: TestResp, result: TestResult): void {
+    const {
+      id: testItemId,
+      attributes,
+      description,
+      testCaseId,
+      status,
+    } = this.findTestItem(this.testItems, test.title);
+    let withoutIssue;
+    let descriptionWithError;
+    if (result.status === STATUSES.SKIPPED) {
+      withoutIssue = this.config.skippedIssue === false;
+    }
+
+    if (result.error) {
+      this.sendLogOnFail(testItemId, result.error);
+      descriptionWithError = (description || '').concat(
+        `\n\`\`\`error\n${result.error.stack}\n\`\`\``,
+      );
+    }
+    const finishTestItemObj: FinishTestItemObjType = {
+      endTime: this.client.helpers.now(),
+      status: status || result.status,
+      ...(withoutIssue && { issue: { issueType: 'NOT_ISSUE' } }),
+      ...(attributes && { attributes }),
+      ...((descriptionWithError && { description: descriptionWithError }) ||
+        (description && { description })),
+      ...(testCaseId && { testCaseId }),
+    };
+    const { promise } = this.client.finishTestItem(testItemId, finishTestItemObj);
+
+    this.addRequestToPromisesQueue(promise, 'Failed to finish test.');
+    this.testItems.delete(testItemId);
+  }
+
+  async onEnd(): Promise<void> {
+    this.finishSuites();
+    const { promise } = this.client.finishLaunch(this.launchId, {
+      endTime: this.client.helpers.now(),
+      ...(this.customLaunchStatus && { status: this.customLaunchStatus }),
+    });
+    this.addRequestToPromisesQueue(promise, 'Failed to finish launch.');
+    await Promise.all(this.promises);
+    this.launchId = null;
+  }
+}
