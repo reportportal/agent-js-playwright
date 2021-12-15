@@ -12,7 +12,7 @@ npm install --save-dev @reportportal/agent-js-playwright
 
 ## Configuration
 
-**1.** Create `playwright.config.ts` file with reportportal configuration:
+**1.** Create `playwright.config.ts` or `*.config.js` file with reportportal configuration:
 ```typescript
   import { PlaywrightTestConfig } from '@playwright/test';
 
@@ -34,7 +34,7 @@ npm install --save-dev @reportportal/agent-js-playwright
   };
 
   const config: PlaywrightTestConfig = {
-    reporter: [[require.resolve('@reportportal/agent-js-playwright'), RPconfig]],
+    reporter: [['@reportportal/agent-js-playwright', RPconfig]],
     testDir: './tests',
   };
   export default config;
@@ -67,7 +67,7 @@ This reporter provides Reporting API to use it directly in tests to send some ad
 
 To start using the `ReportingApi` in tests, just import it from `'@reportportal/agent-js-playwright'`:
 ```javascript
-import { ReportingApi } from '@reportportal/agent-js-playwright/src/reportingApi';
+import { ReportingApi } from '@reportportal/agent-js-playwright';
 ```
 
 #### Reporting API methods
@@ -208,7 +208,7 @@ Assign corresponding status to the current test item.<br/>
 `ReportingApi.setStatus(status: string, suite?: string);`<br/>
 **required**: `status`<br/>
 **optional**: `suite`<br/>
-where `status` must be one of the following: *passed*, *failed*, *stopped*, *skipped*, *interrupted*, *cancelled*, *info*, *warn*<br/>
+where `status` must be one of the following: *passed*, *failed*, *stopped*, *skipped*, *interrupted*, *cancelled*<br/>
 Example:
 ```javascript
 test('should have status FAILED', () => {
@@ -218,7 +218,7 @@ test('should have status FAILED', () => {
 });
 ```
 
-##### setStatusFailed, setStatusPassed, setStatusSkipped, setStatusStopped, setStatusInterrupted, setStatusCancelled, setStatusInfo, setStatusWarn
+##### setStatusFailed, setStatusPassed, setStatusSkipped, setStatusStopped, setStatusInterrupted, setStatusCancelled
 Assign corresponding status to the current test item.<br/>
 `ReportingApi.setStatusFailed(suite?: string);`<br/>
 `ReportingApi.setStatusPassed(suite?: string);`<br/>
@@ -226,8 +226,6 @@ Assign corresponding status to the current test item.<br/>
 `ReportingApi.setStatusStopped(suite?: string);`<br/>
 `ReportingApi.setStatusInterrupted(suite?: string);`<br/>
 `ReportingApi.setStatusCancelled(suite?: string);`<br/>
-`ReportingApi.setStatusInfo(suite?: string);`<br/>
-`ReportingApi.setStatusWarn(suite?: string);`<br/>
 **optional**: `suite`<br/>
 Example:
 ```javascript
@@ -238,8 +236,6 @@ test('should call ReportingApi to set statuses', () => {
     ReportingAPI.setStatusStopped();
     ReportingAPI.setStatusInterrupted();
     ReportingAPI.setStatusCancelled();
-    ReportingAPI.setStatusInfo();
-    ReportingAPI.setStatusWarn();
 });
 ```
 
@@ -247,7 +243,7 @@ test('should call ReportingApi to set statuses', () => {
 Assign corresponding status to the current launch.<br/>
 `ReportingApi.setLaunchStatus(status: string);`<br/>
 **required**: `status`<br/>
-where `status` must be one of the following: *passed*, *failed*, *stopped*, *skipped*, *interrupted*, *cancelled*, *info*, *warn*<br/>
+where `status` must be one of the following: *passed*, *failed*, *stopped*, *skipped*, *interrupted*, *cancelled*<br/>
 Example:
 ```javascript
 test('launch should have status FAILED',  () => {
@@ -256,7 +252,7 @@ test('launch should have status FAILED',  () => {
 });
 ```
 
-##### setLaunchStatusFailed, setLaunchStatusPassed, setLaunchStatusSkipped, setLaunchStatusStopped, setLaunchStatusInterrupted, setLaunchStatusCancelled, setLaunchStatusInfo, setLaunchStatusWarn
+##### setLaunchStatusFailed, setLaunchStatusPassed, setLaunchStatusSkipped, setLaunchStatusStopped, setLaunchStatusInterrupted, setLaunchStatusCancelled
 Assign corresponding status to the current test item.<br/>
 `ReportingApi.setLaunchStatusFailed();`<br/>
 `ReportingApi.setLaunchStatusPassed();`<br/>
@@ -264,8 +260,6 @@ Assign corresponding status to the current test item.<br/>
 `ReportingApi.setLaunchStatusStopped();`<br/>
 `ReportingApi.setLaunchStatusInterrupted();`<br/>
 `ReportingApi.setLaunchStatusCancelled();`<br/>
-`ReportingApi.setLaunchStatusInfo();`<br/>
-`ReportingApi.setLaunchStatusWarn();`<br/>
 Example:
 ```javascript
 test('should call ReportingApi to set launch statuses', () => {
@@ -275,8 +269,6 @@ test('should call ReportingApi to set launch statuses', () => {
     ReportingAPI.setLaunchStatusStopped();
     ReportingAPI.setLaunchStatusInterrupted();
     ReportingAPI.setLaunchStatusCancelled();
-    ReportingAPI.setLaunchStatusInfo();
-    ReportingAPI.setLaunchStatusWarn();
 });
 ```
 
