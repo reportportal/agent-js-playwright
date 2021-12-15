@@ -94,6 +94,7 @@ jobs:
         run: |
           git tag -a v${{ needs.calculate-version.outputs.releaseVersion }} -m ${{ needs.calculate-version.outputs.releaseVersion }}
           npm version from-git
+          git push origin master -f --tags
           git push origin master
       - name: Update version in changelog file
         run: |
