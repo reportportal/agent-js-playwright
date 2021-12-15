@@ -15,7 +15,7 @@
  *
  */
 
-import { TestCase } from '@playwright/test/reporter';
+import { TestCase, Suite } from '@playwright/test/reporter';
 
 export interface Attribute {
   value: string;
@@ -23,13 +23,12 @@ export interface Attribute {
   system?: boolean;
 }
 
+interface SuiteResp extends Suite {
+  title: string;
+  _isDescribe: boolean;
+  parent?: SuiteResp;
+}
+
 export interface TestResp extends TestCase {
-  parent: {
-    title: string;
-    _isDescribe: boolean;
-    parent: {
-      title: string;
-      _isDescribe: boolean;
-    };
-  };
+  parent: SuiteResp;
 }

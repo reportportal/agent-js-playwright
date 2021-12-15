@@ -15,7 +15,7 @@
  *
  */
 
-import { StartLaunchObjType, StartTestObjType, FinishTestItemObjType } from './reporting';
+import { StartLaunchObjType, StartTestObjType, FinishTestItemObjType, LogRQ } from './reporting';
 import { ReportPortalConfig } from './configs';
 import { Attribute, TestResp } from './common';
 
@@ -26,4 +26,5 @@ export {
   ReportPortalConfig,
   Attribute,
   TestResp,
+  LogRQ,
 };

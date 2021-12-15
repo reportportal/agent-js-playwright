@@ -17,7 +17,7 @@
 
 import { ReportingApi } from '../../reportingApi';
 import * as utils from '../../utils';
-import { LOG_LEVELS } from '../../constants/logLevels';
+import { LOG_LEVELS } from '../../constants';
 
 const reportingApiStatusMethods = [
   { method: 'setStatusPassed', status: 'passed' },

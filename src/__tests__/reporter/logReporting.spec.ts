@@ -14,10 +14,10 @@
  *  limitations under the License.
  */
 
-import RPReporter from '../../reporter';
+import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
-import { LOG_LEVELS } from '../../constants/logLevels';
+import { LOG_LEVELS } from '../../constants';
 
 describe('logs reporting', () => {
   const reporter = new RPReporter(mockConfig);

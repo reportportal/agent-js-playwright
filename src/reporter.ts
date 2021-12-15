@@ -24,12 +24,11 @@ import {
   FinishTestItemObjType,
   StartLaunchObjType,
   StartTestObjType,
+  LogRQ,
 } from './models';
-import { TEST_ITEM_TYPES, STATUSES } from './constants';
+import { TEST_ITEM_TYPES, STATUSES, LOG_LEVELS } from './constants';
 import { getAgentInfo, getCodeRef, getSystemAttributes, promiseErrorHandler } from './utils';
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
-import { LogRQ } from './models/reporting';
-import { LOG_LEVELS } from './constants/logLevels';
 
 export interface TestItem {
   id: string;
@@ -51,7 +50,7 @@ interface Suite {
   logs?: LogRQ[];
 }
 
-class RPReporter implements Reporter {
+export class RPReporter implements Reporter {
   config: ReportPortalConfig;
 
   client: RPClient;
@@ -217,7 +216,7 @@ class RPReporter implements Reporter {
   }
 
   onBegin(): void {
-    const { launch, description, attributes, skippedIssue } = this.config;
+    const { launch, description, attributes, skippedIssue, rerun, rerunOf } = this.config;
     const systemAttributes: Attribute[] = getSystemAttributes(skippedIssue);
 
     const startLaunchObj: StartLaunchObjType = {
@@ -226,6 +225,8 @@ class RPReporter implements Reporter {
       description,
       attributes:
         attributes && attributes.length ? attributes.concat(systemAttributes) : systemAttributes,
+      rerun,
+      rerunOf,
     };
     const { tempId, promise } = this.client.startLaunch(startLaunchObj);
     this.addRequestToPromisesQueue(promise, 'Failed to launch run.');
@@ -348,5 +349,3 @@ class RPReporter implements Reporter {
     this.launchId = null;
   }
 }
-
-export default RPReporter;

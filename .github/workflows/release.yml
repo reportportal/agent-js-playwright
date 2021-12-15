@@ -1,0 +1,151 @@
+# Copyright 2021 EPAM Systems
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: release
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '.github/**'
+      - README.md
+      - CHANGELOG.md
+
+env:
+  versionFileName: 'VERSION'
+  versionFragmentFileName: 'version_fragment'
+  changelogFileName: 'CHANGELOG.md'
+jobs:
+  calculate-version:
+    runs-on: ubuntu-latest
+    outputs:
+      releaseVersion: ${{ steps.exposeVersion.outputs.releaseVersion }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Read version
+        id: readVersion
+        run: |
+          read -r version < ${{ env.versionFileName }}
+          echo "Snapshot version: $version";
+          version=$(echo $version | sed 's/-SNAPSHOT//');
+          echo $version;
+          echo "::set-output name=version::$version"
+          read -r versionFragment < ${{ env.versionFragmentFileName }}
+          echo $versionFragment
+          if [[ "$versionFragment" == "minor" ]]; then
+            versionFragment=feature
+            echo "Minor version will be used"
+          elif [[ "$versionFragment" == "major" ]]; then
+            echo "Major version will be used"
+          else
+            versionFragment=patch
+            echo "Patch version will be used"
+          fi
+          echo "::set-output name=versionFragment::$versionFragment"
+      - name: Bump release version if needed according to version fragment
+        if: steps.readVersion.outputs.versionFragment != 'patch'
+        id: bumpVersion
+        uses: christian-draeger/increment-semantic-version@1.0.1
+        with:
+          current-version: ${{ steps.readVersion.outputs.version }}
+          version-fragment: ${{ steps.readVersion.outputs.versionFragment }}
+      - name: Expose release version
+        id: exposeVersion
+        run: |
+          versionFragment=${{ steps.readVersion.outputs.versionFragment }}
+          if [[ "$versionFragment" != "patch" ]]; then
+            echo "::set-output name=releaseVersion::${{ steps.bumpVersion.outputs.next-version }}"
+          else
+            echo "::set-output name=releaseVersion::${{ steps.readVersion.outputs.version }}"
+          fi
+  create-tag:
+    needs: calculate-version
+    runs-on: ubuntu-latest
+    outputs:
+      versionInfo: ${{ steps.readChangelogEntry.outputs.log_entry }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Configure git
+        run: |
+          git config --global user.email "reportportal.io"
+          git config --global user.name "reportportal.io"
+          git remote set-url origin https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+      - name: Update VERSION file
+        run: |
+          echo "${{ needs.calculate-version.outputs.releaseVersion }}" > ${{ env.versionFileName }}
+          git status
+          git add ${{ env.versionFileName }}
+          git commit -m "Update VERSION file with ${{ needs.calculate-version.outputs.releaseVersion }}"
+      - name: Create tag
+        run: |
+          git tag -a v${{ needs.calculate-version.outputs.releaseVersion }} -m ${{ needs.calculate-version.outputs.releaseVersion }}
+          npm version from-git
+          git push origin master
+      - name: Update version in changelog file
+        run: |
+          releaseDate=$(date +'%Y-%m-%d')
+          echo "Release date: $releaseDate"
+          versionInfo="## [${{ needs.calculate-version.outputs.releaseVersion }}] - $releaseDate"
+          sed -i '1s/^/\n'"$versionInfo"'\n/' ${{ env.changelogFileName }}
+          git status
+          git add ${{ env.changelogFileName }}
+          git commit -m "Mention ${{ needs.calculate-version.outputs.releaseVersion }} version in changelog file"
+          git push origin master
+      - name: Read changelog Entry
+        id: readChangelogEntry
+        uses: mindsers/changelog-reader-action@v1.1.0
+        with:
+          version: ${{ needs.calculate-version.outputs.releaseVersion }}
+          path: ./${{ env.changelogFileName }}
+      - name: Bump snapshot version
+        id: bumpSnapshotVersion
+        uses: christian-draeger/increment-semantic-version@1.0.1
+        with:
+          current-version: ${{ needs.calculate-version.outputs.releaseVersion }}
+          version-fragment: 'bug'
+      - name: Update develop with snapshot version
+        run: |
+          git fetch
+          git checkout develop
+          git merge master -Xtheirs --allow-unrelated-histories
+          echo "${{ steps.bumpSnapshotVersion.outputs.next-version }}-SNAPSHOT" > ${{ env.versionFileName }}
+          git status
+          git add ${{ env.versionFileName }}
+          git commit -m "${{ needs.calculate-version.outputs.releaseVersion }} -> ${{ steps.bumpSnapshotVersion.outputs.next-version }}-SNAPSHOT"
+          git push origin develop
+  create-release:
+    needs: [calculate-version, create-tag]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Create Release
+        id: createRelease
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        with:
+          tag_name: v${{ needs.calculate-version.outputs.releaseVersion }}
+          release_name: Release v${{ needs.calculate-version.outputs.releaseVersion }}
+          body: ${{ needs.create-tag.outputs.versionInfo }}
+          draft: false
+          prerelease: false
+      - name: Trigger the publish workflow
+        if: success()
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          event-type: version-released

@@ -15,7 +15,7 @@
  *
  */
 
-import RPReporter from '../../reporter';
+import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { StartLaunchObjType } from '../../models';
 import { RPClientMock } from '../mocks/RPClientMock';
