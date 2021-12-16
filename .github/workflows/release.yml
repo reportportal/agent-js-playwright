@@ -79,6 +79,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
       - name: Configure git
         run: |
           git config --global user.email "reportportal.io"
@@ -90,10 +94,6 @@ jobs:
           git status
           git add ${{ env.versionFileName }}
           git commit -m "Update VERSION file with ${{ needs.calculate-version.outputs.releaseVersion }}"
-      - name: Show existed tags and npm version
-        run: |
-          git tag -n
-          npm version
       - name: Create tag
         run: |
           git tag -a v${{ needs.calculate-version.outputs.releaseVersion }} -m ${{ needs.calculate-version.outputs.releaseVersion }}
