@@ -90,9 +90,10 @@ jobs:
           git status
           git add ${{ env.versionFileName }}
           git commit -m "Update VERSION file with ${{ needs.calculate-version.outputs.releaseVersion }}"
-      - name: Show existed tags
+      - name: Show existed tags and npm version
         run: |
           git tag -n
+          npm version
       - name: Create tag
         run: |
           git tag -a v${{ needs.calculate-version.outputs.releaseVersion }} -m ${{ needs.calculate-version.outputs.releaseVersion }}
