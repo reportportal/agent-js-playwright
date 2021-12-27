@@ -79,10 +79,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Set up Node.js
-        uses: actions/setup-node@v1
+      - name: Setup NodeJS
+        uses: actions/setup-node@v2
         with:
-          node-version: 12.x
+          node-version: '12'
       - name: Configure git
         run: |
           git config --global user.email "reportportal.io"
