@@ -12,7 +12,7 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@reportportal/client-javascript": "^5.0.5"
+    "@reportportal/client-javascript": "^5.0.6"
   },
   "devDependencies": {
     "@playwright/test": "^1.17.1",

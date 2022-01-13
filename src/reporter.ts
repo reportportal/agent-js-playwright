@@ -20,7 +20,6 @@ import { Reporter, TestResult, TestCase } from '@playwright/test/reporter';
 import {
   Attribute,
   ReportPortalConfig,
-  TestResp,
   FinishTestItemObjType,
   StartLaunchObjType,
   StartTestObjType,
@@ -242,14 +241,14 @@ export class RPReporter implements Reporter {
   }
 
   createSuitesOrder(suite: any, suitesOrder: string[]): void {
-    if (!suite?._isDescribe) {
+    if (!suite?.title) {
       return;
     }
     suitesOrder.push(suite.title);
     this.createSuitesOrder(suite.parent, suitesOrder);
   }
 
-  onTestBegin(test: TestResp): void {
+  onTestBegin(test: TestCase): void {
     const suitesOrder: string[] = [];
     this.createSuitesOrder(test.parent, suitesOrder);
     //create suites
@@ -303,7 +302,7 @@ export class RPReporter implements Reporter {
     }
   }
 
-  onTestEnd(test: TestResp, result: TestResult): void {
+  onTestEnd(test: TestCase, result: TestResult): void {
     const {
       id: testItemId,
       attributes,

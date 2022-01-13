@@ -15,9 +15,10 @@
  *
  */
 
+import { TestCase } from '@playwright/test/reporter';
 // @ts-ignore
 import { name as pjsonName, version as pjsonVersion } from '../package.json';
-import { Attribute, TestResp } from './models';
+import { Attribute } from './models';
 import path from 'path';
 import { TEST_ITEM_TYPES } from './constants';
 
@@ -52,7 +53,7 @@ export const getSystemAttributes = (skippedIssue = true): Array<Attribute> => {
   return systemAttributes;
 };
 
-type testItemPick = Pick<TestResp, 'location' | 'titlePath'>;
+type testItemPick = Pick<TestCase, 'location' | 'titlePath'>;
 
 export const getCodeRef = (
   testItem: testItemPick,
@@ -70,7 +71,7 @@ export const getCodeRef = (
       return `${testFileDir}/${testHierarchicalPath}`;
     }
     case TEST_ITEM_TYPES.SUITE: {
-      const testHierarchicalPath = filteredTitlesPath.slice(0, 2).join('/');
+      const testHierarchicalPath = filteredTitlesPath.slice(0, 1).join('/');
       return `${testFileDir}/${testHierarchicalPath}`;
     }
     default: {

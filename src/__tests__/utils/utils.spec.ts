@@ -84,13 +84,20 @@ describe('testing utils', () => {
     };
 
     test('codeRef should be correct for TEST_ITEM_TYPES.SUITE', () => {
-      const expectedCodeRef = `test/example.js/rootDescribe`;
+      const expectedCodeRef = `test/example.js`;
       const codeRef = getCodeRef(mockedTest, TEST_ITEM_TYPES.SUITE);
 
       expect(codeRef).toEqual(expectedCodeRef);
     });
 
-    test('codeRef should be correct for TEST_ITEM_TYPES.TEST', () => {
+    test('codeRef should be correct for TEST_ITEM_TYPES.TEST with offset 1', () => {
+      const expectedCodeRef = `test/example.js/rootDescribe`;
+      const codeRef = getCodeRef(mockedTest, TEST_ITEM_TYPES.TEST, 1);
+
+      expect(codeRef).toEqual(expectedCodeRef);
+    });
+
+    test('codeRef should be correct for TEST_ITEM_TYPES.TEST without offset', () => {
       const expectedCodeRef = `test/example.js/rootDescribe/parentDescribe`;
       const codeRef = getCodeRef(mockedTest, TEST_ITEM_TYPES.TEST);
 

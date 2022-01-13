@@ -30,7 +30,6 @@ describe('start reporting suite/test', () => {
     title: 'test',
     parent: {
       title: 'suiteName',
-      _isDescribe: true,
     },
     location: {
       file: `C:${path.sep}testProject${path.sep}test${path.sep}example.js`,
@@ -46,14 +45,14 @@ describe('start reporting suite/test', () => {
   reporter.onTestBegin(testParams);
 
   describe('start suite report', () => {
-    const expectedSuite = new Map([
+    const expectedSuites = new Map([
       ['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }],
     ]);
     const startSuiteObj: StartTestObjType = {
       startTime: reporter.client.helpers.now(),
       name: testParams.parent.title,
       type: TEST_ITEM_TYPES.SUITE,
-      codeRef: `test/example.js/rootDescribe`,
+      codeRef: `test/example.js`,
     };
 
     test('client.startTestItem should be called with corresponding params', () => {
@@ -65,7 +64,7 @@ describe('start reporting suite/test', () => {
     });
 
     test('reporter.suites should be updated', () => {
-      expect(reporter.suites).toEqual(expectedSuite);
+      expect(reporter.suites).toEqual(expectedSuites);
     });
   });
 
@@ -102,10 +101,8 @@ describe('suite in suite case', () => {
     title: 'test',
     parent: {
       title: 'suiteName',
-      _isDescribe: true,
       parent: {
         title: 'parentSuiteName',
-        _isDescribe: true,
       },
     },
     location: {
