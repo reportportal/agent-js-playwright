@@ -15,20 +15,8 @@
  *
  */
 
-import { TestCase, Suite } from '@playwright/test/reporter';
-
 export interface Attribute {
   value: string;
   key?: string;
   system?: boolean;
-}
-
-interface SuiteResp extends Suite {
-  title: string;
-  _isDescribe: boolean;
-  parent?: SuiteResp;
-}
-
-export interface TestResp extends TestCase {
-  parent: SuiteResp;
 }
