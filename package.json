@@ -3,6 +3,7 @@
   "version": "5.0.0",
   "description": "Agent to integrate Playwright with ReportPortal.",
   "main": "build/index.js",
+  "types": "build/index.d.ts",
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "rimraf ./build",
@@ -14,6 +15,10 @@
   "dependencies": {
     "@reportportal/client-javascript": "^5.0.6"
   },
+  "files": [
+    "/build",
+    "/VERSION"
+  ],
   "devDependencies": {
     "@playwright/test": "^1.17.1",
     "@types/jest": "^27.0.1",

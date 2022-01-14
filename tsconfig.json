@@ -6,6 +6,7 @@
     "noImplicitAny": true,
     "moduleResolution": "node",
     "downlevelIteration": true,
+    "declaration": true,
     "lib": [
       "es2016",
       "es2016.array.include",
@@ -21,5 +22,5 @@
     "outDir": "./build"
   },
   "include": ["./src/**/*"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "src/__tests__"]
 }
