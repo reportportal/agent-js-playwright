@@ -16,6 +16,7 @@
  */
 
 import RPClient from '@reportportal/client-javascript';
+import stripAnsi from 'strip-ansi';
 import { Reporter, TestResult, TestCase, Suite as PWSuite } from '@playwright/test/reporter';
 import {
   Attribute,
@@ -325,11 +326,14 @@ export class RPReporter implements Reporter {
     }
 
     if (result.error) {
+      const stacktrace = stripAnsi(result.error.stack || result.error.message);
       this.sendLog(testItemId, {
         level: LOG_LEVELS.ERROR,
-        message: result.error.stack || result.error.message,
+        message: stacktrace,
       });
-      testDescription = (description || '').concat(`\n\`\`\`error\n${result.error.stack}\n\`\`\``);
+      testDescription = (description || '').concat(
+        `\n\`\`\`error\n${stacktrace}\n\`\`\``,
+      );
     }
     const finishTestItemObj: FinishTestItemObjType = {
       endTime: this.client.helpers.now(),
