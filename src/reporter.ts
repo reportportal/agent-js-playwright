@@ -63,8 +63,6 @@ export class RPReporter implements Reporter {
 
   testItems: Map<string, TestItem>;
 
-  suitesInfo: Map<string, Omit<Suite, 'id'>>;
-
   customLaunchStatus: string;
 
   launchLogs: Map<string, LogRQ>;
@@ -74,7 +72,6 @@ export class RPReporter implements Reporter {
     this.suites = new Map();
     this.testItems = new Map();
     this.promises = [];
-    this.suitesInfo = new Map();
     this.customLaunchStatus = '';
     this.launchLogs = new Map();
 
@@ -89,26 +86,26 @@ export class RPReporter implements Reporter {
 
   onStdOut(chunk: string | Buffer, test?: TestCase): void {
     try {
-      const { type, data, suite } = JSON.parse(String(chunk));
+      const { type, data, suite: suiteName } = JSON.parse(String(chunk));
 
       switch (type) {
         case EVENTS.ADD_ATTRIBUTES:
-          this.addAttributes(data, test, suite);
+          this.addAttributes(data, test, suiteName);
           break;
         case EVENTS.SET_DESCRIPTION:
-          this.setDescription(data, test, suite);
+          this.setDescription(data, test, suiteName);
           break;
         case EVENTS.SET_TEST_CASE_ID:
-          this.setTestCaseId(data, test, suite);
+          this.setTestCaseId(data, test, suiteName);
           break;
         case EVENTS.SET_STATUS:
-          this.setStatus(data, test, suite);
+          this.setStatus(data, test, suiteName);
           break;
         case EVENTS.SET_LAUNCH_STATUS:
           this.setLaunchStatus(data);
           break;
         case EVENTS.ADD_LOG:
-          this.sendTestItemLog(data, test, suite);
+          this.sendTestItemLog(data, test, suiteName);
           break;
         case EVENTS.ADD_LAUNCH_LOG:
           this.sendLaunchLog(data);
@@ -117,42 +114,46 @@ export class RPReporter implements Reporter {
     } catch (e) {}
   }
 
-  addAttributes(attr: Attribute[], test: TestCase, suite: string): void {
+  addAttributes(attr: Attribute[], test: TestCase, suiteName: string): void {
     const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
       const attributes = (testItem.attributes || []).concat(attr);
       this.testItems.set(testItem.id, { ...testItem, attributes });
     } else {
-      const suiteItem = this.suitesInfo.get(suite);
+      const fullSuiteName = getCodeRef(test, suiteName);
+      const suiteItem = this.suites.get(fullSuiteName);
       const attributes = (suiteItem?.attributes || []).concat(attr);
-      this.suitesInfo.set(suite, { ...suiteItem, attributes });
+      this.suites.set(fullSuiteName, { ...suiteItem, attributes });
     }
   }
 
-  setDescription(description: string, test: TestCase, suite: string): void {
+  setDescription(description: string, test: TestCase, suiteName: string): void {
     const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
       this.testItems.set(testItem.id, { ...testItem, description });
     } else {
-      this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), description });
+      const fullSuiteName = getCodeRef(test, suiteName);
+      this.suites.set(fullSuiteName, { ...this.suites.get(fullSuiteName), description });
     }
   }
 
-  setTestCaseId(testCaseId: string, test: TestCase, suite: string): void {
+  setTestCaseId(testCaseId: string, test: TestCase, suiteName: string): void {
     const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
       this.testItems.set(testItem.id, { ...testItem, testCaseId });
     } else {
-      this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), testCaseId });
+      const fullSuiteName = getCodeRef(test, suiteName);
+      this.suites.set(fullSuiteName, { ...this.suites.get(fullSuiteName), testCaseId });
     }
   }
 
-  setStatus(status: STATUSES, test: TestCase, suite: string): void {
+  setStatus(status: STATUSES, test: TestCase, suiteName: string): void {
     const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
       this.testItems.set(testItem.id, { ...testItem, status });
     } else {
-      this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), status });
+      const fullSuiteName = getCodeRef(test, suiteName);
+      this.suites.set(fullSuiteName, { ...this.suites.get(fullSuiteName), status });
     }
   }
 
@@ -160,14 +161,15 @@ export class RPReporter implements Reporter {
     this.customLaunchStatus = status;
   }
 
-  sendTestItemLog(log: LogRQ, test: TestCase, suite?: string): void {
+  sendTestItemLog(log: LogRQ, test: TestCase, suiteName?: string): void {
     const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
       this.sendLog(testItem.id, log);
     } else {
-      const suiteItem = this.suitesInfo.get(suite);
+      const fullSuiteName = getCodeRef(test, suiteName);
+      const suiteItem = this.suites.get(fullSuiteName);
       const logs = (suiteItem?.logs || []).concat(log);
-      this.suitesInfo.set(suite, { ...suiteItem, logs });
+      this.suites.set(fullSuiteName, { ...suiteItem, logs });
     }
   }
 
@@ -235,31 +237,38 @@ export class RPReporter implements Reporter {
     }
   }
 
-  createSuitesOrder(suite: PWSuite, suitesOrder: string[]): void {
+  createSuitesOrder(suite: PWSuite, suitesOrder: PWSuite[]): void {
     if (!suite?.title) {
       return;
     }
-    suitesOrder.push(suite.title);
+    suitesOrder.push(suite);
     this.createSuitesOrder(suite.parent, suitesOrder);
   }
 
-  onTestBegin(test: TestCase): void {
-    const suitesOrder: string[] = [];
-    this.createSuitesOrder(test.parent, suitesOrder);
-    const lastSuiteIndex = suitesOrder.length - 1;
+  createSuites(test: TestCase): string {
+    const orderedSuites: PWSuite[] = [];
+    this.createSuitesOrder(test.parent, orderedSuites);
 
-    // create suites
+    const lastSuiteIndex = orderedSuites.length - 1;
+    const projectName = !orderedSuites[lastSuiteIndex].location // Update this after https://github.com/microsoft/playwright/issues/10306
+      ? orderedSuites[lastSuiteIndex].title
+      : undefined;
+
     for (let i = lastSuiteIndex; i >= 0; i--) {
-      const suiteTitle = suitesOrder[i];
-      if (this.findTestItem(this.suites, suiteTitle)) {
+      const currentSuiteTitle = orderedSuites[i].title;
+      const fullSuiteName = getCodeRef(test, currentSuiteTitle);
+      const savedSuiteObj = this.suites.get(fullSuiteName);
+
+      if (savedSuiteObj?.id) {
         continue;
       }
+
       const testItemType = i === lastSuiteIndex ? TEST_ITEM_TYPES.SUITE : TEST_ITEM_TYPES.TEST;
-      const codeRef = getCodeRef(test, testItemType, i);
-      const { attributes, description, testCaseId, status, logs } =
-        this.suitesInfo.get(suiteTitle) || {};
+      const codeRef = getCodeRef(test, currentSuiteTitle, projectName);
+      const { attributes, description, testCaseId, status, logs } = savedSuiteObj || {};
+
       const startSuiteObj: StartTestObjType = {
-        name: suiteTitle,
+        name: currentSuiteTitle,
         startTime: this.client.helpers.now(),
         type: testItemType,
         codeRef,
@@ -267,22 +276,33 @@ export class RPReporter implements Reporter {
         ...(description && { description }),
         ...(testCaseId && { testCaseId }),
       };
-      const parentId = this.findTestItem(this.suites, suitesOrder[i + 1])?.id;
+      const parentSuiteName = getCodeRef(test, orderedSuites[i + 1]?.title);
+      const parentId = this.suites.get(parentSuiteName)?.id;
       const suiteObj = this.client.startTestItem(startSuiteObj, this.launchId, parentId);
       this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
-      this.suites.set(suiteObj.tempId, {
+
+      this.suites.set(fullSuiteName, {
         id: suiteObj.tempId,
-        name: suiteTitle,
+        name: currentSuiteTitle,
         ...(status && { status }),
-        ...(logs && { logs }),
+        ...(logs && { logs }), // TODO: may be send it on suite start
       });
-      this.suitesInfo.delete(suiteTitle);
     }
 
+    return projectName;
+  }
+
+  onTestBegin(test: TestCase): void {
+    // create suites
+    const projectName = this.createSuites(test);
+
+    const fullSuiteName = getCodeRef(test, test.parent.title);
+    const parentSuiteObj = this.suites.get(fullSuiteName);
+
     // create step
-    if (this.findTestItem(this.suites, test.parent.title)) {
-      const codeRef = getCodeRef(test, TEST_ITEM_TYPES.STEP);
-      const { id: parentId } = this.findTestItem(this.suites, test.parent.title);
+    if (parentSuiteObj) {
+      const codeRef = getCodeRef(test, test.title, projectName);
+      const { id: parentId } = parentSuiteObj;
       const startTestItem: StartTestObjType = {
         name: test.title,
         startTime: this.client.helpers.now(),

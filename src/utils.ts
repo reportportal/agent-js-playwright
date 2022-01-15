@@ -21,7 +21,6 @@ import path from 'path';
 // @ts-ignore
 import { name as pjsonName, version as pjsonVersion } from '../package.json';
 import { Attribute } from './models';
-import { TEST_ITEM_TYPES } from './constants';
 import { Attachment } from './models/reporting';
 
 const fsPromises = fs.promises;
@@ -64,28 +63,21 @@ type testItemPick = Pick<TestCase, 'location' | 'titlePath'>;
 
 export const getCodeRef = (
   testItem: testItemPick,
-  itemType: TEST_ITEM_TYPES,
-  sliceIndex = 0,
+  itemTitle: string,
+  pathToExclude?: string,
 ): string => {
-  const testFileDir = path
-    .parse(path.normalize(path.relative(process.cwd(), testItem.location.file)))
-    .dir.replace(new RegExp('\\'.concat(path.sep), 'g'), '/');
-  const filteredTitlesPath = testItem.titlePath().filter((itemPath) => itemPath !== '');
-
-  switch (itemType) {
-    case TEST_ITEM_TYPES.TEST: {
-      const testHierarchicalPath = filteredTitlesPath.slice(0, -1 - sliceIndex).join('/');
-      return `${testFileDir}/${testHierarchicalPath}`;
-    }
-    case TEST_ITEM_TYPES.SUITE: {
-      const testHierarchicalPath = filteredTitlesPath.slice(0, 1).join('/');
-      return `${testFileDir}/${testHierarchicalPath}`;
-    }
-    default: {
-      const testHierarchicalPath = filteredTitlesPath.join('/');
-      return `${testFileDir}/${testHierarchicalPath}`;
-    }
+  if (!itemTitle) {
+    return '';
   }
+  const filteredTitlesPath = testItem
+    .titlePath()
+    .filter((itemPath) => itemPath !== '' && itemPath !== pathToExclude); // TODO: use user parameter here
+  const itemIndex = filteredTitlesPath.indexOf(itemTitle);
+
+  return filteredTitlesPath
+    .slice(0, itemIndex + 1)
+    .join('/')
+    .replace(new RegExp('\\'.concat(path.sep), 'g'), '/');
 };
 
 export const sendEventToReporter = (type: string, data: any, suite?: string): void => {
