@@ -15,6 +15,7 @@
  */
 
 import { RPReporter } from '../../reporter';
+import { STATUSES } from '../../constants';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 
@@ -30,7 +31,7 @@ describe('statuses reporting', () => {
 
   test('reporter.testItems should be updated with statuses', () => {
     reporter.testItems = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'testName' }]]);
-    const status = 'PASSED';
+    const status = STATUSES.PASSED;
     // @ts-ignore
     reporter.setStatus(status, testParams, suite);
     const expectedTestItems = new Map([
@@ -42,7 +43,7 @@ describe('statuses reporting', () => {
 
   test('reporter.suitesInfo should be with statuses', () => {
     reporter.suites = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }]]);
-    const status = 'PASSED';
+    const status = STATUSES.PASSED;
     // @ts-ignore
     reporter.setStatus(status, testParams, suite);
     const expectedSuitesInfo = new Map([['tempTestItemId', { status }]]);
@@ -50,7 +51,7 @@ describe('statuses reporting', () => {
   });
 
   test('reporter.customLaunchStatus should be updated with status', () => {
-    const status = 'PASSED';
+    const status = STATUSES.PASSED;
     reporter.setLaunchStatus(status);
 
     expect(reporter.customLaunchStatus).toBe(status);

@@ -16,13 +16,20 @@
  */
 
 import { TestCase } from '@playwright/test/reporter';
+import fs from 'fs';
+import path from 'path';
 // @ts-ignore
 import { name as pjsonName, version as pjsonVersion } from '../package.json';
 import { Attribute } from './models';
-import path from 'path';
 import { TEST_ITEM_TYPES } from './constants';
+import { Attachment } from './models/reporting';
 
-export const promiseErrorHandler = (promise: Promise<any>, message = '') =>
+const fsPromises = fs.promises;
+
+export const isFalse = (value: string | boolean | undefined): boolean =>
+  [false, 'false'].includes(value);
+
+export const promiseErrorHandler = (promise: Promise<void>, message = ''): Promise<void> =>
   promise.catch((err) => {
     console.error(message, err);
   });
@@ -41,7 +48,7 @@ export const getSystemAttributes = (skippedIssue = true): Array<Attribute> => {
     },
   ];
 
-  if (skippedIssue === false) {
+  if (isFalse(skippedIssue)) {
     const skippedIssueAttribute = {
       key: 'skippedIssue',
       value: 'false',
@@ -83,4 +90,30 @@ export const getCodeRef = (
 
 export const sendEventToReporter = (type: string, data: any, suite?: string): void => {
   process.stdout.write(JSON.stringify({ type, data, suite }));
+};
+
+type attachments = { name: string; path?: string; body?: Buffer; contentType: string }[];
+
+export const getAttachments = async (attachments: attachments): Promise<Attachment[]> => {
+  const readFilePromises = attachments
+    .filter((attachment) => attachment.body || attachment.path)
+    .map(async ({ name, path: attachmentPath, contentType, body }) => {
+      let fileContent;
+      if (body) {
+        fileContent = body;
+      } else {
+        if (!fs.existsSync(attachmentPath)) {
+          return;
+        }
+        fileContent = await fsPromises.readFile(attachmentPath);
+      }
+
+      return {
+        name,
+        type: contentType,
+        content: fileContent,
+      };
+    });
+
+  return (await Promise.all(readFilePromises)).filter(Boolean);
 };

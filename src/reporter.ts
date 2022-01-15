@@ -16,7 +16,7 @@
  */
 
 import RPClient from '@reportportal/client-javascript';
-import { Reporter, TestResult, TestCase } from '@playwright/test/reporter';
+import { Reporter, TestResult, TestCase, Suite as PWSuite } from '@playwright/test/reporter';
 import {
   Attribute,
   ReportPortalConfig,
@@ -26,26 +26,26 @@ import {
   LogRQ,
 } from './models';
 import { TEST_ITEM_TYPES, STATUSES, LOG_LEVELS } from './constants';
-import { getAgentInfo, getCodeRef, getSystemAttributes, promiseErrorHandler } from './utils';
+import {
+  getAgentInfo,
+  getCodeRef,
+  getSystemAttributes,
+  promiseErrorHandler,
+  getAttachments,
+  isFalse,
+} from './utils';
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 
 export interface TestItem {
   id: string;
   name: string;
-  status?: keyof typeof STATUSES;
+  status?: STATUSES;
   attributes?: Attribute[];
   description?: string;
   testCaseId?: string;
 }
 
-interface Suite {
-  id: string;
-  name: string;
-  path?: string;
-  attributes?: Attribute[];
-  description?: string;
-  testCaseId?: string;
-  status?: keyof typeof STATUSES;
+interface Suite extends TestItem {
   logs?: LogRQ[];
 }
 
@@ -58,11 +58,11 @@ export class RPReporter implements Reporter {
 
   suites: Map<string, Suite>;
 
-  promises: Promise<any>[];
+  promises: Promise<void>[];
 
   testItems: Map<string, TestItem>;
 
-  suitesInfo: Map<string, any>;
+  suitesInfo: Map<string, Omit<Suite, 'id'>>;
 
   customLaunchStatus: string;
 
@@ -82,11 +82,11 @@ export class RPReporter implements Reporter {
     this.client = new RPClient(this.config, agentInfo);
   }
 
-  addRequestToPromisesQueue(promise: any, failMessage: string): void {
+  addRequestToPromisesQueue(promise: Promise<void>, failMessage: string): void {
     this.promises.push(promiseErrorHandler(promise, failMessage));
   }
 
-  onStdOut(chunk: string | Buffer, test?: TestCase, result?: TestResult): void {
+  onStdOut(chunk: string | Buffer, test?: TestCase): void {
     try {
       const { type, data, suite } = JSON.parse(String(chunk));
 
@@ -119,18 +119,19 @@ export class RPReporter implements Reporter {
   addAttributes(attr: Attribute[], test: TestCase, suite: string): void {
     const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
-      const attributes = (this.testItems.get(testItem.id).attributes || []).concat(attr);
-      this.testItems.set(testItem.id, { ...this.testItems.get(testItem.id), attributes });
+      const attributes = (testItem.attributes || []).concat(attr);
+      this.testItems.set(testItem.id, { ...testItem, attributes });
     } else {
-      const attributes = (this.suitesInfo.get(suite)?.attributes || []).concat(attr);
-      this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), attributes });
+      const suiteItem = this.suitesInfo.get(suite);
+      const attributes = (suiteItem?.attributes || []).concat(attr);
+      this.suitesInfo.set(suite, { ...suiteItem, attributes });
     }
   }
 
   setDescription(description: string, test: TestCase, suite: string): void {
     const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
-      this.testItems.set(testItem.id, { ...this.testItems.get(testItem.id), description });
+      this.testItems.set(testItem.id, { ...testItem, description });
     } else {
       this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), description });
     }
@@ -139,32 +140,33 @@ export class RPReporter implements Reporter {
   setTestCaseId(testCaseId: string, test: TestCase, suite: string): void {
     const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
-      this.testItems.set(testItem.id, { ...this.testItems.get(testItem.id), testCaseId });
+      this.testItems.set(testItem.id, { ...testItem, testCaseId });
     } else {
       this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), testCaseId });
     }
   }
 
-  setStatus(status: keyof typeof STATUSES, test: TestCase, suite: string): void {
+  setStatus(status: STATUSES, test: TestCase, suite: string): void {
     const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
-      this.testItems.set(testItem.id, { ...this.testItems.get(testItem.id), status });
+      this.testItems.set(testItem.id, { ...testItem, status });
     } else {
       this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), status });
     }
   }
 
-  setLaunchStatus(status: keyof typeof STATUSES): void {
+  setLaunchStatus(status: STATUSES): void {
     this.customLaunchStatus = status;
   }
 
-  sendTestItemLog(log: LogRQ, test: TestCase, suite: string): void {
+  sendTestItemLog(log: LogRQ, test: TestCase, suite?: string): void {
     const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
       this.sendLog(testItem.id, log);
     } else {
-      const logs = (this.suitesInfo.get(suite)?.logs || []).concat(log);
-      this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), logs });
+      const suiteItem = this.suitesInfo.get(suite);
+      const logs = (suiteItem?.logs || []).concat(log);
+      this.suitesInfo.set(suite, { ...suiteItem, logs });
     }
   }
 
@@ -187,14 +189,6 @@ export class RPReporter implements Reporter {
       file,
     );
     promiseErrorHandler(promise, 'Failed to send log');
-  }
-
-  sendLogOnFail(tempId: string, error: any): void {
-    const { promise } = this.client.sendLog(tempId, {
-      level: LOG_LEVELS.ERROR,
-      message: error.stack || error.message,
-    });
-    promiseErrorHandler(promise, 'Failed to send error log');
   }
 
   finishSuites(): void {
@@ -232,15 +226,15 @@ export class RPReporter implements Reporter {
     this.launchId = tempId;
   }
 
-  findTestItem(testItem: Map<string, Suite> | Map<string, TestItem>, title: string): Suite {
-    for (const [key, value] of testItem) {
+  findTestItem(testItems: Map<string, TestItem>, title: string): Suite {
+    for (const [, value] of testItems) {
       if (value.name === title) {
         return value;
       }
     }
   }
 
-  createSuitesOrder(suite: any, suitesOrder: string[]): void {
+  createSuitesOrder(suite: PWSuite, suitesOrder: string[]): void {
     if (!suite?.title) {
       return;
     }
@@ -251,14 +245,15 @@ export class RPReporter implements Reporter {
   onTestBegin(test: TestCase): void {
     const suitesOrder: string[] = [];
     this.createSuitesOrder(test.parent, suitesOrder);
-    //create suites
-    for (let i = suitesOrder.length - 1; i >= 0; i--) {
+    const lastSuiteIndex = suitesOrder.length - 1;
+
+    // create suites
+    for (let i = lastSuiteIndex; i >= 0; i--) {
       const suiteTitle = suitesOrder[i];
       if (this.findTestItem(this.suites, suiteTitle)) {
         continue;
       }
-      const testItemType =
-        i === suitesOrder.length - 1 ? TEST_ITEM_TYPES.SUITE : TEST_ITEM_TYPES.TEST;
+      const testItemType = i === lastSuiteIndex ? TEST_ITEM_TYPES.SUITE : TEST_ITEM_TYPES.TEST;
       const codeRef = getCodeRef(test, testItemType, i);
       const { attributes, description, testCaseId, status, logs } =
         this.suitesInfo.get(suiteTitle) || {};
@@ -280,9 +275,10 @@ export class RPReporter implements Reporter {
         ...(status && { status }),
         ...(logs && { logs }),
       });
+      this.suitesInfo.delete(suiteTitle);
     }
 
-    //create steps
+    // create step
     if (this.findTestItem(this.suites, test.parent.title)) {
       const codeRef = getCodeRef(test, TEST_ITEM_TYPES.STEP);
       const { id: parentId } = this.findTestItem(this.suites, test.parent.title);
@@ -302,7 +298,7 @@ export class RPReporter implements Reporter {
     }
   }
 
-  onTestEnd(test: TestCase, result: TestResult): void {
+  async onTestEnd(test: TestCase, result: TestResult): Promise<void> {
     const {
       id: testItemId,
       attributes,
@@ -311,24 +307,36 @@ export class RPReporter implements Reporter {
       status,
     } = this.findTestItem(this.testItems, test.title);
     let withoutIssue;
-    let descriptionWithError;
+    let testDescription = description;
     if (result.status === STATUSES.SKIPPED) {
-      withoutIssue = this.config.skippedIssue === false;
+      withoutIssue = isFalse(this.config.skippedIssue);
+    }
+
+    if (result.attachments?.length) {
+      const attachmentsFiles = await getAttachments(result.attachments);
+
+      attachmentsFiles.map((file) => {
+        this.sendLog(testItemId, {
+          level: LOG_LEVELS.INFO,
+          message: `Attachment ${file.name} with type ${file.type}`,
+          file,
+        });
+      });
     }
 
     if (result.error) {
-      this.sendLogOnFail(testItemId, result.error);
-      descriptionWithError = (description || '').concat(
-        `\n\`\`\`error\n${result.error.stack}\n\`\`\``,
-      );
+      this.sendLog(testItemId, {
+        level: LOG_LEVELS.ERROR,
+        message: result.error.stack || result.error.message,
+      });
+      testDescription = (description || '').concat(`\n\`\`\`error\n${result.error.stack}\n\`\`\``);
     }
     const finishTestItemObj: FinishTestItemObjType = {
       endTime: this.client.helpers.now(),
       status: status || result.status,
       ...(withoutIssue && { issue: { issueType: 'NOT_ISSUE' } }),
       ...(attributes && { attributes }),
-      ...((descriptionWithError && { description: descriptionWithError }) ||
-        (description && { description })),
+      ...(testDescription && { description: testDescription }),
       ...(testCaseId && { testCaseId }),
     };
     const { promise } = this.client.finishTestItem(testItemId, finishTestItemObj);

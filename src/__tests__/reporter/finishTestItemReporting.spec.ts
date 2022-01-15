@@ -57,18 +57,15 @@ describe('finish test reporting', () => {
   // @ts-ignore
   reporter.setDescription(description, testParams, suite);
 
-  // @ts-ignore
-  reporter.onTestEnd(testParams, result);
+  test('client.finishTestItem should be called with suite id', async () => {
+    // @ts-ignore
+    await reporter.onTestEnd(testParams, result);
 
-  test('client.finishTestItem should be called with suite id', () => {
     expect(reporter.client.finishTestItem).toHaveBeenCalledTimes(1);
     expect(reporter.client.finishTestItem).toHaveBeenCalledWith(
       'tempTestItemId',
       finishTestItemObj,
     );
-  });
-
-  test('reporter.testItems size should be 0', () => {
     expect(reporter.testItems.size).toBe(0);
   });
 });
