@@ -331,9 +331,7 @@ export class RPReporter implements Reporter {
         level: LOG_LEVELS.ERROR,
         message: stacktrace,
       });
-      testDescription = (description || '').concat(
-        `\n\`\`\`error\n${stacktrace}\n\`\`\``,
-      );
+      testDescription = (description || '').concat(`\n\`\`\`error\n${stacktrace}\n\`\`\``);
     }
     const finishTestItemObj: FinishTestItemObjType = {
       endTime: this.client.helpers.now(),

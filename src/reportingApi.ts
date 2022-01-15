@@ -22,39 +22,44 @@ import { STATUSES, LOG_LEVELS } from './constants';
 import { Attachment } from './models/reporting';
 
 export const ReportingApi = {
-  addAttributes: (attrs: Attribute[], suite?: string) =>
+  addAttributes: (attrs: Attribute[], suite?: string): void =>
     sendEventToReporter(EVENTS.ADD_ATTRIBUTES, attrs, suite),
-  setDescription: (description: string, suite?: string) =>
+  setDescription: (description: string, suite?: string): void =>
     sendEventToReporter(EVENTS.SET_DESCRIPTION, description, suite),
-  setTestCaseId: (testCaseId: string, suite?: string) =>
+  setTestCaseId: (testCaseId: string, suite?: string): void =>
     sendEventToReporter(EVENTS.SET_TEST_CASE_ID, testCaseId, suite),
-  setStatus: (status: keyof typeof STATUSES, suite?: string) =>
+  setStatus: (status: keyof typeof STATUSES, suite?: string): void =>
     sendEventToReporter(EVENTS.SET_STATUS, status, suite),
-  setStatusPassed: (suite?: string) =>
+  setStatusPassed: (suite?: string): void =>
     sendEventToReporter(EVENTS.SET_STATUS, STATUSES.PASSED, suite),
-  setStatusFailed: (suite?: string) =>
+  setStatusFailed: (suite?: string): void =>
     sendEventToReporter(EVENTS.SET_STATUS, STATUSES.FAILED, suite),
-  setStatusSkipped: (suite?: string) =>
+  setStatusSkipped: (suite?: string): void =>
     sendEventToReporter(EVENTS.SET_STATUS, STATUSES.SKIPPED, suite),
-  setStatusStopped: (suite?: string) =>
+  setStatusStopped: (suite?: string): void =>
     sendEventToReporter(EVENTS.SET_STATUS, STATUSES.STOPPED, suite),
-  setStatusInterrupted: (suite?: string) =>
+  setStatusInterrupted: (suite?: string): void =>
     sendEventToReporter(EVENTS.SET_STATUS, STATUSES.INTERRUPTED, suite),
-  setStatusCancelled: (suite?: string) =>
+  setStatusCancelled: (suite?: string): void =>
     sendEventToReporter(EVENTS.SET_STATUS, STATUSES.CANCELLED, suite),
-  setStatusInfo: (suite?: string) => sendEventToReporter(EVENTS.SET_STATUS, STATUSES.INFO, suite),
-  setStatusWarn: (suite?: string) => sendEventToReporter(EVENTS.SET_STATUS, STATUSES.WARN, suite),
-  setLaunchStatus: (status: keyof typeof STATUSES) =>
+  setStatusInfo: (suite?: string): void =>
+    sendEventToReporter(EVENTS.SET_STATUS, STATUSES.INFO, suite),
+  setStatusWarn: (suite?: string): void =>
+    sendEventToReporter(EVENTS.SET_STATUS, STATUSES.WARN, suite),
+  setLaunchStatus: (status: keyof typeof STATUSES): void =>
     sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, status),
-  setLaunchStatusPassed: () => sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, STATUSES.PASSED),
-  setLaunchStatusFailed: () => sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, STATUSES.FAILED),
-  setLaunchStatusSkipped: () => sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, STATUSES.SKIPPED),
-  setLaunchStatusStopped: () => sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, STATUSES.STOPPED),
-  setLaunchStatusInterrupted: () =>
+  setLaunchStatusPassed: (): void => sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, STATUSES.PASSED),
+  setLaunchStatusFailed: (): void => sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, STATUSES.FAILED),
+  setLaunchStatusSkipped: (): void =>
+    sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, STATUSES.SKIPPED),
+  setLaunchStatusStopped: (): void =>
+    sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, STATUSES.STOPPED),
+  setLaunchStatusInterrupted: (): void =>
     sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, STATUSES.INTERRUPTED),
-  setLaunchStatusCancelled: () => sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, STATUSES.CANCELLED),
-  setLaunchStatusInfo: () => sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, STATUSES.INFO),
-  setLaunchStatusWarn: () => sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, STATUSES.WARN),
+  setLaunchStatusCancelled: (): void =>
+    sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, STATUSES.CANCELLED),
+  setLaunchStatusInfo: (): void => sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, STATUSES.INFO),
+  setLaunchStatusWarn: (): void => sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, STATUSES.WARN),
 
   log: (
     level: LOG_LEVELS = LOG_LEVELS.INFO,
