@@ -33,6 +33,8 @@ jobs:
         run: npm run build
       - name: Run lint
         run: npm run lint
+      - name: Run tests and check coverage
+        run: npm run test:coverage
 
   publish-to-npm-and-gpr:
     needs: build
