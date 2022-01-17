@@ -1,3 +1,5 @@
+
+## [5.0.1] - 2022-01-17
 ### Added
 - Ability to attach screenshots and other files via [test info attachments](https://playwright.dev/docs/1.17/api/class-testinfo#test-info-attachments)
 - TypeScript definitions provided
