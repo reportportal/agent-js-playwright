@@ -63,6 +63,27 @@ npm install --save-dev @reportportal/agent-js-playwright
 ```
 ## Reporting
 
+### Attachments
+
+Attachments can be easily added during test run via `testInfo.attachments` according to the Playwright [docs](https://playwright.dev/docs/1.17/api/class-testinfo#test-info-attachments).
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('basic test', async ({ page }, testInfo) => {
+  await page.goto('https://playwright.dev');
+
+  // Capture a screenshot and attach it.
+  const path = testInfo.outputPath('screenshot.png');
+  await page.screenshot({ path });
+  testInfo.attachments.push({ name: 'screenshot', path, contentType: 'image/png' });
+});
+```
+
+*Note:* attachment body can be provided instead of path. 
+
+### Reporting API
+
 This reporter provides Reporting API to use it directly in tests to send some additional data to the report.
 
 To start using the `ReportingApi` in tests, just import it from `'@reportportal/agent-js-playwright'`:

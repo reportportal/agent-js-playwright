@@ -16,37 +16,37 @@
  */
 
 import RPClient from '@reportportal/client-javascript';
-import { Reporter, TestResult, TestCase } from '@playwright/test/reporter';
+import stripAnsi from 'strip-ansi';
+import { Reporter, Suite as PWSuite, TestCase, TestResult } from '@playwright/test/reporter';
 import {
   Attribute,
-  ReportPortalConfig,
-  TestResp,
   FinishTestItemObjType,
+  LogRQ,
+  ReportPortalConfig,
   StartLaunchObjType,
   StartTestObjType,
-  LogRQ,
 } from './models';
-import { TEST_ITEM_TYPES, STATUSES, LOG_LEVELS } from './constants';
-import { getAgentInfo, getCodeRef, getSystemAttributes, promiseErrorHandler } from './utils';
+import { LOG_LEVELS, STATUSES, TEST_ITEM_TYPES } from './constants';
+import {
+  getAgentInfo,
+  getAttachments,
+  getCodeRef,
+  getSystemAttributes,
+  isFalse,
+  promiseErrorHandler,
+} from './utils';
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 
 export interface TestItem {
   id: string;
   name: string;
-  status?: keyof typeof STATUSES;
+  status?: STATUSES;
   attributes?: Attribute[];
   description?: string;
   testCaseId?: string;
 }
 
-interface Suite {
-  id: string;
-  name: string;
-  path?: string;
-  attributes?: Attribute[];
-  description?: string;
-  testCaseId?: string;
-  status?: keyof typeof STATUSES;
+interface Suite extends TestItem {
   logs?: LogRQ[];
 }
 
@@ -59,11 +59,9 @@ export class RPReporter implements Reporter {
 
   suites: Map<string, Suite>;
 
-  promises: Promise<any>[];
+  promises: Promise<void>[];
 
   testItems: Map<string, TestItem>;
-
-  suitesInfo: Map<string, any>;
 
   customLaunchStatus: string;
 
@@ -74,7 +72,6 @@ export class RPReporter implements Reporter {
     this.suites = new Map();
     this.testItems = new Map();
     this.promises = [];
-    this.suitesInfo = new Map();
     this.customLaunchStatus = '';
     this.launchLogs = new Map();
 
@@ -83,32 +80,32 @@ export class RPReporter implements Reporter {
     this.client = new RPClient(this.config, agentInfo);
   }
 
-  addRequestToPromisesQueue(promise: any, failMessage: string): void {
+  addRequestToPromisesQueue(promise: Promise<void>, failMessage: string): void {
     this.promises.push(promiseErrorHandler(promise, failMessage));
   }
 
-  onStdOut(chunk: string | Buffer, test?: TestCase, result?: TestResult): void {
+  onStdOut(chunk: string | Buffer, test?: TestCase): void {
     try {
-      const { type, data, suite } = JSON.parse(String(chunk));
+      const { type, data, suite: suiteName } = JSON.parse(String(chunk));
 
       switch (type) {
         case EVENTS.ADD_ATTRIBUTES:
-          this.addAttributes(data, test, suite);
+          this.addAttributes(data, test, suiteName);
           break;
         case EVENTS.SET_DESCRIPTION:
-          this.setDescription(data, test, suite);
+          this.setDescription(data, test, suiteName);
           break;
         case EVENTS.SET_TEST_CASE_ID:
-          this.setTestCaseId(data, test, suite);
+          this.setTestCaseId(data, test, suiteName);
           break;
         case EVENTS.SET_STATUS:
-          this.setStatus(data, test, suite);
+          this.setStatus(data, test, suiteName);
           break;
         case EVENTS.SET_LAUNCH_STATUS:
           this.setLaunchStatus(data);
           break;
         case EVENTS.ADD_LOG:
-          this.sendTestItemLog(data, test, suite);
+          this.sendTestItemLog(data, test, suiteName);
           break;
         case EVENTS.ADD_LAUNCH_LOG:
           this.sendLaunchLog(data);
@@ -117,55 +114,57 @@ export class RPReporter implements Reporter {
     } catch (e) {}
   }
 
-  addAttributes(attr: Attribute[], test: TestCase, suite: string): void {
+  addAttributes(attr: Attribute[], test: TestCase, suiteName: string): void {
     const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
-      const attributes = (this.testItems.get(testItem.id).attributes || []).concat(attr);
-      this.testItems.set(testItem.id, { ...this.testItems.get(testItem.id), attributes });
+      const attributes = (testItem.attributes || []).concat(attr);
+      this.testItems.set(testItem.id, { ...testItem, attributes });
     } else {
-      const attributes = (this.suitesInfo.get(suite)?.attributes || []).concat(attr);
-      this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), attributes });
+      const suiteItem = this.suites.get(suiteName);
+      const attributes = (suiteItem?.attributes || []).concat(attr);
+      this.suites.set(suiteName, { ...suiteItem, attributes });
     }
   }
 
-  setDescription(description: string, test: TestCase, suite: string): void {
+  setDescription(description: string, test: TestCase, suiteName: string): void {
     const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
-      this.testItems.set(testItem.id, { ...this.testItems.get(testItem.id), description });
+      this.testItems.set(testItem.id, { ...testItem, description });
     } else {
-      this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), description });
+      this.suites.set(suiteName, { ...this.suites.get(suiteName), description });
     }
   }
 
-  setTestCaseId(testCaseId: string, test: TestCase, suite: string): void {
+  setTestCaseId(testCaseId: string, test: TestCase, suiteName: string): void {
     const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
-      this.testItems.set(testItem.id, { ...this.testItems.get(testItem.id), testCaseId });
+      this.testItems.set(testItem.id, { ...testItem, testCaseId });
     } else {
-      this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), testCaseId });
+      this.suites.set(suiteName, { ...this.suites.get(suiteName), testCaseId });
     }
   }
 
-  setStatus(status: keyof typeof STATUSES, test: TestCase, suite: string): void {
+  setStatus(status: STATUSES, test: TestCase, suiteName: string): void {
     const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
-      this.testItems.set(testItem.id, { ...this.testItems.get(testItem.id), status });
+      this.testItems.set(testItem.id, { ...testItem, status });
     } else {
-      this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), status });
+      this.suites.set(suiteName, { ...this.suites.get(suiteName), status });
     }
   }
 
-  setLaunchStatus(status: keyof typeof STATUSES): void {
+  setLaunchStatus(status: STATUSES): void {
     this.customLaunchStatus = status;
   }
 
-  sendTestItemLog(log: LogRQ, test: TestCase, suite: string): void {
+  sendTestItemLog(log: LogRQ, test: TestCase, suiteName?: string): void {
     const testItem = this.findTestItem(this.testItems, test?.title);
     if (testItem) {
       this.sendLog(testItem.id, log);
     } else {
-      const logs = (this.suitesInfo.get(suite)?.logs || []).concat(log);
-      this.suitesInfo.set(suite, { ...this.suitesInfo.get(suite), logs });
+      const suiteItem = this.suites.get(suiteName);
+      const logs = (suiteItem?.logs || []).concat(log);
+      this.suites.set(suiteName, { ...suiteItem, logs });
     }
   }
 
@@ -177,7 +176,7 @@ export class RPReporter implements Reporter {
     }
   }
 
-  sendLog(tempId: string, { level, message = '', file }: LogRQ): void {
+  sendLog(tempId: string, { level = LOG_LEVELS.INFO, message = '', file }: LogRQ): void {
     const { promise } = this.client.sendLog(
       tempId,
       {
@@ -190,16 +189,11 @@ export class RPReporter implements Reporter {
     promiseErrorHandler(promise, 'Failed to send log');
   }
 
-  sendLogOnFail(tempId: string, error: any): void {
-    const { promise } = this.client.sendLog(tempId, {
-      level: LOG_LEVELS.ERROR,
-      message: error.stack || error.message,
-    });
-    promiseErrorHandler(promise, 'Failed to send error log');
-  }
-
   finishSuites(): void {
     this.suites.forEach(({ id, status, logs }) => {
+      if (!id) {
+        return;
+      }
       if (logs) {
         logs.map((log) => {
           this.sendLog(id, log);
@@ -233,38 +227,46 @@ export class RPReporter implements Reporter {
     this.launchId = tempId;
   }
 
-  findTestItem(testItem: Map<string, Suite> | Map<string, TestItem>, title: string): Suite {
-    for (const [key, value] of testItem) {
+  findTestItem(testItems: Map<string, TestItem>, title: string): Suite {
+    for (const [, value] of testItems) {
       if (value.name === title) {
         return value;
       }
     }
   }
 
-  createSuitesOrder(suite: any, suitesOrder: string[]): void {
-    if (!suite?._isDescribe) {
+  createSuitesOrder(suite: PWSuite, suitesOrder: PWSuite[]): void {
+    if (!suite?.title) {
       return;
     }
-    suitesOrder.push(suite.title);
+    suitesOrder.push(suite);
     this.createSuitesOrder(suite.parent, suitesOrder);
   }
 
-  onTestBegin(test: TestResp): void {
-    const suitesOrder: string[] = [];
-    this.createSuitesOrder(test.parent, suitesOrder);
-    //create suites
-    for (let i = suitesOrder.length - 1; i >= 0; i--) {
-      const suiteTitle = suitesOrder[i];
-      if (this.findTestItem(this.suites, suiteTitle)) {
+  createSuites(test: TestCase): string {
+    const orderedSuites: PWSuite[] = [];
+    this.createSuitesOrder(test.parent, orderedSuites);
+
+    const lastSuiteIndex = orderedSuites.length - 1;
+    const projectName = !orderedSuites[lastSuiteIndex].location // Update this after https://github.com/microsoft/playwright/issues/10306
+      ? orderedSuites[lastSuiteIndex].title
+      : undefined;
+
+    for (let i = lastSuiteIndex; i >= 0; i--) {
+      const currentSuiteTitle = orderedSuites[i].title;
+      const fullSuiteName = getCodeRef(test, currentSuiteTitle);
+
+      if (this.suites.get(fullSuiteName)?.id) {
         continue;
       }
-      const testItemType =
-        i === suitesOrder.length - 1 ? TEST_ITEM_TYPES.SUITE : TEST_ITEM_TYPES.TEST;
-      const codeRef = getCodeRef(test, testItemType, i);
+
+      const testItemType = i === lastSuiteIndex ? TEST_ITEM_TYPES.SUITE : TEST_ITEM_TYPES.TEST;
+      const codeRef = getCodeRef(test, currentSuiteTitle, projectName);
       const { attributes, description, testCaseId, status, logs } =
-        this.suitesInfo.get(suiteTitle) || {};
+        this.suites.get(currentSuiteTitle) || {};
+
       const startSuiteObj: StartTestObjType = {
-        name: suiteTitle,
+        name: currentSuiteTitle,
         startTime: this.client.helpers.now(),
         type: testItemType,
         codeRef,
@@ -272,21 +274,33 @@ export class RPReporter implements Reporter {
         ...(description && { description }),
         ...(testCaseId && { testCaseId }),
       };
-      const parentId = this.findTestItem(this.suites, suitesOrder[i + 1])?.id;
+      const parentSuiteName = getCodeRef(test, orderedSuites[i + 1]?.title);
+      const parentId = this.suites.get(parentSuiteName)?.id;
       const suiteObj = this.client.startTestItem(startSuiteObj, this.launchId, parentId);
       this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
-      this.suites.set(suiteObj.tempId, {
+
+      this.suites.set(fullSuiteName, {
         id: suiteObj.tempId,
-        name: suiteTitle,
+        name: currentSuiteTitle,
         ...(status && { status }),
-        ...(logs && { logs }),
+        ...(logs && { logs }), // TODO: may be send it on suite start
       });
     }
 
-    //create steps
-    if (this.findTestItem(this.suites, test.parent.title)) {
-      const codeRef = getCodeRef(test, TEST_ITEM_TYPES.STEP);
-      const { id: parentId } = this.findTestItem(this.suites, test.parent.title);
+    return projectName;
+  }
+
+  onTestBegin(test: TestCase): void {
+    // create suites
+    const projectName = this.createSuites(test);
+
+    const fullSuiteName = getCodeRef(test, test.parent.title);
+    const parentSuiteObj = this.suites.get(fullSuiteName);
+
+    // create step
+    if (parentSuiteObj) {
+      const codeRef = getCodeRef(test, test.title, projectName);
+      const { id: parentId } = parentSuiteObj;
       const startTestItem: StartTestObjType = {
         name: test.title,
         startTime: this.client.helpers.now(),
@@ -303,7 +317,7 @@ export class RPReporter implements Reporter {
     }
   }
 
-  onTestEnd(test: TestResp, result: TestResult): void {
+  async onTestEnd(test: TestCase, result: TestResult): Promise<void> {
     const {
       id: testItemId,
       attributes,
@@ -312,24 +326,36 @@ export class RPReporter implements Reporter {
       status,
     } = this.findTestItem(this.testItems, test.title);
     let withoutIssue;
-    let descriptionWithError;
+    let testDescription = description;
     if (result.status === STATUSES.SKIPPED) {
-      withoutIssue = this.config.skippedIssue === false;
+      withoutIssue = isFalse(this.config.skippedIssue);
+    }
+
+    if (result.attachments?.length) {
+      const attachmentsFiles = await getAttachments(result.attachments);
+
+      attachmentsFiles.map((file) => {
+        this.sendLog(testItemId, {
+          message: `Attachment ${file.name} with type ${file.type}`,
+          file,
+        });
+      });
     }
 
     if (result.error) {
-      this.sendLogOnFail(testItemId, result.error);
-      descriptionWithError = (description || '').concat(
-        `\n\`\`\`error\n${result.error.stack}\n\`\`\``,
-      );
+      const stacktrace = stripAnsi(result.error.stack || result.error.message);
+      this.sendLog(testItemId, {
+        level: LOG_LEVELS.ERROR,
+        message: stacktrace,
+      });
+      testDescription = (description || '').concat(`\n\`\`\`error\n${stacktrace}\n\`\`\``);
     }
     const finishTestItemObj: FinishTestItemObjType = {
       endTime: this.client.helpers.now(),
       status: status || result.status,
       ...(withoutIssue && { issue: { issueType: 'NOT_ISSUE' } }),
       ...(attributes && { attributes }),
-      ...((descriptionWithError && { description: descriptionWithError }) ||
-        (description && { description })),
+      ...(testDescription && { description: testDescription }),
       ...(testCaseId && { testCaseId }),
     };
     const { promise } = this.client.finishTestItem(testItemId, finishTestItemObj);

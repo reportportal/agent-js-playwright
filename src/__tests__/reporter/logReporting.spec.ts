@@ -81,7 +81,7 @@ describe('logs reporting', () => {
       expect(reporter.suitesInfo).toEqual(expectedSuitesInfo);
     });
 
-    test('should send a log when the test item failed', () => {
+    test('should send a log when the test item failed', async () => {
       reporter.testItems = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'test' }]]);
       const testParams = {
         title: 'test',
@@ -97,12 +97,15 @@ describe('logs reporting', () => {
           stack: 'stack',
         },
       };
-      jest.spyOn(reporter, 'sendLogOnFail');
+      jest.spyOn(reporter, 'sendLog');
 
       // @ts-ignore
-      reporter.onTestEnd(testParams, result);
+      await reporter.onTestEnd(testParams, result);
 
-      expect(reporter.sendLogOnFail).toHaveBeenCalledWith('tempTestItemId', result.error);
+      expect(reporter.sendLog).toHaveBeenCalledWith('tempTestItemId', {
+        level: LOG_LEVELS.ERROR,
+        message: result.error.stack,
+      });
     });
   });
 });

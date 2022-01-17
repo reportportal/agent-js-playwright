@@ -15,13 +15,20 @@
  *
  */
 
+import { TestCase } from '@playwright/test/reporter';
+import fs from 'fs';
+import path from 'path';
 // @ts-ignore
 import { name as pjsonName, version as pjsonVersion } from '../package.json';
-import { Attribute, TestResp } from './models';
-import path from 'path';
-import { TEST_ITEM_TYPES } from './constants';
+import { Attribute } from './models';
+import { Attachment } from './models/reporting';
 
-export const promiseErrorHandler = (promise: Promise<any>, message = '') =>
+const fsPromises = fs.promises;
+
+export const isFalse = (value: string | boolean | undefined): boolean =>
+  [false, 'false'].includes(value);
+
+export const promiseErrorHandler = (promise: Promise<void>, message = ''): Promise<void> =>
   promise.catch((err) => {
     console.error(message, err);
   });
@@ -40,7 +47,7 @@ export const getSystemAttributes = (skippedIssue = true): Array<Attribute> => {
     },
   ];
 
-  if (skippedIssue === false) {
+  if (isFalse(skippedIssue)) {
     const skippedIssueAttribute = {
       key: 'skippedIssue',
       value: 'false',
@@ -52,34 +59,53 @@ export const getSystemAttributes = (skippedIssue = true): Array<Attribute> => {
   return systemAttributes;
 };
 
-type testItemPick = Pick<TestResp, 'location' | 'titlePath'>;
+type testItemPick = Pick<TestCase, 'location' | 'titlePath'>;
 
 export const getCodeRef = (
   testItem: testItemPick,
-  itemType: TEST_ITEM_TYPES,
-  sliceIndex = 0,
+  itemTitle: string,
+  pathToExclude?: string,
 ): string => {
-  const testFileDir = path
-    .parse(path.normalize(path.relative(process.cwd(), testItem.location.file)))
-    .dir.replace(new RegExp('\\'.concat(path.sep), 'g'), '/');
-  const filteredTitlesPath = testItem.titlePath().filter((itemPath) => itemPath !== '');
-
-  switch (itemType) {
-    case TEST_ITEM_TYPES.TEST: {
-      const testHierarchicalPath = filteredTitlesPath.slice(0, -1 - sliceIndex).join('/');
-      return `${testFileDir}/${testHierarchicalPath}`;
-    }
-    case TEST_ITEM_TYPES.SUITE: {
-      const testHierarchicalPath = filteredTitlesPath.slice(0, 2).join('/');
-      return `${testFileDir}/${testHierarchicalPath}`;
-    }
-    default: {
-      const testHierarchicalPath = filteredTitlesPath.join('/');
-      return `${testFileDir}/${testHierarchicalPath}`;
-    }
+  if (!itemTitle) {
+    return '';
   }
+  const filteredTitlesPath = testItem
+    .titlePath()
+    .filter((itemPath) => itemPath !== '' && itemPath !== pathToExclude); // TODO: use user parameter here
+  const itemIndex = filteredTitlesPath.indexOf(itemTitle);
+
+  return filteredTitlesPath
+    .slice(0, itemIndex + 1)
+    .join('/')
+    .replace(new RegExp('\\'.concat(path.sep), 'g'), '/');
 };
 
 export const sendEventToReporter = (type: string, data: any, suite?: string): void => {
   process.stdout.write(JSON.stringify({ type, data, suite }));
+};
+
+type attachments = { name: string; path?: string; body?: Buffer; contentType: string }[];
+
+export const getAttachments = async (attachments: attachments): Promise<Attachment[]> => {
+  const readFilePromises = attachments
+    .filter((attachment) => attachment.body || attachment.path)
+    .map(async ({ name, path: attachmentPath, contentType, body }) => {
+      let fileContent;
+      if (body) {
+        fileContent = body;
+      } else {
+        if (!fs.existsSync(attachmentPath)) {
+          return;
+        }
+        fileContent = await fsPromises.readFile(attachmentPath);
+      }
+
+      return {
+        name,
+        type: contentType,
+        content: fileContent,
+      };
+    });
+
+  return (await Promise.all(readFilePromises)).filter(Boolean);
 };
