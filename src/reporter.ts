@@ -17,23 +17,23 @@
 
 import RPClient from '@reportportal/client-javascript';
 import stripAnsi from 'strip-ansi';
-import { Reporter, TestResult, TestCase, Suite as PWSuite } from '@playwright/test/reporter';
+import { Reporter, Suite as PWSuite, TestCase, TestResult } from '@playwright/test/reporter';
 import {
   Attribute,
-  ReportPortalConfig,
   FinishTestItemObjType,
+  LogRQ,
+  ReportPortalConfig,
   StartLaunchObjType,
   StartTestObjType,
-  LogRQ,
 } from './models';
-import { TEST_ITEM_TYPES, STATUSES, LOG_LEVELS } from './constants';
+import { LOG_LEVELS, STATUSES, TEST_ITEM_TYPES } from './constants';
 import {
   getAgentInfo,
+  getAttachments,
   getCodeRef,
   getSystemAttributes,
-  promiseErrorHandler,
-  getAttachments,
   isFalse,
+  promiseErrorHandler,
 } from './utils';
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 
@@ -120,10 +120,9 @@ export class RPReporter implements Reporter {
       const attributes = (testItem.attributes || []).concat(attr);
       this.testItems.set(testItem.id, { ...testItem, attributes });
     } else {
-      const fullSuiteName = getCodeRef(test, suiteName);
-      const suiteItem = this.suites.get(fullSuiteName);
+      const suiteItem = this.suites.get(suiteName);
       const attributes = (suiteItem?.attributes || []).concat(attr);
-      this.suites.set(fullSuiteName, { ...suiteItem, attributes });
+      this.suites.set(suiteName, { ...suiteItem, attributes });
     }
   }
 
@@ -132,8 +131,7 @@ export class RPReporter implements Reporter {
     if (testItem) {
       this.testItems.set(testItem.id, { ...testItem, description });
     } else {
-      const fullSuiteName = getCodeRef(test, suiteName);
-      this.suites.set(fullSuiteName, { ...this.suites.get(fullSuiteName), description });
+      this.suites.set(suiteName, { ...this.suites.get(suiteName), description });
     }
   }
 
@@ -142,8 +140,7 @@ export class RPReporter implements Reporter {
     if (testItem) {
       this.testItems.set(testItem.id, { ...testItem, testCaseId });
     } else {
-      const fullSuiteName = getCodeRef(test, suiteName);
-      this.suites.set(fullSuiteName, { ...this.suites.get(fullSuiteName), testCaseId });
+      this.suites.set(suiteName, { ...this.suites.get(suiteName), testCaseId });
     }
   }
 
@@ -152,8 +149,7 @@ export class RPReporter implements Reporter {
     if (testItem) {
       this.testItems.set(testItem.id, { ...testItem, status });
     } else {
-      const fullSuiteName = getCodeRef(test, suiteName);
-      this.suites.set(fullSuiteName, { ...this.suites.get(fullSuiteName), status });
+      this.suites.set(suiteName, { ...this.suites.get(suiteName), status });
     }
   }
 
@@ -166,10 +162,9 @@ export class RPReporter implements Reporter {
     if (testItem) {
       this.sendLog(testItem.id, log);
     } else {
-      const fullSuiteName = getCodeRef(test, suiteName);
-      const suiteItem = this.suites.get(fullSuiteName);
+      const suiteItem = this.suites.get(suiteName);
       const logs = (suiteItem?.logs || []).concat(log);
-      this.suites.set(fullSuiteName, { ...suiteItem, logs });
+      this.suites.set(suiteName, { ...suiteItem, logs });
     }
   }
 
@@ -181,7 +176,7 @@ export class RPReporter implements Reporter {
     }
   }
 
-  sendLog(tempId: string, { level, message = '', file }: LogRQ): void {
+  sendLog(tempId: string, { level = LOG_LEVELS.INFO, message = '', file }: LogRQ): void {
     const { promise } = this.client.sendLog(
       tempId,
       {
@@ -196,6 +191,9 @@ export class RPReporter implements Reporter {
 
   finishSuites(): void {
     this.suites.forEach(({ id, status, logs }) => {
+      if (!id) {
+        return;
+      }
       if (logs) {
         logs.map((log) => {
           this.sendLog(id, log);
@@ -257,15 +255,15 @@ export class RPReporter implements Reporter {
     for (let i = lastSuiteIndex; i >= 0; i--) {
       const currentSuiteTitle = orderedSuites[i].title;
       const fullSuiteName = getCodeRef(test, currentSuiteTitle);
-      const savedSuiteObj = this.suites.get(fullSuiteName);
 
-      if (savedSuiteObj?.id) {
+      if (this.suites.get(fullSuiteName)?.id) {
         continue;
       }
 
       const testItemType = i === lastSuiteIndex ? TEST_ITEM_TYPES.SUITE : TEST_ITEM_TYPES.TEST;
       const codeRef = getCodeRef(test, currentSuiteTitle, projectName);
-      const { attributes, description, testCaseId, status, logs } = savedSuiteObj || {};
+      const { attributes, description, testCaseId, status, logs } =
+        this.suites.get(currentSuiteTitle) || {};
 
       const startSuiteObj: StartTestObjType = {
         name: currentSuiteTitle,
@@ -338,7 +336,6 @@ export class RPReporter implements Reporter {
 
       attachmentsFiles.map((file) => {
         this.sendLog(testItemId, {
-          level: LOG_LEVELS.INFO,
           message: `Attachment ${file.name} with type ${file.type}`,
           file,
         });
