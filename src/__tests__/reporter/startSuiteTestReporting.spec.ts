@@ -27,106 +27,80 @@ describe('start reporting suite/test', () => {
   reporter.launchId = 'tempLaunchId';
 
   const testParams = {
-    title: 'test',
+    title: 'testTitle',
     parent: {
       title: 'suiteName',
+      location: 'tests/example.js',
+      parent: {
+        title: 'tests/example.js',
+        location: 'tests/example.js',
+      },
     },
     location: {
-      file: `C:${path.sep}testProject${path.sep}test${path.sep}example.js`,
+      file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
       line: 5,
       column: 3,
     },
-    titlePath: () => ['example.js', 'rootDescribe', 'parentDescribe', 'testTitle'],
+    titlePath: () => ['tests/example.js', 'suiteName', 'testTitle'],
   };
 
-  jest.spyOn(process, 'cwd').mockImplementation(() => `C:${path.sep}testProject`);
+  const spyStartTestItem = jest.spyOn(reporter.client, 'startTestItem');
 
-  // @ts-ignore
-  reporter.onTestBegin(testParams);
-
-  describe('start suite report', () => {
+  test('client.startTestItem should be called with corresponding params to report suites and test item', () => {
     const expectedSuites = new Map([
-      ['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }],
+      ['tests/example.js', { id: 'tempTestItemId', name: 'tests/example.js' }],
+      ['tests/example.js/suiteName', { id: 'tempTestItemId', name: 'suiteName' }],
     ]);
-    const startSuiteObj: StartTestObjType = {
+    const expectedTestItems = new Map([
+      ['tempTestItemId', { id: 'tempTestItemId', name: 'testTitle' }],
+    ]);
+    const expectedRootParentSuiteObj: StartTestObjType = {
       startTime: reporter.client.helpers.now(),
-      name: testParams.parent.title,
+      name: 'tests/example.js',
       type: TEST_ITEM_TYPES.SUITE,
-      codeRef: `test/example.js`,
+      codeRef: 'tests/example.js',
     };
-
-    test('client.startTestItem should be called with corresponding params', () => {
-      expect(reporter.client.startTestItem).toHaveBeenCalledWith(
-        startSuiteObj,
-        reporter.launchId,
-        undefined,
-      );
-    });
-
-    test('reporter.suites should be updated', () => {
-      expect(reporter.suites).toEqual(expectedSuites);
-    });
-  });
-
-  describe('start tests report', () => {
-    const expectedTestItems = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'test' }]]);
-    const parentId = 'tempTestItemId';
-    const startTestObj: StartTestObjType = {
+    const expectedParentSuiteObj: StartTestObjType = {
       startTime: reporter.client.helpers.now(),
-      name: testParams.title,
+      name: 'suiteName',
+      type: TEST_ITEM_TYPES.TEST,
+      codeRef: 'tests/example.js/suiteName',
+    };
+    const expectedTestObj: StartTestObjType = {
+      startTime: reporter.client.helpers.now(),
+      name: 'testTitle',
       type: TEST_ITEM_TYPES.STEP,
-      codeRef: 'test/example.js/rootDescribe/parentDescribe/testTitle',
+      codeRef: 'tests/example.js/suiteName/testTitle',
       retry: false,
     };
+    const parentId = 'tempTestItemId';
 
-    test('client.startTestItem should be called with corresponding params', () => {
-      expect(reporter.client.startTestItem).toHaveBeenCalledWith(
-        startTestObj,
-        reporter.launchId,
-        parentId,
-      );
-    });
-
-    test('reporter.testItems should be updated', () => {
-      expect(reporter.testItems).toEqual(expectedTestItems);
-    });
-  });
-});
-
-describe('suite in suite case', () => {
-  const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
-  reporter.launchId = 'tempLaunchId';
-  const testParams = {
-    title: 'test',
-    parent: {
-      title: 'suiteName',
-      parent: {
-        title: 'parentSuiteName',
-      },
-    },
-    location: {
-      file: `C:${path.sep}testProject${path.sep}test${path.sep}example.js`,
-      line: 5,
-      column: 3,
-    },
-    titlePath: () => ['example.js', 'rootDescribe', 'parentDescribe', 'testTitle'],
-  };
-  reporter.suites.set('tempTestItemId', { id: 'tempTestItemId', name: 'parentSuiteName' });
-
-  const expectedSuites = new Map([
-    [
-      'tempTestItemId',
-      {
-        id: 'tempTestItemId',
-        name: 'parentSuiteName',
-      },
-    ],
-    ['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }],
-  ]);
-  test('parent and child suites should be updated', () => {
     // @ts-ignore
     reporter.onTestBegin(testParams);
+
+    // the first call for the root suite start
+    expect(spyStartTestItem).toHaveBeenNthCalledWith(
+      1,
+      expectedRootParentSuiteObj,
+      reporter.launchId,
+      undefined,
+    );
+    // the first call for the item parent suite start
+    expect(spyStartTestItem).toHaveBeenNthCalledWith(
+      2,
+      expectedParentSuiteObj,
+      reporter.launchId,
+      parentId,
+    );
+    // the third call for the test item start
+    expect(reporter.client.startTestItem).toHaveBeenNthCalledWith(
+      3,
+      expectedTestObj,
+      reporter.launchId,
+      parentId,
+    );
+    expect(spyStartTestItem).toHaveBeenCalledTimes(3);
     expect(reporter.suites).toEqual(expectedSuites);
+    expect(reporter.testItems).toEqual(expectedTestItems);
   });
 });

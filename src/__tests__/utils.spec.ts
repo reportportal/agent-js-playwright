@@ -28,7 +28,6 @@ import {
 } from '../utils';
 import fs from 'fs';
 import path from 'path';
-import { TEST_ITEM_TYPES } from '../constants';
 
 describe('testing utils', () => {
   test('isFalse', () => {
@@ -107,42 +106,49 @@ describe('testing utils', () => {
   });
 
   describe('getCodeRef', () => {
-    jest.spyOn(process, 'cwd').mockImplementation(() => `C:${path.sep}testProject`);
+    const projectName = 'Google Chrome tests';
     const mockedTest = {
       location: {
-        file: `C:${path.sep}testProject${path.sep}test${path.sep}example.js`,
+        file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
         line: 5,
         column: 3,
       },
-      titlePath: () => ['example.js', 'rootDescribe', 'parentDescribe', 'testTitle'],
+      titlePath: () => [
+        '',
+        projectName,
+        'tests/example.js',
+        'rootDescribe',
+        'parentDescribe',
+        'testTitle',
+      ],
     };
 
-    test('codeRef should be correct for TEST_ITEM_TYPES.SUITE', () => {
-      const expectedCodeRef = `test/example.js`;
-      const codeRef = getCodeRef(mockedTest, TEST_ITEM_TYPES.SUITE);
+    test('should return correct code reference for test title (all titles before, including provided) and omit empty paths', () => {
+      const expectedCodeRef =
+        'Google Chrome tests/tests/example.js/rootDescribe/parentDescribe/testTitle';
+      const codeRef = getCodeRef(mockedTest, 'testTitle');
 
-      expect(codeRef).toEqual(expectedCodeRef);
+      expect(codeRef).toBe(expectedCodeRef);
     });
 
-    test('codeRef should be correct for TEST_ITEM_TYPES.TEST with offset 1', () => {
-      const expectedCodeRef = `test/example.js/rootDescribe`;
-      const codeRef = getCodeRef(mockedTest, TEST_ITEM_TYPES.TEST, 1);
+    test('should return correct code reference for test title (all titles before, including provided) and omit empty paths', () => {
+      const expectedCodeRef = 'Google Chrome tests/tests/example.js/rootDescribe';
+      const codeRef = getCodeRef(mockedTest, 'rootDescribe');
 
-      expect(codeRef).toEqual(expectedCodeRef);
+      expect(codeRef).toBe(expectedCodeRef);
     });
 
-    test('codeRef should be correct for TEST_ITEM_TYPES.TEST without offset', () => {
-      const expectedCodeRef = `test/example.js/rootDescribe/parentDescribe`;
-      const codeRef = getCodeRef(mockedTest, TEST_ITEM_TYPES.TEST);
+    test('should return correct code reference for test title and omit pathToExclude if provided', () => {
+      const expectedCodeRef = 'tests/example.js/rootDescribe';
+      const codeRef = getCodeRef(mockedTest, 'rootDescribe', projectName);
 
-      expect(codeRef).toEqual(expectedCodeRef);
+      expect(codeRef).toBe(expectedCodeRef);
     });
 
-    test('codeRef should be correct for TEST_ITEM_TYPES.STEP', () => {
-      const expectedCodeRef = `test/example.js/rootDescribe/parentDescribe/testTitle`;
-      const codeRef = getCodeRef(mockedTest, TEST_ITEM_TYPES.STEP);
+    test('should return an empty string if test title is empty', () => {
+      const codeRef = getCodeRef(mockedTest, undefined);
 
-      expect(codeRef).toEqual(expectedCodeRef);
+      expect(codeRef).toBe('');
     });
   });
   describe('sendEventToReporter', () => {

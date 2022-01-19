@@ -59,6 +59,8 @@ export class RPReporter implements Reporter {
 
   suites: Map<string, Suite>;
 
+  suitesInfo: Map<string, Omit<Suite, 'id'>>;
+
   promises: Promise<void>[];
 
   testItems: Map<string, TestItem>;
@@ -70,6 +72,7 @@ export class RPReporter implements Reporter {
   constructor(config: ReportPortalConfig) {
     this.config = config;
     this.suites = new Map();
+    this.suitesInfo = new Map();
     this.testItems = new Map();
     this.promises = [];
     this.customLaunchStatus = '';
@@ -120,9 +123,9 @@ export class RPReporter implements Reporter {
       const attributes = (testItem.attributes || []).concat(attr);
       this.testItems.set(testItem.id, { ...testItem, attributes });
     } else {
-      const suiteItem = this.suites.get(suiteName);
+      const suiteItem = this.suitesInfo.get(suiteName);
       const attributes = (suiteItem?.attributes || []).concat(attr);
-      this.suites.set(suiteName, { ...suiteItem, attributes });
+      this.suitesInfo.set(suiteName, { ...suiteItem, attributes });
     }
   }
 
@@ -131,7 +134,7 @@ export class RPReporter implements Reporter {
     if (testItem) {
       this.testItems.set(testItem.id, { ...testItem, description });
     } else {
-      this.suites.set(suiteName, { ...this.suites.get(suiteName), description });
+      this.suitesInfo.set(suiteName, { ...this.suitesInfo.get(suiteName), description });
     }
   }
 
@@ -140,7 +143,7 @@ export class RPReporter implements Reporter {
     if (testItem) {
       this.testItems.set(testItem.id, { ...testItem, testCaseId });
     } else {
-      this.suites.set(suiteName, { ...this.suites.get(suiteName), testCaseId });
+      this.suitesInfo.set(suiteName, { ...this.suitesInfo.get(suiteName), testCaseId });
     }
   }
 
@@ -149,7 +152,7 @@ export class RPReporter implements Reporter {
     if (testItem) {
       this.testItems.set(testItem.id, { ...testItem, status });
     } else {
-      this.suites.set(suiteName, { ...this.suites.get(suiteName), status });
+      this.suitesInfo.set(suiteName, { ...this.suitesInfo.get(suiteName), status });
     }
   }
 
@@ -162,9 +165,9 @@ export class RPReporter implements Reporter {
     if (testItem) {
       this.sendLog(testItem.id, log);
     } else {
-      const suiteItem = this.suites.get(suiteName);
+      const suiteItem = this.suitesInfo.get(suiteName);
       const logs = (suiteItem?.logs || []).concat(log);
-      this.suites.set(suiteName, { ...suiteItem, logs });
+      this.suitesInfo.set(suiteName, { ...suiteItem, logs });
     }
   }
 
@@ -191,9 +194,6 @@ export class RPReporter implements Reporter {
 
   finishSuites(): void {
     this.suites.forEach(({ id, status, logs }) => {
-      if (!id) {
-        return;
-      }
       if (logs) {
         logs.map((log) => {
           this.sendLog(id, log);
@@ -263,7 +263,7 @@ export class RPReporter implements Reporter {
       const testItemType = i === lastSuiteIndex ? TEST_ITEM_TYPES.SUITE : TEST_ITEM_TYPES.TEST;
       const codeRef = getCodeRef(test, currentSuiteTitle, projectName);
       const { attributes, description, testCaseId, status, logs } =
-        this.suites.get(currentSuiteTitle) || {};
+        this.suitesInfo.get(currentSuiteTitle) || {};
 
       const startSuiteObj: StartTestObjType = {
         name: currentSuiteTitle,
@@ -285,13 +285,13 @@ export class RPReporter implements Reporter {
         ...(status && { status }),
         ...(logs && { logs }), // TODO: may be send it on suite start
       });
+      this.suitesInfo.delete(currentSuiteTitle);
     }
 
     return projectName;
   }
 
   onTestBegin(test: TestCase): void {
-    // create suites
     const projectName = this.createSuites(test);
 
     const fullSuiteName = getCodeRef(test, test.parent.title);

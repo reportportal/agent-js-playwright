@@ -26,39 +26,36 @@ describe('retries reporting', () => {
   reporter.client = new RPClientMock(mockConfig);
 
   const testParams = {
-    title: 'testName',
+    title: 'testTitle',
     parent: {
       title: 'suiteName',
+      location: 'tests/example.js',
     },
     location: {
-      file: `C:${path.sep}testProject${path.sep}test${path.sep}example.js`,
+      file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
       line: 5,
       column: 3,
     },
-    titlePath: () => ['example.js', 'rootDescribe', 'parentDescribe', 'testTitle'],
+    titlePath: () => ['suiteName', 'testTitle'],
     results: [{}, {}],
   };
-  jest.spyOn(process, 'cwd').mockImplementation(() => `C:${path.sep}testProject`);
 
-  const parentId = 'tempTestItemId';
-  const expectedStartObj: StartTestObjType = {
-    startTime: reporter.client.helpers.now(),
-    name: testParams.title,
-    type: TEST_ITEM_TYPES.STEP,
-    codeRef: 'test/example.js/rootDescribe/parentDescribe/testTitle',
-    retry: true,
-  };
-
-  reporter.suites = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }]]);
-
-  // @ts-ignore
-  reporter.onTestBegin(testParams);
+  const spyStartTestItem = jest.spyOn(reporter.client, 'startTestItem');
 
   test('client.startTestItem should be called with retry=true params', () => {
-    expect(reporter.client.startTestItem).toHaveBeenCalledWith(
-      expectedStartObj,
-      reporter.launchId,
-      parentId,
-    );
+    const parentId = 'tempTestItemId';
+    const expectedTestObj: StartTestObjType = {
+      startTime: reporter.client.helpers.now(),
+      name: 'testTitle',
+      type: TEST_ITEM_TYPES.STEP,
+      codeRef: 'suiteName/testTitle',
+      retry: true,
+    };
+    reporter.suites = new Map([['suiteName', { id: 'tempTestItemId', name: 'suiteName' }]]);
+
+    // @ts-ignore
+    reporter.onTestBegin(testParams);
+
+    expect(spyStartTestItem).toHaveBeenCalledWith(expectedTestObj, reporter.launchId, parentId);
   });
 });
