@@ -194,9 +194,6 @@ export class RPReporter implements Reporter {
 
   finishSuites(): void {
     this.suites.forEach(({ id, status, logs }) => {
-      if (!id) {
-        return;
-      }
       if (logs) {
         logs.map((log) => {
           this.sendLog(id, log);
@@ -295,7 +292,6 @@ export class RPReporter implements Reporter {
   }
 
   onTestBegin(test: TestCase): void {
-    // create suites
     const projectName = this.createSuites(test);
 
     const fullSuiteName = getCodeRef(test, test.parent.title);

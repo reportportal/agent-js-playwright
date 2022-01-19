@@ -109,7 +109,7 @@ describe('testing utils', () => {
     const projectName = 'Google Chrome tests';
     const mockedTest = {
       location: {
-        file: `C:${path.sep}testProject${path.sep}test${path.sep}example.js`,
+        file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
         line: 5,
         column: 3,
       },
