@@ -25,6 +25,7 @@ import {
   sendEventToReporter,
   isFalse,
   getAttachments,
+  isErrorLog,
 } from '../utils';
 import fs from 'fs';
 import path from 'path';
@@ -35,6 +36,17 @@ describe('testing utils', () => {
     expect(isFalse('false')).toBe(true);
     expect(isFalse(undefined)).toBe(false);
     expect(isFalse(null)).toBe(false);
+  });
+
+  describe('isErrorLog', () => {
+    test('isErrorLog with letters in different cases should return true', () => {
+      const message = 'Some TEXT with ErRoR';
+      expect(isErrorLog(message)).toBe(true);
+    });
+    test('isErrorLog without "error" word should return false', () => {
+      const messageWithoutError = 'Some text';
+      expect(isErrorLog(messageWithoutError)).toBe(false);
+    });
   });
 
   describe('promiseErrorHandler', () => {

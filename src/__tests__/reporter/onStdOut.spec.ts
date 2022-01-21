@@ -95,4 +95,14 @@ describe('onStdOut testing', () => {
     reporter.onStdOut(chunk);
     expect(reporter.sendLaunchLog).toHaveBeenCalled();
   });
+
+  test('case stdOut logs', () => {
+    const test = {
+      title: 'some test',
+    };
+    jest.spyOn(reporter, 'sendTestItemLog');
+    // @ts-ignore
+    reporter.onStdOut('Some logs', test);
+    expect(reporter.sendTestItemLog).toHaveBeenCalledWith({ message: 'Some logs' }, test);
+  });
 });
