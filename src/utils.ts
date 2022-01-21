@@ -15,13 +15,14 @@
  *
  */
 
-import { TestCase } from '@playwright/test/reporter';
+import { TestCase, TestStatus } from '@playwright/test/reporter';
 import fs from 'fs';
 import path from 'path';
 // @ts-ignore
 import { name as pjsonName, version as pjsonVersion } from '../package.json';
 import { Attribute } from './models';
 import { Attachment } from './models/reporting';
+import { STATUSES } from './constants';
 
 const fsPromises = fs.promises;
 
@@ -112,4 +113,21 @@ export const getAttachments = async (attachments: attachments): Promise<Attachme
 
 export const isErrorLog = (message: string): boolean => {
   return message.toLowerCase().includes('error');
+};
+
+// https://playwright.dev/docs/1.17/api/class-testresult#test-result-status
+export const convertToRpStatus = (status: TestStatus): string => {
+  const isRpStatus = Object.values(STATUSES).includes(<STATUSES>status);
+
+  if (isRpStatus) {
+    return status;
+  }
+
+  switch (status) {
+    case 'timedOut': {
+      return STATUSES.FAILED;
+    }
+    default:
+      return STATUSES.FAILED;
+  }
 };
