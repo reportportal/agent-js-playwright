@@ -38,9 +38,15 @@ describe('testing utils', () => {
     expect(isFalse(null)).toBe(false);
   });
 
-  test('isErrorLog', () => {
-    const message = 'Some text with error';
-    expect(isErrorLog(message)).toBe(true);
+  describe('isErrorLog', () => {
+    test('isErrorLog with letters in different cases should return true', () => {
+      const message = 'Some TEXT with ErRoR';
+      expect(isErrorLog(message)).toBe(true);
+    });
+    test('isErrorLog without "error" word should return false', () => {
+      const messageWithoutError = 'Some text';
+      expect(isErrorLog(messageWithoutError)).toBe(false);
+    });
   });
 
   describe('promiseErrorHandler', () => {
