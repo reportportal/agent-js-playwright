@@ -32,6 +32,7 @@ import {
   getAttachments,
   getCodeRef,
   getSystemAttributes,
+  isErrorLog,
   isFalse,
   promiseErrorHandler,
 } from './utils';
@@ -114,7 +115,19 @@ export class RPReporter implements Reporter {
           this.sendLaunchLog(data);
           break;
       }
-    } catch (e) {}
+    } catch (e) {
+      if (test) {
+        this.sendTestItemLog({ message: String(chunk) }, test);
+      }
+    }
+  }
+
+  onStdErr(chunk: string | Buffer, test?: TestCase): void {
+    if (test) {
+      const message = String(chunk);
+      const level = isErrorLog(message) ? LOG_LEVELS.ERROR : LOG_LEVELS.WARN;
+      this.sendTestItemLog({ level, message }, test);
+    }
   }
 
   addAttributes(attr: Attribute[], test: TestCase, suiteName: string): void {

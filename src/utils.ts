@@ -109,3 +109,7 @@ export const getAttachments = async (attachments: attachments): Promise<Attachme
 
   return (await Promise.all(readFilePromises)).filter(Boolean);
 };
+
+export const isErrorLog = (message: string): boolean => {
+  return message.toLowerCase().includes('error');
+};
