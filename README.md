@@ -84,6 +84,25 @@ test('basic test', async ({ page }, testInfo) => {
 
 As an alternative to this approach the [`ReportingAPI`](#log) methods can be used.
 
+### Logging
+
+You can use the following `console` native methods to report logs to tests:
+
+```typescript
+console.log();
+console.info();
+console.debug();
+console.warn();
+console.error();
+```
+
+console`log`, `info`,`dubug` report as info log.
+
+console `error`, `warn` report as error log if message contains "error" mention.
+In other cases report as warn log.
+
+As an alternative to this approach the [`ReportingAPI`](#log) methods can be used.
+
 ### Reporting API
 
 This reporter provides Reporting API to use it directly in tests to send some additional data to the report.
