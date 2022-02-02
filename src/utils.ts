@@ -122,12 +122,5 @@ export const convertToRpStatus = (status: TestStatus): string => {
   if (isRpStatus) {
     return status;
   }
-
-  switch (status) {
-    case 'timedOut': {
-      return STATUSES.FAILED;
-    }
-    default:
-      return STATUSES.FAILED;
-  }
+  return STATUSES.FAILED;
 };
