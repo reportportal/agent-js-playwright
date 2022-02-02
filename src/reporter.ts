@@ -35,6 +35,7 @@ import {
   isErrorLog,
   isFalse,
   promiseErrorHandler,
+  convertToRpStatus,
 } from './utils';
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 
@@ -336,11 +337,12 @@ export class RPReporter implements Reporter {
       attributes,
       description,
       testCaseId,
-      status,
+      status: predefinedStatus,
     } = this.findTestItem(this.testItems, test.title);
     let withoutIssue;
     let testDescription = description;
-    if (result.status === STATUSES.SKIPPED) {
+    const status = predefinedStatus || convertToRpStatus(result.status);
+    if (status === STATUSES.SKIPPED) {
       withoutIssue = isFalse(this.config.skippedIssue);
     }
 
@@ -365,7 +367,7 @@ export class RPReporter implements Reporter {
     }
     const finishTestItemObj: FinishTestItemObjType = {
       endTime: this.client.helpers.now(),
-      status: status || result.status,
+      status,
       ...(withoutIssue && { issue: { issueType: 'NOT_ISSUE' } }),
       ...(attributes && { attributes }),
       ...(testDescription && { description: testDescription }),

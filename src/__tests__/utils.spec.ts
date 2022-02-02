@@ -26,9 +26,11 @@ import {
   isFalse,
   getAttachments,
   isErrorLog,
+  convertToRpStatus,
 } from '../utils';
 import fs from 'fs';
 import path from 'path';
+import { STATUSES } from '../constants';
 
 describe('testing utils', () => {
   test('isFalse', () => {
@@ -272,6 +274,16 @@ describe('testing utils', () => {
       const attachmentResult = await getAttachments(attachments);
 
       expect(attachmentResult).toEqual(expectedAttachments);
+    });
+  });
+  describe('convertToRpStatus', () => {
+    test('convertToRpStatus should return STATUSES.FAILED', () => {
+      const status = convertToRpStatus('timedOut');
+      expect(status).toBe(STATUSES.FAILED);
+    });
+    test('convertToRpStatus not should return STATUSES.FAILED', () => {
+      const status = convertToRpStatus('skipped');
+      expect(status).not.toBe(STATUSES.FAILED);
     });
   });
 });
