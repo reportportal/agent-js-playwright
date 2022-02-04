@@ -314,3 +314,16 @@ test('should call ReportingApi to set launch statuses', () => {
 });
 ```
 
+### Integration with Sauce Labs
+
+To integrate with Sauce Labs just add attributes for the test case: 
+
+```javascript
+[{
+ "key": "SLID",
+ "value": "# of the job in Sauce Labs"
+}, {
+ "key": "SLDC",
+ "value": "EU (your job region in Sauce Labs)"
+}]
+```

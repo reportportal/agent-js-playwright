@@ -1,5 +1,5 @@
 ### Added
-- Ability to attach logs to items via `console.*` [methods](https://github.com/reportportal/agent-js-playwright/blob/develop/README.md#logging)
+- Ability to attach logs to items via `console.*` [methods](./README.md#logging)
 ### Fixed
 - [#26](https://github.com/reportportal/agent-js-playwright/issues/26) Error when value is not allowed for field 'status'
 
