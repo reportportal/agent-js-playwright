@@ -1,3 +1,5 @@
+
+## [5.0.2] - 2022-02-04
 ### Added
 - Ability to attach logs to items via `console.*` [methods](./README.md#logging)
 ### Fixed
