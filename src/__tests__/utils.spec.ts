@@ -25,10 +25,12 @@ import {
   sendEventToReporter,
   isFalse,
   getAttachments,
+  isErrorLog,
+  convertToRpStatus,
 } from '../utils';
 import fs from 'fs';
 import path from 'path';
-import { TEST_ITEM_TYPES } from '../constants';
+import { STATUSES } from '../constants';
 
 describe('testing utils', () => {
   test('isFalse', () => {
@@ -36,6 +38,17 @@ describe('testing utils', () => {
     expect(isFalse('false')).toBe(true);
     expect(isFalse(undefined)).toBe(false);
     expect(isFalse(null)).toBe(false);
+  });
+
+  describe('isErrorLog', () => {
+    test('isErrorLog with letters in different cases should return true', () => {
+      const message = 'Some TEXT with ErRoR';
+      expect(isErrorLog(message)).toBe(true);
+    });
+    test('isErrorLog without "error" word should return false', () => {
+      const messageWithoutError = 'Some text';
+      expect(isErrorLog(messageWithoutError)).toBe(false);
+    });
   });
 
   describe('promiseErrorHandler', () => {
@@ -107,42 +120,49 @@ describe('testing utils', () => {
   });
 
   describe('getCodeRef', () => {
-    jest.spyOn(process, 'cwd').mockImplementation(() => `C:${path.sep}testProject`);
+    const projectName = 'Google Chrome tests';
     const mockedTest = {
       location: {
-        file: `C:${path.sep}testProject${path.sep}test${path.sep}example.js`,
+        file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
         line: 5,
         column: 3,
       },
-      titlePath: () => ['example.js', 'rootDescribe', 'parentDescribe', 'testTitle'],
+      titlePath: () => [
+        '',
+        projectName,
+        'tests/example.js',
+        'rootDescribe',
+        'parentDescribe',
+        'testTitle',
+      ],
     };
 
-    test('codeRef should be correct for TEST_ITEM_TYPES.SUITE', () => {
-      const expectedCodeRef = `test/example.js`;
-      const codeRef = getCodeRef(mockedTest, TEST_ITEM_TYPES.SUITE);
+    test('should return correct code reference for test title (all titles before, including provided) and omit empty paths', () => {
+      const expectedCodeRef =
+        'Google Chrome tests/tests/example.js/rootDescribe/parentDescribe/testTitle';
+      const codeRef = getCodeRef(mockedTest, 'testTitle');
 
-      expect(codeRef).toEqual(expectedCodeRef);
+      expect(codeRef).toBe(expectedCodeRef);
     });
 
-    test('codeRef should be correct for TEST_ITEM_TYPES.TEST with offset 1', () => {
-      const expectedCodeRef = `test/example.js/rootDescribe`;
-      const codeRef = getCodeRef(mockedTest, TEST_ITEM_TYPES.TEST, 1);
+    test('should return correct code reference for test title (all titles before, including provided) and omit empty paths', () => {
+      const expectedCodeRef = 'Google Chrome tests/tests/example.js/rootDescribe';
+      const codeRef = getCodeRef(mockedTest, 'rootDescribe');
 
-      expect(codeRef).toEqual(expectedCodeRef);
+      expect(codeRef).toBe(expectedCodeRef);
     });
 
-    test('codeRef should be correct for TEST_ITEM_TYPES.TEST without offset', () => {
-      const expectedCodeRef = `test/example.js/rootDescribe/parentDescribe`;
-      const codeRef = getCodeRef(mockedTest, TEST_ITEM_TYPES.TEST);
+    test('should return correct code reference for test title and omit pathToExclude if provided', () => {
+      const expectedCodeRef = 'tests/example.js/rootDescribe';
+      const codeRef = getCodeRef(mockedTest, 'rootDescribe', projectName);
 
-      expect(codeRef).toEqual(expectedCodeRef);
+      expect(codeRef).toBe(expectedCodeRef);
     });
 
-    test('codeRef should be correct for TEST_ITEM_TYPES.STEP', () => {
-      const expectedCodeRef = `test/example.js/rootDescribe/parentDescribe/testTitle`;
-      const codeRef = getCodeRef(mockedTest, TEST_ITEM_TYPES.STEP);
+    test('should return an empty string if test title is empty', () => {
+      const codeRef = getCodeRef(mockedTest, undefined);
 
-      expect(codeRef).toEqual(expectedCodeRef);
+      expect(codeRef).toBe('');
     });
   });
   describe('sendEventToReporter', () => {
@@ -254,6 +274,16 @@ describe('testing utils', () => {
       const attachmentResult = await getAttachments(attachments);
 
       expect(attachmentResult).toEqual(expectedAttachments);
+    });
+  });
+  describe('convertToRpStatus', () => {
+    test('convertToRpStatus should return STATUSES.FAILED', () => {
+      const status = convertToRpStatus('timedOut');
+      expect(status).toBe(STATUSES.FAILED);
+    });
+    test('convertToRpStatus not should return STATUSES.FAILED', () => {
+      const status = convertToRpStatus('skipped');
+      expect(status).not.toBe(STATUSES.FAILED);
     });
   });
 });

@@ -80,7 +80,28 @@ test('basic test', async ({ page }, testInfo) => {
 });
 ```
 
-*Note:* attachment body can be provided instead of path. 
+*Note:* attachment body can be provided instead of path.
+
+As an alternative to this approach the [`ReportingAPI`](#log) methods can be used.
+
+### Logging
+
+You can use the following `console` native methods to report logs to tests:
+
+```typescript
+console.log();
+console.info();
+console.debug();
+console.warn();
+console.error();
+```
+
+console`log`, `info`,`dubug` report as info log.
+
+console `error`, `warn` report as error log if message contains "error" mention.
+In other cases report as warn log.
+
+As an alternative to this approach the [`ReportingAPI`](#log) methods can be used.
 
 ### Reporting API
 
@@ -119,11 +140,11 @@ test('should have the correct attributes', () => {
 ```
 
 ##### setTestCaseId
-Set test case id to the current test. Should be called inside of corresponding test or fixture.<br/>
+Set test case id to the current test ([About test case id](https://reportportal.io/docs/Test-case-ID%3Ewhat-is-it-test-case-id)). Should be called inside of corresponding test.<br/>
 `ReportingApi.setTestCaseId(id: string, suite?: string);`<br/>
 **required**: `id`<br/>
 **optional**: `suite`<br/>
-If `testCaseId` not specified, it will be generated automatically.<br/>
+If `testCaseId` not specified, it will be generated automatically based on [codeRef](https://reportportal.io/docs/Test-case-ID%3Ewhat-does-happen-if-you-do-not-report-items-with-test-case-id-).<br/>
 Example:
 ```javascript
 test('should have the correct testCaseId', () => {
@@ -133,7 +154,7 @@ test('should have the correct testCaseId', () => {
 ```
 
 ##### log
-Send logs to report portal for the current test. Should be called inside of corresponding test or fixture.<br/>
+Send logs to report portal for the current test. Should be called inside of corresponding test.<br/>
 `ReportingApi.log(level: LOG_LEVELS, message: string, file?: Attachment, suite?: string);`<br/>
 **required**: `level`, `message`<br/>
 **optional**: `file`, `suite`<br/>
@@ -155,7 +176,7 @@ test('should contain logs with attachments',() => {
 ```
 
 ##### info, debug, warn, error, trace, fatal
-Send logs with corresponding level to report portal for the current test or for provided by name. Should be called inside of corresponding test or fixture.<br/>
+Send logs with corresponding level to report portal for the current test. Should be called inside of corresponding test.<br/>
 `ReportingApi.info(message: string, file?: Attachment, suite?: string);`<br/>
 `ReportingApi.debug(message: string, file?: Attachment, suite?: string);`<br/>
 `ReportingApi.warn(message: string, file?: Attachment, suite?: string);`<br/>
@@ -179,7 +200,7 @@ test('should contain logs with attachments', () => {
 ```
 
 ##### launchLog
-Send logs to report portal for the current launch. Should be called inside of the any test or fixture.<br/>
+Send logs to report portal for the current launch. Should be called inside of the any test or suite.<br/>
 `ReportingApi.launchLog(level: LOG_LEVELS, message: string, file?: Attachment);`<br/>
 **required**: `level`, `message`<br/>
 **optional**: `file`<br/>
@@ -201,7 +222,7 @@ test('should contain logs with attachments', async () => {
 ```
 
 ##### launchInfo, launchDebug, launchWarn, launchError, launchTrace, launchFatal
-Send logs with corresponding level to report portal for the current launch. Should be called inside of the any test or fixture.<br/>
+Send logs with corresponding level to report portal for the current launch. Should be called inside of the any test or suite.<br/>
 `ReportingApi.launchInfo(message: string, file?: Attachment);`<br/>
 `ReportingApi.launchDebug(message: string, file?: Attachment);`<br/>
 `ReportingApi.launchWarn(message: string, file?: Attachment);`<br/>
@@ -225,7 +246,7 @@ test('should contain logs with attachments', () => {
 ```
 
 ##### setStatus
-Assign corresponding status to the current test item.<br/>
+Assign corresponding status to the current test item. Should be called inside of corresponding test.<br/>
 `ReportingApi.setStatus(status: string, suite?: string);`<br/>
 **required**: `status`<br/>
 **optional**: `suite`<br/>
@@ -240,7 +261,7 @@ test('should have status FAILED', () => {
 ```
 
 ##### setStatusFailed, setStatusPassed, setStatusSkipped, setStatusStopped, setStatusInterrupted, setStatusCancelled
-Assign corresponding status to the current test item.<br/>
+Assign corresponding status to the current test item. Should be called inside of corresponding test.<br/>
 `ReportingApi.setStatusFailed(suite?: string);`<br/>
 `ReportingApi.setStatusPassed(suite?: string);`<br/>
 `ReportingApi.setStatusSkipped(suite?: string);`<br/>
@@ -261,7 +282,7 @@ test('should call ReportingApi to set statuses', () => {
 ```
 
 ##### setLaunchStatus
-Assign corresponding status to the current launch.<br/>
+Assign corresponding status to the current launch. Should be called inside of the any test or suite.<br/>
 `ReportingApi.setLaunchStatus(status: string);`<br/>
 **required**: `status`<br/>
 where `status` must be one of the following: *passed*, *failed*, *stopped*, *skipped*, *interrupted*, *cancelled*<br/>
@@ -274,7 +295,7 @@ test('launch should have status FAILED',  () => {
 ```
 
 ##### setLaunchStatusFailed, setLaunchStatusPassed, setLaunchStatusSkipped, setLaunchStatusStopped, setLaunchStatusInterrupted, setLaunchStatusCancelled
-Assign corresponding status to the current test item.<br/>
+Assign corresponding status to the current test item. Should be called inside of the any test or suite.<br/>
 `ReportingApi.setLaunchStatusFailed();`<br/>
 `ReportingApi.setLaunchStatusPassed();`<br/>
 `ReportingApi.setLaunchStatusSkipped();`<br/>
@@ -293,3 +314,16 @@ test('should call ReportingApi to set launch statuses', () => {
 });
 ```
 
+### Integration with Sauce Labs
+
+To integrate with Sauce Labs just add attributes for the test case: 
+
+```javascript
+[{
+ "key": "SLID",
+ "value": "# of the job in Sauce Labs"
+}, {
+ "key": "SLDC",
+ "value": "EU (your job region in Sauce Labs)"
+}]
+```

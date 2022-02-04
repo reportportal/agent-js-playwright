@@ -17,8 +17,7 @@
     "strip-ansi": "^6.0.1"
   },
   "files": [
-    "/build",
-    "/VERSION"
+    "/build"
   ],
   "devDependencies": {
     "@playwright/test": "^1.17.1",
