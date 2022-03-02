@@ -17,7 +17,13 @@
 
 import RPClient from '@reportportal/client-javascript';
 import stripAnsi from 'strip-ansi';
-import { Reporter, Suite as PWSuite, TestCase, TestResult } from '@playwright/test/reporter';
+import {
+  Reporter,
+  Suite as PWSuite,
+  TestCase,
+  TestResult,
+  TestStep,
+} from '@playwright/test/reporter';
 import {
   Attribute,
   FinishTestItemObjType,
@@ -28,6 +34,7 @@ import {
 } from './models';
 import { LOG_LEVELS, STATUSES, TEST_ITEM_TYPES } from './constants';
 import {
+  convertToRpStatus,
   getAgentInfo,
   getAttachments,
   getCodeRef,
@@ -35,7 +42,6 @@ import {
   isErrorLog,
   isFalse,
   promiseErrorHandler,
-  convertToRpStatus,
 } from './utils';
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 
@@ -71,6 +77,8 @@ export class RPReporter implements Reporter {
 
   launchLogs: Map<string, LogRQ>;
 
+  stepInfo: any;
+
   constructor(config: ReportPortalConfig) {
     this.config = config;
     this.suites = new Map();
@@ -79,6 +87,7 @@ export class RPReporter implements Reporter {
     this.promises = [];
     this.customLaunchStatus = '';
     this.launchLogs = new Map();
+    this.stepInfo = new Map();
 
     const agentInfo = getAgentInfo();
 
@@ -329,6 +338,42 @@ export class RPReporter implements Reporter {
         id: stepObj.tempId,
       });
     }
+  }
+
+  onStepBegin(test: TestCase, result: TestResult, step: TestStep) {
+    const { id: testItemId } = this.findTestItem(this.testItems, test.title);
+    const stepStartObj = {
+      name: step.title,
+      type: TEST_ITEM_TYPES.STEP,
+      hasStats: false,
+      startTime: this.client.helpers.now(),
+    };
+    const { tempId, promise } = this.client.startTestItem(stepStartObj, this.launchId, testItemId);
+
+    this.addRequestToPromisesQueue(promise, 'Failed to start step.');
+
+    this.stepInfo.set(tempId, {
+      name: step.title,
+      id: tempId,
+    });
+  }
+
+  onStepEnd(test: TestCase, result: TestResult, step: TestStep) {
+    const { id } = this.findTestItem(this.stepInfo, step.title);
+
+    const stepFinishObj = {
+      status: step.error ? STATUSES.FAILED : STATUSES.PASSED,
+      endTime: this.client.helpers.now(),
+    };
+
+    if (step.error) {
+      this.sendLog(id, { level: LOG_LEVELS.ERROR, message: step.error.stack });
+    }
+
+    const { promise } = this.client.finishTestItem(id, stepFinishObj);
+
+    this.addRequestToPromisesQueue(promise, 'Failed to finish step.');
+    this.stepInfo.delete(id);
   }
 
   async onTestEnd(test: TestCase, result: TestResult): Promise<void> {
