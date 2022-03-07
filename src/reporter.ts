@@ -43,6 +43,7 @@ import {
   isFalse,
   promiseErrorHandler,
 } from './utils';
+import path from 'path';
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 
 export interface TestItem {
@@ -56,7 +57,10 @@ export interface TestItem {
 }
 
 interface Suite extends TestItem {
+  rootSuite?: string | undefined;
   logs?: LogRQ[];
+  testsLength?: number | undefined;
+  rootSuiteLength?: number | undefined;
 }
 
 export class RPReporter implements Reporter {
@@ -216,21 +220,49 @@ export class RPReporter implements Reporter {
     promiseErrorHandler(promise, 'Failed to send log');
   }
 
-  finishSuites(): void {
-    this.suites.forEach(({ id, status, logs }) => {
+  finishSuites(testFileName?: string, rootSuiteName?: string): void {
+    let finishSuites: [string, Suite][];
+    const suitesArray = Array.from(this.suites);
+
+    if (rootSuiteName) {
+      finishSuites = testFileName
+        ? suitesArray.filter(
+            ([key, { rootSuite }]) => key.includes(testFileName) && rootSuite === rootSuiteName,
+          )
+        : suitesArray;
+    } else {
+      finishSuites = testFileName
+        ? suitesArray.filter(([key]) => key.includes(testFileName))
+        : suitesArray;
+    }
+
+    finishSuites.forEach(([key, { id, status, logs }]) => {
       if (logs) {
         logs.map((log) => {
           this.sendLog(id, log);
         });
       }
+
       const finishSuiteObj: FinishTestItemObjType = {
         endTime: this.client.helpers.now(),
         ...(status && { status }),
       };
       const { promise } = this.client.finishTestItem(id, finishSuiteObj);
       this.addRequestToPromisesQueue(promise, 'Failed to finish suite.');
+      this.suites.delete(key);
     });
-    this.suites.clear();
+
+    const isExistTestsInRootSuite = this.suites.get(rootSuiteName)?.rootSuiteLength !== 0;
+
+    if (!isExistTestsInRootSuite) {
+      const rootSuite = this.suites.get(rootSuiteName);
+      if (!rootSuite) return;
+      const { promise } = this.client.finishTestItem(rootSuite.id, {
+        endTime: this.client.helpers.now(),
+      });
+      this.addRequestToPromisesQueue(promise, 'Failed to finish suite.');
+      this.suites.delete(rootSuiteName);
+    }
   }
 
   onBegin(): void {
@@ -280,9 +312,7 @@ export class RPReporter implements Reporter {
     this.createSuitesOrder(test.parent, orderedSuites);
 
     const lastSuiteIndex = orderedSuites.length - 1;
-    const projectName = !orderedSuites[lastSuiteIndex].location // Update this after https://github.com/microsoft/playwright/issues/10306
-      ? orderedSuites[lastSuiteIndex].title
-      : undefined;
+    const projectName = test.parent.project().name;
 
     for (let i = lastSuiteIndex; i >= 0; i--) {
       const currentSuiteTitle = orderedSuites[i].title;
@@ -311,9 +341,22 @@ export class RPReporter implements Reporter {
       const suiteObj = this.client.startTestItem(startSuiteObj, this.launchId, parentId);
       this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
 
+      let rootSuiteLength =
+        i === lastSuiteIndex ? orderedSuites[lastSuiteIndex].allTests().length : undefined;
+
+      let testsLength = i === 0 ? test.parent.tests.length : undefined;
+
+      if (test.retries) {
+        testsLength = testsLength * (test.retries + 1);
+        rootSuiteLength = rootSuiteLength * (test.retries + 1);
+      }
+
       this.suites.set(fullSuiteName, {
         id: suiteObj.tempId,
         name: currentSuiteTitle,
+        testsLength,
+        rootSuiteLength,
+        rootSuite: i !== lastSuiteIndex ? projectName : undefined,
         ...(status && { status }),
         ...(logs && { logs }), // TODO: may be send it on suite start
       });
@@ -435,6 +478,28 @@ export class RPReporter implements Reporter {
 
     this.addRequestToPromisesQueue(promise, 'Failed to finish test.');
     this.testItems.delete(testItemId);
+
+    const projectName = test.parent.project().name;
+    const fullSuiteName = getCodeRef(test, test.parent.title);
+    const parentSuiteObj = this.suites.get(fullSuiteName);
+
+    this.suites.set(fullSuiteName, {
+      ...parentSuiteObj,
+      testsLength: parentSuiteObj.testsLength - 1,
+    });
+
+    const rootSuite = this.suites.get(projectName);
+    if (rootSuite) {
+      this.suites.set(projectName, {
+        ...rootSuite,
+        rootSuiteLength: rootSuite.rootSuiteLength - 1,
+      });
+    }
+
+    if (this.suites.get(fullSuiteName).testsLength === 0) {
+      const testFileName = path.parse(test.location.file).base;
+      this.finishSuites(testFileName, projectName);
+    }
   }
 
   async onEnd(): Promise<void> {

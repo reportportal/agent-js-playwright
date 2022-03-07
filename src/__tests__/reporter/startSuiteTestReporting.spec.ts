@@ -31,9 +31,14 @@ describe('start reporting suite/test', () => {
     parent: {
       title: 'suiteName',
       location: 'tests/example.js',
+      tests: ['test'],
+      project: () => ({ name: '' }),
+      allTests: () => ['test'],
       parent: {
         title: 'tests/example.js',
         location: 'tests/example.js',
+        project: () => ({ name: '' }),
+        allTests: () => ['test'],
       },
     },
     location: {
@@ -41,15 +46,33 @@ describe('start reporting suite/test', () => {
       line: 5,
       column: 3,
     },
-    titlePath: () => ['tests/example.js', 'suiteName', 'testTitle'],
+    titlePath: () => ['', 'tests/example.js', 'suiteName', 'testTitle'],
   };
 
   const spyStartTestItem = jest.spyOn(reporter.client, 'startTestItem');
 
   test('client.startTestItem should be called with corresponding params to report suites and test item', () => {
     const expectedSuites = new Map([
-      ['tests/example.js', { id: 'tempTestItemId', name: 'tests/example.js' }],
-      ['tests/example.js/suiteName', { id: 'tempTestItemId', name: 'suiteName' }],
+      [
+        'tests/example.js',
+        {
+          id: 'tempTestItemId',
+          name: 'tests/example.js',
+          rootSuite: undefined,
+          rootSuiteLength: 1,
+          testsLength: undefined,
+        },
+      ],
+      [
+        'tests/example.js/suiteName',
+        {
+          id: 'tempTestItemId',
+          name: 'suiteName',
+          rootSuite: '',
+          rootSuiteLength: undefined,
+          testsLength: 1,
+        },
+      ],
     ]);
     const expectedTestItems = new Map([
       ['tempTestItemId', { id: 'tempTestItemId', name: 'testTitle' }],

@@ -27,6 +27,7 @@ import {
   getAttachments,
   isErrorLog,
   convertToRpStatus,
+  getFileName,
 } from '../utils';
 import fs from 'fs';
 import path from 'path';
@@ -284,6 +285,19 @@ describe('testing utils', () => {
     test('convertToRpStatus not should return STATUSES.FAILED', () => {
       const status = convertToRpStatus('skipped');
       expect(status).not.toBe(STATUSES.FAILED);
+    });
+  });
+  describe('getFileName', () => {
+    test('getFileName should return file name', () => {
+      const test = {
+        location: {
+          file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
+        },
+      };
+      // @ts-ignore
+      const testFileName = getFileName(test);
+
+      expect(testFileName).toBe('example.js');
     });
   });
 });

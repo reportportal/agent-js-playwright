@@ -124,3 +124,10 @@ export const convertToRpStatus = (status: TestStatus): string => {
   }
   return STATUSES.FAILED;
 };
+
+export const getFileName = (test: TestCase): string => {
+  const filePath = test.location.file;
+  const splitResult = filePath.split(path.sep);
+  const lastIndex = splitResult.length - 1;
+  return splitResult[lastIndex];
+};
