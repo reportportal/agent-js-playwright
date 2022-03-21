@@ -75,7 +75,7 @@ describe('start reporting suite/test', () => {
       ],
     ]);
     const expectedTestItems = new Map([
-      ['tempTestItemId', { id: 'tempTestItemId', name: 'testTitle' }],
+      ['tempTestItemId', { id: 'tempTestItemId', name: 'testTitle', playwrightProjectName: '' }],
     ]);
     const expectedRootParentSuiteObj: StartTestObjType = {
       startTime: reporter.client.helpers.now(),
