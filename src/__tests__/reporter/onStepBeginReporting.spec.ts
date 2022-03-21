@@ -65,11 +65,11 @@ describe('onStepBegin reporting', () => {
     );
   });
 
-  test('stepInfo should be updated', () => {
-    const exptectedStepInfo = new Map([
+  test('nestedSteps should be updated', () => {
+    const exptectedNestedSteps = new Map([
       [tempTestItemId, { id: tempTestItemId, name: 'stepName', playwrightProjectName }],
     ]);
 
-    expect(reporter.stepInfo).toEqual(exptectedStepInfo);
+    expect(reporter.nestedSteps).toEqual(exptectedNestedSteps);
   });
 });

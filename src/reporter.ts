@@ -78,7 +78,7 @@ export class RPReporter implements Reporter {
 
   launchLogs: Map<string, LogRQ>;
 
-  stepInfo: any;
+  nestedSteps: Map<string, TestItem>;
 
   constructor(config: ReportPortalConfig) {
     this.config = config;
@@ -88,7 +88,7 @@ export class RPReporter implements Reporter {
     this.promises = [];
     this.customLaunchStatus = '';
     this.launchLogs = new Map();
-    this.stepInfo = new Map();
+    this.nestedSteps = new Map();
 
     const agentInfo = getAgentInfo();
 
@@ -363,9 +363,9 @@ export class RPReporter implements Reporter {
     };
     const { tempId, promise } = this.client.startTestItem(stepStartObj, this.launchId, testItemId);
 
-    this.addRequestToPromisesQueue(promise, 'Failed to start step.');
+    this.addRequestToPromisesQueue(promise, 'Failed to start nested step.');
 
-    this.stepInfo.set(tempId, {
+    this.nestedSteps.set(tempId, {
       name: step.title,
       id: tempId,
       playwrightProjectName,
@@ -375,8 +375,8 @@ export class RPReporter implements Reporter {
   onStepEnd(test: TestCase, result: TestResult, step: TestStep): void {
     const { includeTestSteps } = this.config;
     if (!includeTestSteps) return;
-    const projectName = test.parent.project().name;
-    const { id } = this.findTestItem(this.stepInfo, step.title, projectName);
+    const playwrightProjectName = test.parent.project().name;
+    const { id } = this.findTestItem(this.nestedSteps, step.title, playwrightProjectName);
     const stepFinishObj = {
       status: step.error ? STATUSES.FAILED : STATUSES.PASSED,
       endTime: this.client.helpers.now(),
@@ -384,19 +384,19 @@ export class RPReporter implements Reporter {
 
     const { promise } = this.client.finishTestItem(id, stepFinishObj);
 
-    this.addRequestToPromisesQueue(promise, 'Failed to finish step.');
-    this.stepInfo.delete(id);
+    this.addRequestToPromisesQueue(promise, 'Failed to finish nested step.');
+    this.nestedSteps.delete(id);
   }
 
   async onTestEnd(test: TestCase, result: TestResult): Promise<void> {
-    const projectName = test.parent.project().name;
+    const playwrightProjectName = test.parent.project().name;
     const {
       id: testItemId,
       attributes,
       description,
       testCaseId,
       status: predefinedStatus,
-    } = this.findTestItem(this.testItems, test.title, projectName);
+    } = this.findTestItem(this.testItems, test.title, playwrightProjectName);
     let withoutIssue;
     let testDescription = description;
     const status = predefinedStatus || convertToRpStatus(result.status);

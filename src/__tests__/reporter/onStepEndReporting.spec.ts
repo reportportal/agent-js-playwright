@@ -32,7 +32,7 @@ describe('onStepBegin reporting', () => {
     [tempTestItemId, { id: tempTestItemId, name: 'testName', playwrightProjectName }],
   ]);
 
-  reporter.stepInfo = new Map([
+  reporter.nestedSteps = new Map([
     [tempTestItemId, { id: tempTestItemId, name: 'stepName', playwrightProjectName }],
   ]);
 
@@ -63,7 +63,7 @@ describe('onStepBegin reporting', () => {
     expect(reporter.client.finishTestItem).toHaveBeenCalledWith(tempTestItemId, expectedStepObj);
   });
 
-  test('stepInfo should be clear', () => {
-    expect(reporter.stepInfo).toEqual(new Map());
+  test('nestedSteps should be clear', () => {
+    expect(reporter.nestedSteps).toEqual(new Map());
   });
 });
