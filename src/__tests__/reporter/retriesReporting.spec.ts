@@ -30,6 +30,7 @@ describe('retries reporting', () => {
     parent: {
       title: 'suiteName',
       location: 'tests/example.js',
+      project: () => ({ name: '' }),
     },
     location: {
       file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,

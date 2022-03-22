@@ -25,6 +25,7 @@ describe('finish test reporting', () => {
   reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
   reporter.testItems = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'test' }]]);
+  reporter.suites = new Map([['suiteName', { id: 'suiteId', name: 'suiteName', testsLength: 1 }]]);
   const attributes = [
     {
       key: 'key',
