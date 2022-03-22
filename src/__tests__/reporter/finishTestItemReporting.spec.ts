@@ -18,6 +18,7 @@ import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 import { FinishTestItemObjType } from '../../models';
+import path from 'path';
 
 describe('finish test reporting', () => {
   const reporter = new RPReporter(mockConfig);
@@ -37,6 +38,11 @@ describe('finish test reporting', () => {
     title: 'test',
     parent: {
       title: 'suiteName',
+      project: () => ({ name: '' }),
+    },
+    titlePath: () => ['suiteName', 'testTitle'],
+    location: {
+      file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
     },
   };
 
