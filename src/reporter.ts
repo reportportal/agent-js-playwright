@@ -57,9 +57,9 @@ export interface TestItem {
 }
 
 interface Suite extends TestItem {
-  rootSuite?: string | undefined;
+  rootSuite?: string;
   logs?: LogRQ[];
-  testsLength?: number | undefined;
+  testsLength?: number;
   rootSuiteLength?: number | undefined;
 }
 
@@ -224,15 +224,17 @@ export class RPReporter implements Reporter {
     let finishSuites: [string, Suite][];
     const suitesArray = Array.from(this.suites);
 
-    if (rootSuiteName) {
+    const isExistTestsInRootSuite = this.suites.get(rootSuiteName).rootSuiteLength === 0;
+
+    if (isExistTestsInRootSuite) {
       finishSuites = testFileName
-        ? suitesArray.filter(
-            ([key, { rootSuite }]) => key.includes(testFileName) && rootSuite === rootSuiteName,
-          )
+        ? suitesArray.filter(([key]) => key.includes(rootSuiteName))
         : suitesArray;
     } else {
       finishSuites = testFileName
-        ? suitesArray.filter(([key]) => key.includes(testFileName))
+        ? suitesArray.filter(
+            ([key, { testsLength }]) => key.includes(rootSuiteName) && testsLength < 1,
+          )
         : suitesArray;
     }
 
@@ -251,18 +253,6 @@ export class RPReporter implements Reporter {
       this.addRequestToPromisesQueue(promise, 'Failed to finish suite.');
       this.suites.delete(key);
     });
-
-    const isExistTestsInRootSuite = this.suites.get(rootSuiteName)?.rootSuiteLength !== 0;
-
-    if (!isExistTestsInRootSuite) {
-      const rootSuite = this.suites.get(rootSuiteName);
-      if (!rootSuite) return;
-      const { promise } = this.client.finishTestItem(rootSuite.id, {
-        endTime: this.client.helpers.now(),
-      });
-      this.addRequestToPromisesQueue(promise, 'Failed to finish suite.');
-      this.suites.delete(rootSuiteName);
-    }
   }
 
   onBegin(): void {
@@ -344,7 +334,7 @@ export class RPReporter implements Reporter {
       let rootSuiteLength =
         i === lastSuiteIndex ? orderedSuites[lastSuiteIndex].allTests().length : undefined;
 
-      let testsLength = i === 0 ? test.parent.tests.length : undefined;
+      let testsLength = orderedSuites[i].allTests().length;
 
       if (test.retries) {
         testsLength = testsLength * (test.retries + 1);
@@ -356,10 +346,11 @@ export class RPReporter implements Reporter {
         name: currentSuiteTitle,
         testsLength,
         rootSuiteLength,
-        rootSuite: i !== lastSuiteIndex ? projectName : undefined,
+        rootSuite: getCodeRef(test, orderedSuites[lastSuiteIndex].title),
         ...(status && { status }),
         ...(logs && { logs }), // TODO: may be send it on suite start
       });
+
       this.suitesInfo.delete(currentSuiteTitle);
     }
 
@@ -479,31 +470,33 @@ export class RPReporter implements Reporter {
     this.addRequestToPromisesQueue(promise, 'Failed to finish test.');
     this.testItems.delete(testItemId);
 
-    const projectName = test.parent.project().name;
     const fullSuiteName = getCodeRef(test, test.parent.title);
     const parentSuiteObj = this.suites.get(fullSuiteName);
+    const rootSuiteName = parentSuiteObj.rootSuite;
+    const rootSuite = this.suites.get(rootSuiteName);
 
-    this.suites.set(fullSuiteName, {
-      ...parentSuiteObj,
-      testsLength: parentSuiteObj.testsLength - 1,
+    this.suites.set(rootSuiteName, {
+      ...rootSuite,
+      rootSuiteLength: rootSuite.rootSuiteLength - 1,
     });
 
-    const rootSuite = this.suites.get(projectName);
-    if (rootSuite) {
-      this.suites.set(projectName, {
-        ...rootSuite,
-        rootSuiteLength: rootSuite.rootSuiteLength - 1,
+    const testFileName = path.parse(test.location.file).base;
+
+    Array.from(this.suites)
+      .filter(([key]) => key.includes(testFileName) && key.includes(rootSuiteName))
+      .map(([key, { testsLength }]) => {
+        this.suites.set(key, {
+          ...this.suites.get(key),
+          testsLength: testsLength - 1,
+        });
       });
-    }
 
     if (this.suites.get(fullSuiteName).testsLength === 0) {
-      const testFileName = path.parse(test.location.file).base;
-      this.finishSuites(testFileName, projectName);
+      this.finishSuites(testFileName, rootSuiteName);
     }
   }
 
   async onEnd(): Promise<void> {
-    this.finishSuites();
     const { promise } = this.client.finishLaunch(this.launchId, {
       endTime: this.client.helpers.now(),
       ...(this.customLaunchStatus && { status: this.customLaunchStatus }),
