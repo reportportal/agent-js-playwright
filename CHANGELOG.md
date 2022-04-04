@@ -1,3 +1,7 @@
+### Added
+- Ability include test steps to the report on log level via config property `includeTestSteps`.
+### Fixed
+- The correct end time for suites is now displayed.
 
 ## [5.0.2] - 2022-02-04
 ### Added
