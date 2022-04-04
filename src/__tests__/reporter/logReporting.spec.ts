@@ -18,6 +18,11 @@ import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 import { LOG_LEVELS } from '../../constants';
+import path from 'path';
+
+const playwrightProjectName = 'projectName';
+const tempTestItemId = 'tempTestItemId';
+const suiteName = 'suiteName';
 
 describe('logs reporting', () => {
   const reporter = new RPReporter(mockConfig);
@@ -69,25 +74,57 @@ describe('logs reporting', () => {
     });
 
     test('suitesInfo should be updated with logs', () => {
-      reporter.suites = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }]]);
+      reporter.suites = new Map([[tempTestItemId, { id: tempTestItemId, name: 'suiteName' }]]);
       const testParams = {
         title: 'testName',
       };
 
-      const expectedSuitesInfo = new Map([['tempTestItemId', { logs: [log] }]]);
+      const expectedSuitesInfo = new Map([[tempTestItemId, { logs: [log] }]]);
       // @ts-ignore
-      reporter.sendTestItemLog(log, testParams, 'tempTestItemId');
+      reporter.sendTestItemLog(log, testParams, tempTestItemId);
 
       expect(reporter.suitesInfo).toEqual(expectedSuitesInfo);
     });
 
     test('should send a log when the test item failed', async () => {
-      reporter.testItems = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'test' }]]);
+      reporter.suites = new Map([
+        [
+          playwrightProjectName,
+          {
+            id: tempTestItemId,
+            name: playwrightProjectName,
+            testsLength: 0,
+            rootSuite: playwrightProjectName,
+            rootSuiteLength: 1,
+          },
+        ],
+        [
+          `${playwrightProjectName}/${suiteName}`,
+          { id: 'suiteId', name: suiteName, testsLength: 1, rootSuite: playwrightProjectName },
+        ],
+      ]);
+      reporter.testItems = new Map([
+        [tempTestItemId, { id: tempTestItemId, name: 'test', playwrightProjectName }],
+      ]);
       const testParams = {
         title: 'test',
         parent: {
-          title: 'suiteName',
+          title: playwrightProjectName,
+          project: () => ({ name: playwrightProjectName }),
         },
+        location: {
+          file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
+          line: 5,
+          column: 3,
+        },
+        titlePath: () => [
+          '',
+          playwrightProjectName,
+          'tests/example.js',
+          'rootDescribe',
+          'parentDescribe',
+          'testTitle',
+        ],
       };
 
       const result = {
@@ -102,7 +139,7 @@ describe('logs reporting', () => {
       // @ts-ignore
       await reporter.onTestEnd(testParams, result);
 
-      expect(reporter.sendLog).toHaveBeenCalledWith('tempTestItemId', {
+      expect(reporter.sendLog).toHaveBeenCalledWith(tempTestItemId, {
         level: LOG_LEVELS.ERROR,
         message: result.error.stack,
       });

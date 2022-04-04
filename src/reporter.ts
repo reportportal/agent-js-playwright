@@ -17,7 +17,13 @@
 
 import RPClient from '@reportportal/client-javascript';
 import stripAnsi from 'strip-ansi';
-import { Reporter, Suite as PWSuite, TestCase, TestResult } from '@playwright/test/reporter';
+import {
+  Reporter,
+  Suite as PWSuite,
+  TestCase,
+  TestResult,
+  TestStep,
+} from '@playwright/test/reporter';
 import {
   Attribute,
   FinishTestItemObjType,
@@ -28,6 +34,7 @@ import {
 } from './models';
 import { LOG_LEVELS, STATUSES, TEST_ITEM_TYPES } from './constants';
 import {
+  convertToRpStatus,
   getAgentInfo,
   getAttachments,
   getCodeRef,
@@ -35,8 +42,8 @@ import {
   isErrorLog,
   isFalse,
   promiseErrorHandler,
-  convertToRpStatus,
 } from './utils';
+import path from 'path';
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 
 export interface TestItem {
@@ -46,10 +53,14 @@ export interface TestItem {
   attributes?: Attribute[];
   description?: string;
   testCaseId?: string;
+  playwrightProjectName?: string;
 }
 
 interface Suite extends TestItem {
+  rootSuite?: string;
   logs?: LogRQ[];
+  testsLength?: number;
+  rootSuiteLength?: number | undefined;
 }
 
 export class RPReporter implements Reporter {
@@ -71,6 +82,8 @@ export class RPReporter implements Reporter {
 
   launchLogs: Map<string, LogRQ>;
 
+  nestedSteps: Map<string, TestItem>;
+
   constructor(config: ReportPortalConfig) {
     this.config = config;
     this.suites = new Map();
@@ -79,6 +92,7 @@ export class RPReporter implements Reporter {
     this.promises = [];
     this.customLaunchStatus = '';
     this.launchLogs = new Map();
+    this.nestedSteps = new Map();
 
     const agentInfo = getAgentInfo();
 
@@ -206,21 +220,39 @@ export class RPReporter implements Reporter {
     promiseErrorHandler(promise, 'Failed to send log');
   }
 
-  finishSuites(): void {
-    this.suites.forEach(({ id, status, logs }) => {
+  finishSuites(testFileName?: string, rootSuiteName?: string): void {
+    let finishSuites: [string, Suite][];
+    const suitesArray = Array.from(this.suites);
+
+    const isExistTestsInRootSuite = this.suites.get(rootSuiteName).rootSuiteLength === 0;
+
+    if (isExistTestsInRootSuite) {
+      finishSuites = testFileName
+        ? suitesArray.filter(([key]) => key.includes(rootSuiteName))
+        : suitesArray;
+    } else {
+      finishSuites = testFileName
+        ? suitesArray.filter(
+            ([key, { testsLength }]) => key.includes(rootSuiteName) && testsLength < 1,
+          )
+        : suitesArray;
+    }
+
+    finishSuites.forEach(([key, { id, status, logs }]) => {
       if (logs) {
         logs.map((log) => {
           this.sendLog(id, log);
         });
       }
+
       const finishSuiteObj: FinishTestItemObjType = {
         endTime: this.client.helpers.now(),
         ...(status && { status }),
       };
       const { promise } = this.client.finishTestItem(id, finishSuiteObj);
       this.addRequestToPromisesQueue(promise, 'Failed to finish suite.');
+      this.suites.delete(key);
     });
-    this.suites.clear();
   }
 
   onBegin(): void {
@@ -241,10 +273,18 @@ export class RPReporter implements Reporter {
     this.launchId = tempId;
   }
 
-  findTestItem(testItems: Map<string, TestItem>, title: string): Suite {
-    for (const [, value] of testItems) {
-      if (value.name === title) {
-        return value;
+  findTestItem(testItems: Map<string, TestItem>, title: string, projectName?: string): Suite {
+    if (projectName) {
+      for (const [, value] of testItems) {
+        if (value.name === title && projectName === value.playwrightProjectName) {
+          return value;
+        }
+      }
+    } else {
+      for (const [, value] of testItems) {
+        if (value.name === title) {
+          return value;
+        }
       }
     }
   }
@@ -262,9 +302,7 @@ export class RPReporter implements Reporter {
     this.createSuitesOrder(test.parent, orderedSuites);
 
     const lastSuiteIndex = orderedSuites.length - 1;
-    const projectName = !orderedSuites[lastSuiteIndex].location // Update this after https://github.com/microsoft/playwright/issues/10306
-      ? orderedSuites[lastSuiteIndex].title
-      : undefined;
+    const projectName = test.parent.project().name;
 
     for (let i = lastSuiteIndex; i >= 0; i--) {
       const currentSuiteTitle = orderedSuites[i].title;
@@ -293,12 +331,26 @@ export class RPReporter implements Reporter {
       const suiteObj = this.client.startTestItem(startSuiteObj, this.launchId, parentId);
       this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
 
+      let rootSuiteLength =
+        i === lastSuiteIndex ? orderedSuites[lastSuiteIndex].allTests().length : undefined;
+
+      let testsLength = orderedSuites[i].allTests().length;
+
+      if (test.retries) {
+        testsLength = testsLength * (test.retries + 1);
+        rootSuiteLength = rootSuiteLength * (test.retries + 1);
+      }
+
       this.suites.set(fullSuiteName, {
         id: suiteObj.tempId,
         name: currentSuiteTitle,
+        testsLength,
+        rootSuiteLength,
+        rootSuite: getCodeRef(test, orderedSuites[lastSuiteIndex].title),
         ...(status && { status }),
         ...(logs && { logs }), // TODO: may be send it on suite start
       });
+
       this.suitesInfo.delete(currentSuiteTitle);
     }
 
@@ -306,14 +358,14 @@ export class RPReporter implements Reporter {
   }
 
   onTestBegin(test: TestCase): void {
-    const projectName = this.createSuites(test);
+    const playwrightProjectName = this.createSuites(test);
 
     const fullSuiteName = getCodeRef(test, test.parent.title);
     const parentSuiteObj = this.suites.get(fullSuiteName);
 
     // create step
     if (parentSuiteObj) {
-      const codeRef = getCodeRef(test, test.title, projectName);
+      const codeRef = getCodeRef(test, test.title, playwrightProjectName);
       const { id: parentId } = parentSuiteObj;
       const startTestItem: StartTestObjType = {
         name: test.title,
@@ -327,18 +379,58 @@ export class RPReporter implements Reporter {
       this.testItems.set(stepObj.tempId, {
         name: test.title,
         id: stepObj.tempId,
+        playwrightProjectName,
       });
     }
   }
 
+  onStepBegin(test: TestCase, result: TestResult, step: TestStep): void {
+    const { includeTestSteps } = this.config;
+    if (!includeTestSteps) return;
+    const playwrightProjectName = test.parent.project().name;
+    const { id: testItemId } = this.findTestItem(this.testItems, test.title, playwrightProjectName);
+    const stepStartObj = {
+      name: step.title,
+      type: TEST_ITEM_TYPES.STEP,
+      hasStats: false,
+      startTime: this.client.helpers.now(),
+    };
+    const { tempId, promise } = this.client.startTestItem(stepStartObj, this.launchId, testItemId);
+
+    this.addRequestToPromisesQueue(promise, 'Failed to start nested step.');
+
+    this.nestedSteps.set(tempId, {
+      name: step.title,
+      id: tempId,
+      playwrightProjectName,
+    });
+  }
+
+  onStepEnd(test: TestCase, result: TestResult, step: TestStep): void {
+    const { includeTestSteps } = this.config;
+    if (!includeTestSteps) return;
+    const playwrightProjectName = test.parent.project().name;
+    const { id } = this.findTestItem(this.nestedSteps, step.title, playwrightProjectName);
+    const stepFinishObj = {
+      status: step.error ? STATUSES.FAILED : STATUSES.PASSED,
+      endTime: this.client.helpers.now(),
+    };
+
+    const { promise } = this.client.finishTestItem(id, stepFinishObj);
+
+    this.addRequestToPromisesQueue(promise, 'Failed to finish nested step.');
+    this.nestedSteps.delete(id);
+  }
+
   async onTestEnd(test: TestCase, result: TestResult): Promise<void> {
+    const playwrightProjectName = test.parent.project().name;
     const {
       id: testItemId,
       attributes,
       description,
       testCaseId,
       status: predefinedStatus,
-    } = this.findTestItem(this.testItems, test.title);
+    } = this.findTestItem(this.testItems, test.title, playwrightProjectName);
     let withoutIssue;
     let testDescription = description;
     const status = predefinedStatus || convertToRpStatus(result.status);
@@ -377,10 +469,34 @@ export class RPReporter implements Reporter {
 
     this.addRequestToPromisesQueue(promise, 'Failed to finish test.');
     this.testItems.delete(testItemId);
+
+    const fullSuiteName = getCodeRef(test, test.parent.title);
+    const parentSuiteObj = this.suites.get(fullSuiteName);
+    const rootSuiteName = parentSuiteObj.rootSuite;
+    const rootSuite = this.suites.get(rootSuiteName);
+
+    this.suites.set(rootSuiteName, {
+      ...rootSuite,
+      rootSuiteLength: rootSuite.rootSuiteLength - 1,
+    });
+
+    const testFileName = path.parse(test.location.file).base;
+
+    Array.from(this.suites)
+      .filter(([key]) => key.includes(testFileName) && key.includes(rootSuiteName))
+      .map(([key, { testsLength }]) => {
+        this.suites.set(key, {
+          ...this.suites.get(key),
+          testsLength: testsLength - 1,
+        });
+      });
+
+    if (this.suites.get(fullSuiteName).testsLength === 0) {
+      this.finishSuites(testFileName, rootSuiteName);
+    }
   }
 
   async onEnd(): Promise<void> {
-    this.finishSuites();
     const { promise } = this.client.finishLaunch(this.launchId, {
       endTime: this.client.helpers.now(),
       ...(this.customLaunchStatus && { status: this.customLaunchStatus }),

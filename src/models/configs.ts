@@ -32,4 +32,5 @@ export interface ReportPortalConfig {
   mode?: LAUNCH_MODES;
   isLaunchMergeRequired?: boolean;
   skippedIssue?: boolean;
+  includeTestSteps?: boolean;
 }
