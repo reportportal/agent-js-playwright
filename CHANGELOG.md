@@ -1,3 +1,5 @@
+
+## [5.0.3] - 2022-04-04
 ### Added
 - Ability include test steps to the report on log level via config property `includeTestSteps`.
 ### Fixed
