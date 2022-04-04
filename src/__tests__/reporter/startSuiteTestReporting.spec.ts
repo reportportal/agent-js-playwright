@@ -21,6 +21,9 @@ import { StartTestObjType } from '../../models';
 import { TEST_ITEM_TYPES } from '../../constants';
 import path from 'path';
 
+const rootSuite = 'tests/example.js';
+const suiteName = 'suiteName';
+
 describe('start reporting suite/test', () => {
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
@@ -29,13 +32,13 @@ describe('start reporting suite/test', () => {
   const testParams = {
     title: 'testTitle',
     parent: {
-      title: 'suiteName',
+      title: suiteName,
       location: 'tests/example.js',
       tests: ['test'],
       project: () => ({ name: '' }),
       allTests: () => ['test'],
       parent: {
-        title: 'tests/example.js',
+        title: rootSuite,
         location: 'tests/example.js',
         project: () => ({ name: '' }),
         allTests: () => ['test'],
@@ -46,7 +49,7 @@ describe('start reporting suite/test', () => {
       line: 5,
       column: 3,
     },
-    titlePath: () => ['', 'tests/example.js', 'suiteName', 'testTitle'],
+    titlePath: () => ['', rootSuite, suiteName, 'testTitle'],
   };
 
   const spyStartTestItem = jest.spyOn(reporter.client, 'startTestItem');
@@ -54,21 +57,21 @@ describe('start reporting suite/test', () => {
   test('client.startTestItem should be called with corresponding params to report suites and test item', () => {
     const expectedSuites = new Map([
       [
-        'tests/example.js',
+        rootSuite,
         {
           id: 'tempTestItemId',
-          name: 'tests/example.js',
-          rootSuite: undefined,
+          name: rootSuite,
+          rootSuite,
           rootSuiteLength: 1,
-          testsLength: undefined,
+          testsLength: 1,
         },
       ],
       [
-        'tests/example.js/suiteName',
+        `${rootSuite}/${suiteName}`,
         {
           id: 'tempTestItemId',
-          name: 'suiteName',
-          rootSuite: '',
+          name: suiteName,
+          rootSuite,
           rootSuiteLength: undefined,
           testsLength: 1,
         },
@@ -79,13 +82,13 @@ describe('start reporting suite/test', () => {
     ]);
     const expectedRootParentSuiteObj: StartTestObjType = {
       startTime: reporter.client.helpers.now(),
-      name: 'tests/example.js',
+      name: rootSuite,
       type: TEST_ITEM_TYPES.SUITE,
       codeRef: 'tests/example.js',
     };
     const expectedParentSuiteObj: StartTestObjType = {
       startTime: reporter.client.helpers.now(),
-      name: 'suiteName',
+      name: suiteName,
       type: TEST_ITEM_TYPES.TEST,
       codeRef: 'tests/example.js/suiteName',
     };

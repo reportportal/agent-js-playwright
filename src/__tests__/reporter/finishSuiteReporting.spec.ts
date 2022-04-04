@@ -17,18 +17,55 @@
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
+import path from 'path';
+
+const rootSuite = 'rootSuite';
+const suiteName = 'example.js';
 
 describe('finish report suite', () => {
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
-  reporter.suites = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }]]);
 
-  reporter.onEnd();
+  const testParams = {
+    title: 'test',
+    parent: {
+      title: suiteName,
+      project: () => ({ name: rootSuite }),
+    },
+    titlePath: () => [rootSuite, suiteName, 'testTitle'],
+    location: {
+      file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
+    },
+  };
+
+  const result = {
+    status: 'skipped',
+  };
+
+  reporter.testItems = new Map([
+    ['tempTestItemId', { id: 'tempTestItemId', name: 'test', playwrightProjectName: rootSuite }],
+  ]);
+  reporter.suites = new Map([
+    [rootSuite, { id: 'rootsuiteId', name: rootSuite, rootSuiteLength: 1, rootSuite }],
+    [
+      `${rootSuite}/${suiteName}`,
+      { id: 'parentSuiteId', name: suiteName, testsLength: 1, rootSuite },
+    ],
+  ]);
+
+  // @ts-ignore
+  reporter.onTestEnd(testParams, result);
 
   test('client.finishTestItem should be called with suite id', () => {
-    expect(reporter.client.finishTestItem).toHaveBeenCalledTimes(1);
-    expect(reporter.client.finishTestItem).toHaveBeenCalledWith('tempTestItemId', {
+    expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(1, 'tempTestItemId', {
+      endTime: reporter.client.helpers.now(),
+      status: 'skipped',
+    });
+    expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(2, 'rootsuiteId', {
+      endTime: reporter.client.helpers.now(),
+    });
+    expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(3, 'parentSuiteId', {
       endTime: reporter.client.helpers.now(),
     });
   });

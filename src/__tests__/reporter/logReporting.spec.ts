@@ -22,6 +22,7 @@ import path from 'path';
 
 const playwrightProjectName = 'projectName';
 const tempTestItemId = 'tempTestItemId';
+const suiteName = 'suiteName';
 
 describe('logs reporting', () => {
   const reporter = new RPReporter(mockConfig);
@@ -89,7 +90,17 @@ describe('logs reporting', () => {
       reporter.suites = new Map([
         [
           playwrightProjectName,
-          { id: tempTestItemId, name: playwrightProjectName, testsLength: 0 },
+          {
+            id: tempTestItemId,
+            name: playwrightProjectName,
+            testsLength: 0,
+            rootSuite: playwrightProjectName,
+            rootSuiteLength: 1,
+          },
+        ],
+        [
+          `${playwrightProjectName}/${suiteName}`,
+          { id: 'suiteId', name: suiteName, testsLength: 1, rootSuite: playwrightProjectName },
         ],
       ]);
       reporter.testItems = new Map([

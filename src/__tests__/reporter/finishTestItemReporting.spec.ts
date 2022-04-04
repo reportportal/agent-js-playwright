@@ -20,12 +20,20 @@ import { RPClientMock } from '../mocks/RPClientMock';
 import { FinishTestItemObjType } from '../../models';
 import path from 'path';
 
+const rootSuite = 'rootSuite';
+const suiteName = 'suiteName';
+
 describe('finish test reporting', () => {
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
-  reporter.testItems = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'test' }]]);
-  reporter.suites = new Map([['suiteName', { id: 'suiteId', name: 'suiteName', testsLength: 1 }]]);
+  reporter.testItems = new Map([
+    ['tempTestItemId', { id: 'tempTestItemId', name: 'test', playwrightProjectName: rootSuite }],
+  ]);
+  reporter.suites = new Map([
+    [rootSuite, { id: 'rootsuiteId', name: rootSuite, rootSuiteLength: 1, rootSuite }],
+    [`${rootSuite}/${suiteName}`, { id: 'suiteId', name: suiteName, testsLength: 1, rootSuite }],
+  ]);
   const attributes = [
     {
       key: 'key',
@@ -38,10 +46,10 @@ describe('finish test reporting', () => {
   const testParams = {
     title: 'test',
     parent: {
-      title: 'suiteName',
-      project: () => ({ name: '' }),
+      title: suiteName,
+      project: () => ({ name: rootSuite }),
     },
-    titlePath: () => ['suiteName', 'testTitle'],
+    titlePath: () => [rootSuite, suiteName, 'testTitle'],
     location: {
       file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
     },
