@@ -18,6 +18,14 @@
 import { Attribute } from './common';
 import { LAUNCH_MODES } from '../constants';
 
+export interface AgentOptions {
+  rejectUnauthorized?: boolean;
+}
+
+export interface RestClientConfig {
+  agent?: AgentOptions;
+}
+
 export interface ReportPortalConfig {
   token: string;
   project: string;
@@ -33,4 +41,5 @@ export interface ReportPortalConfig {
   isLaunchMergeRequired?: boolean;
   skippedIssue?: boolean;
   includeTestSteps?: boolean;
+  restClientConfig?: RestClientConfig;
 }
