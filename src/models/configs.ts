@@ -15,14 +15,13 @@
  *
  */
 
+import { AxiosRequestConfig } from 'axios';
+import { AgentOptions } from 'https';
+
 import { Attribute } from './common';
 import { LAUNCH_MODES } from '../constants';
 
-export interface AgentOptions {
-  rejectUnauthorized?: boolean;
-}
-
-export interface RestClientConfig {
+export interface RestClientConfig extends AxiosRequestConfig {
   agent?: AgentOptions;
 }
 
