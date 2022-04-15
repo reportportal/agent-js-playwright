@@ -14,35 +14,22 @@
  *  limitations under the License.
  */
 
+import { TestCase, TestResult } from '@playwright/test/reporter';
+import path from 'path';
+
+import { FinishTestItemObjType } from '../../models';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
-import { FinishTestItemObjType } from '../../models';
-import path from 'path';
-
-const rootSuite = 'rootSuite';
-const suiteName = 'suiteName';
 
 describe('finish test reporting', () => {
+  let finishTestItemObj: FinishTestItemObjType;
+
+  const rootSuite = 'rootSuite';
+  const suiteName = 'suiteName';
   const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
-  reporter.launchId = 'tempLaunchId';
-  reporter.testItems = new Map([
-    ['tempTestItemId', { id: 'tempTestItemId', name: 'test', playwrightProjectName: rootSuite }],
-  ]);
-  reporter.suites = new Map([
-    [rootSuite, { id: 'rootsuiteId', name: rootSuite, rootSuiteLength: 1, rootSuite }],
-    [`${rootSuite}/${suiteName}`, { id: 'suiteId', name: suiteName, testsLength: 1, rootSuite }],
-  ]);
-  const attributes = [
-    {
-      key: 'key',
-      value: 'value',
-    },
-  ];
-
+  const attributes = [{ key: 'key', value: 'value' }];
   const description = 'description';
-
   const testParams = {
     title: 'test',
     parent: {
@@ -53,27 +40,34 @@ describe('finish test reporting', () => {
     location: {
       file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
     },
-  };
-
-  const result = {
-    status: 'skipped',
-  };
-
+  } as TestCase;
+  const result = { status: 'skipped' } as TestResult;
   const suite = 'tempTestItemId';
 
-  const finishTestItemObj: FinishTestItemObjType = {
-    endTime: reporter.client.helpers.now(),
-    status: result.status,
-    attributes,
-    description,
-  };
-  // @ts-ignore
-  reporter.addAttributes(attributes, testParams, suite);
-  // @ts-ignore
-  reporter.setDescription(description, testParams, suite);
+  beforeAll(() => {
+    reporter.client = RPClientMock;
+    reporter.launchId = 'tempLaunchId';
+    reporter.testItems = new Map([
+      ['tempTestItemId', { id: 'tempTestItemId', name: 'test', playwrightProjectName: rootSuite }],
+    ]);
+    reporter.suites = new Map([
+      [rootSuite, { id: 'rootsuiteId', name: rootSuite, rootSuiteLength: 1, rootSuite }],
+      [`${rootSuite}/${suiteName}`, { id: 'suiteId', name: suiteName, testsLength: 1, rootSuite }],
+    ]);
+    finishTestItemObj = {
+      endTime: reporter.client.helpers.now(),
+      status: result.status,
+      attributes,
+      description,
+    };
+    jest.clearAllMocks();
+    reporter.addAttributes(attributes, testParams, suite);
+    reporter.setDescription(description, testParams, suite);
+
+    jest.spyOn(reporter.client, 'finishTestItem');
+  });
 
   test('client.finishTestItem should be called with suite id', async () => {
-    // @ts-ignore
     await reporter.onTestEnd(testParams, result);
 
     expect(reporter.client.finishTestItem).toHaveBeenCalledTimes(1);

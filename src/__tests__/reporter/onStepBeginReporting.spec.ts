@@ -14,41 +14,39 @@
  *  limitations under the License.
  */
 
+import { TestCase, TestStep } from '@playwright/test/reporter';
+
+import { TEST_ITEM_TYPES } from '../../constants';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
-import { RPClientMock } from '../mocks/RPClientMock';
-import { TEST_ITEM_TYPES } from '../../constants';
+import { RPClientMock, tempLaunchId, tempTestItemId } from '../mocks/RPClientMock';
 
-const playwrightProjectName = 'projectName';
-const tempTestItemId = 'tempTestItemId';
-
-describe('onStepBegin reporting', () => {
-  mockConfig.includeTestSteps = true;
+describe('Reporter.onStepBegin', () => {
+  const playwrightProjectName = 'projectName';
   const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
-
-  reporter.launchId = 'launchId';
-
-  reporter.testItems = new Map([
-    [tempTestItemId, { id: tempTestItemId, name: 'testName', playwrightProjectName }],
-  ]);
-
   const testParams = {
     title: 'testName',
     parent: {
       title: 'suiteName',
       project: () => ({ name: playwrightProjectName }),
     },
-  };
-
+  } as TestCase;
   const step = {
     title: 'stepName',
-    error: {
-      message: 'some error',
-    },
-  };
-  // @ts-ignore
-  reporter.onStepBegin(testParams, undefined, step);
+    error: { message: 'some error' },
+  } as TestStep;
+
+  beforeAll(() => {
+    mockConfig.includeTestSteps = true;
+    reporter.client = RPClientMock;
+    reporter.launchId = tempLaunchId;
+    reporter.testItems = new Map([
+      [tempTestItemId, { id: tempTestItemId, name: 'testName', playwrightProjectName }],
+    ]);
+    jest.clearAllMocks();
+
+    reporter.onStepBegin(testParams, undefined, step);
+  });
 
   test('client.startTestItem should be called with corresponding params', () => {
     const expectedStepObj = {

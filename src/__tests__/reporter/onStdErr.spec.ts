@@ -14,35 +14,43 @@
  *  limitations under the License.
  */
 
+import { TestCase } from '@playwright/test/reporter';
+
+import { LOG_LEVELS } from '../../constants';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
-import { LOG_LEVELS } from '../../constants';
 
-describe('onStdErr testing', () => {
+describe('Reporter.onStdErr', () => {
   const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
 
-  test('onStdErr call sendTestItemLog with LOG_LEVELS.ERROR', () => {
+  beforeAll(() => {
+    reporter.client = RPClientMock;
+
+    jest.clearAllMocks();
+    jest.spyOn(reporter, 'sendTestItemLog');
+  });
+
+  test('should call sendTestItemLog with LOG_LEVELS.ERROR', () => {
     const test = {
       title: 'some test',
-    };
-    jest.spyOn(reporter, 'sendTestItemLog');
-    // @ts-ignore
+    } as TestCase;
+
     reporter.onStdErr('Some error log', test);
+
     expect(reporter.sendTestItemLog).toHaveBeenCalledWith(
       { level: LOG_LEVELS.ERROR, message: 'Some error log' },
       test,
     );
   });
 
-  test('onStdErr call sendTestItemLog with LOG_LEVELS.WARN', () => {
+  test('should call sendTestItemLog with LOG_LEVELS.WARN', () => {
     const test = {
       title: 'some test',
-    };
-    jest.spyOn(reporter, 'sendTestItemLog');
-    // @ts-ignore
+    } as TestCase;
+
     reporter.onStdErr('Some warn message', test);
+
     expect(reporter.sendTestItemLog).toHaveBeenCalledWith(
       { level: LOG_LEVELS.WARN, message: 'Some warn message' },
       test,

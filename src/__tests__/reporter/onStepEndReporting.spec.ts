@@ -14,45 +14,44 @@
  *  limitations under the License.
  */
 
+import { TestCase, TestStep } from '@playwright/test/reporter';
+
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
-import { RPClientMock } from '../mocks/RPClientMock';
+import { RPClientMock, tempLaunchId } from '../mocks/RPClientMock';
 
-const playwrightProjectName = 'projectName';
-const tempTestItemId = 'tempTestItemId';
-
-describe('onStepBegin reporting', () => {
-  mockConfig.includeTestSteps = true;
+describe('Reporter.onStepEnd', () => {
+  const playwrightProjectName = 'projectName';
   const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
-
-  reporter.launchId = 'launchId';
-
-  reporter.testItems = new Map([
-    [tempTestItemId, { id: tempTestItemId, name: 'testName', playwrightProjectName }],
-  ]);
-
-  reporter.nestedSteps = new Map([
-    [tempTestItemId, { id: tempTestItemId, name: 'stepName', playwrightProjectName }],
-  ]);
-
   const testParams = {
     title: 'testName',
     parent: {
       title: 'suiteName',
       project: () => ({ name: playwrightProjectName }),
     },
-  };
-
+  } as TestCase;
   const step = {
     title: 'stepName',
     error: {
       message: 'some error',
     },
-  };
+  } as TestStep;
 
-  // @ts-ignore
-  reporter.onStepEnd(testParams, undefined, step);
+  beforeAll(() => {
+    mockConfig.includeTestSteps = true;
+    reporter.client = RPClientMock;
+    reporter.launchId = 'launchId';
+    reporter.testItems = new Map([
+      [tempLaunchId, { id: tempLaunchId, name: 'testName', playwrightProjectName }],
+    ]);
+    reporter.nestedSteps = new Map([
+      [tempLaunchId, { id: tempLaunchId, name: 'stepName', playwrightProjectName }],
+    ]);
+
+    jest.clearAllMocks();
+
+    reporter.onStepEnd(testParams, undefined, step);
+  });
 
   test('client.finishTestItem should be called with corresponding params', () => {
     const expectedStepObj = {
@@ -60,10 +59,10 @@ describe('onStepBegin reporting', () => {
       status: 'failed',
     };
 
-    expect(reporter.client.finishTestItem).toHaveBeenCalledWith(tempTestItemId, expectedStepObj);
+    expect(reporter.client.finishTestItem).toHaveBeenCalledWith(tempLaunchId, expectedStepObj);
   });
 
-  test('nestedSteps should be clear', () => {
+  test('should clear nestedSteps', () => {
     expect(reporter.nestedSteps).toEqual(new Map());
   });
 });

@@ -6,6 +6,7 @@
     "noImplicitAny": true,
     "moduleResolution": "node",
     "downlevelIteration": true,
+    "resolveJsonModule": true,
     "declaration": true,
     "lib": [
       "es2016",

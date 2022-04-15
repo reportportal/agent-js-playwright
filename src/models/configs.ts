@@ -18,8 +18,8 @@
 import { AxiosRequestConfig } from 'axios';
 import { AgentOptions } from 'https';
 
-import { Attribute } from './common';
 import { LAUNCH_MODES } from '../constants';
+import { Attribute } from './common';
 
 export interface RestClientConfig extends AxiosRequestConfig {
   agent?: AgentOptions;

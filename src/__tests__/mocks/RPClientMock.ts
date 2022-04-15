@@ -15,44 +15,39 @@
  *
  */
 
-import { ReportPortalConfig } from '../../models';
+import RPClient from '@reportportal/client-javascript';
+import { mocked } from 'jest-mock';
 
+import { mockConfig } from './configMock';
+
+jest.mock('@reportportal/client-javascript');
+
+export const tempLaunchId = 'tempLaunchId';
+export const tempTestItemId = 'tempTestItemId';
 const mockedDate = Date.now();
+const defaultReturnValue = {
+  promise: Promise.resolve('ok'),
+  tempId: tempLaunchId,
+};
 
-export class RPClientMock {
-  private config: ReportPortalConfig;
+export const RPClientMock = mocked<RPClient>(new RPClient(mockConfig, {}), true);
 
-  constructor(config?: ReportPortalConfig) {
-    this.config = config;
-  }
-
-  public startLaunch = jest.fn().mockReturnValue({
-    promise: Promise.resolve('ok'),
-    tempId: 'tempLaunchId',
-  });
-
-  public finishLaunch = jest.fn().mockReturnValue({
-    promise: Promise.resolve('ok'),
-  });
-
-  public startTestItem = jest.fn().mockReturnValue({
-    promise: Promise.resolve('ok'),
-    tempId: 'tempTestItemId',
-  });
-
-  public finishTestItem = jest.fn().mockReturnValue({
-    promise: Promise.resolve('ok'),
-  });
-
-  public sendLog = jest.fn().mockReturnValue({
-    promise: Promise.resolve('ok'),
-  });
-
-  public helpers = {
-    now: (): number => mockedDate,
-  };
-
-  public checkConnect = jest.fn().mockReturnValue({
-    promise: Promise.resolve('ok'),
-  });
-}
+RPClientMock.startLaunch.mockReturnValue({
+  promise: Promise.resolve('ok'),
+  tempId: tempLaunchId,
+});
+RPClientMock.finishLaunch.mockReturnValue({
+  promise: Promise.resolve('ok'),
+  tempId: tempLaunchId,
+});
+RPClientMock.startTestItem.mockReturnValue({
+  promise: Promise.resolve('ok'),
+  tempId: tempTestItemId,
+});
+RPClientMock.finishTestItem.mockReturnValue({
+  promise: Promise.resolve('ok'),
+  tempId: tempTestItemId,
+});
+RPClientMock.sendLog.mockReturnValue(defaultReturnValue);
+RPClientMock.helpers = { now: (): number => mockedDate } as any;
+RPClientMock.checkConnect.mockReturnValue(defaultReturnValue);

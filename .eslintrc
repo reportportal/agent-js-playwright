@@ -9,7 +9,9 @@
     "plugin:prettier/recommended",
     "plugin:import/recommended"
   ],
-  "plugins": ["prettier"],
+  "plugins": [
+    "prettier"
+  ],
   "globals": {
     "Atomics": "readonly",
     "SharedArrayBuffer": "readonly"
@@ -18,7 +20,7 @@
   "parserOptions": {
     "ecmaVersion": 2018,
     "sourceType": "module",
-    "project":  "./tsconfig.eslint.json"
+    "project": "./tsconfig.eslint.json"
   },
   "rules": {
     "no-plusplus": 0,
@@ -27,12 +29,42 @@
     "no-else-return": 0,
     "lines-between-class-members": 0,
     "import/no-extraneous-dependencies": 0,
-    "func-names": 0,
     "import/prefer-default-export": 0,
+    "import/first": 2,
+    "import/no-duplicates": 2,
+    "import/newline-after-import": 2,
+    "import/order": [
+      "error",
+      {
+        "groups": [
+          [
+            "builtin",
+            "external"
+          ],
+          "internal",
+          [
+            "parent",
+            "sibling",
+            "index"
+          ]
+        ],
+        "pathGroups": [],
+        "pathGroupsExcludedImportTypes": [
+          "builtin"
+        ],
+        "newlines-between": "always",
+        "warnOnUnassignedImports": true,
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ],
+    "func-names": 0,
     "@typescript-eslint/ban-ts-ignore": 0,
     "@typescript-eslint/ban-ts-comment": 0,
     "@typescript-eslint/no-implied-eval": 0,
-    "dot-notation": 0,
-    "@typescript-eslint/naming-convention": 0
+    "@typescript-eslint/naming-convention": 0,
+    "dot-notation": 0
   }
 }

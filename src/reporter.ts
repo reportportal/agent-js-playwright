@@ -15,8 +15,6 @@
  *
  */
 
-import RPClient from '@reportportal/client-javascript';
-import stripAnsi from 'strip-ansi';
 import {
   Reporter,
   Suite as PWSuite,
@@ -24,6 +22,12 @@ import {
   TestResult,
   TestStep,
 } from '@playwright/test/reporter';
+import RPClient from '@reportportal/client-javascript';
+import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
+import path from 'path';
+import stripAnsi from 'strip-ansi';
+
+import { LAUNCH_MODES, LOG_LEVELS, STATUSES, TEST_ITEM_TYPES } from './constants';
 import {
   Attribute,
   FinishTestItemObjType,
@@ -32,7 +36,6 @@ import {
   StartLaunchObjType,
   StartTestObjType,
 } from './models';
-import { LAUNCH_MODES, LOG_LEVELS, STATUSES, TEST_ITEM_TYPES } from './constants';
 import {
   convertToRpStatus,
   getAgentInfo,
@@ -43,8 +46,6 @@ import {
   isFalse,
   promiseErrorHandler,
 } from './utils';
-import path from 'path';
-import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 
 export interface TestItem {
   id: string;
@@ -83,6 +84,11 @@ export class RPReporter implements Reporter {
   launchLogs: Map<string, LogRQ>;
 
   nestedSteps: Map<string, TestItem>;
+
+  get includeTestSteps(): boolean {
+    const { includeTestSteps } = this.config;
+    return includeTestSteps !== undefined ? includeTestSteps : false;
+  }
 
   constructor(config: ReportPortalConfig) {
     this.config = config;
@@ -274,18 +280,17 @@ export class RPReporter implements Reporter {
     this.launchId = tempId;
   }
 
-  findTestItem(testItems: Map<string, TestItem>, title: string, projectName?: string): Suite {
-    if (projectName) {
-      for (const [, value] of testItems) {
-        if (value.name === title && projectName === value.playwrightProjectName) {
-          return value;
-        }
-      }
-    } else {
-      for (const [, value] of testItems) {
-        if (value.name === title) {
-          return value;
-        }
+  findTestItem(
+    testItems: Map<string, TestItem>,
+    title: string,
+    projectName?: string,
+  ): Suite | undefined {
+    for (const [, value] of testItems) {
+      if (
+        value.name === title &&
+        (projectName ? projectName === value.playwrightProjectName : true)
+      ) {
+        return value;
       }
     }
   }
@@ -303,7 +308,7 @@ export class RPReporter implements Reporter {
     this.createSuitesOrder(test.parent, orderedSuites);
 
     const lastSuiteIndex = orderedSuites.length - 1;
-    const projectName = test.parent.project().name;
+    const playwrightProjectName = RPReporter.getTestProjectName(test);
 
     for (let i = lastSuiteIndex; i >= 0; i--) {
       const currentSuiteTitle = orderedSuites[i].title;
@@ -314,7 +319,7 @@ export class RPReporter implements Reporter {
       }
 
       const testItemType = i === lastSuiteIndex ? TEST_ITEM_TYPES.SUITE : TEST_ITEM_TYPES.TEST;
-      const codeRef = getCodeRef(test, currentSuiteTitle, projectName);
+      const codeRef = getCodeRef(test, currentSuiteTitle, playwrightProjectName);
       const { attributes, description, testCaseId, status, logs } =
         this.suitesInfo.get(currentSuiteTitle) || {};
 
@@ -355,12 +360,11 @@ export class RPReporter implements Reporter {
       this.suitesInfo.delete(currentSuiteTitle);
     }
 
-    return projectName;
+    return playwrightProjectName;
   }
 
   onTestBegin(test: TestCase): void {
     const playwrightProjectName = this.createSuites(test);
-
     const fullSuiteName = getCodeRef(test, test.parent.title);
     const parentSuiteObj = this.suites.get(fullSuiteName);
 
@@ -386,20 +390,23 @@ export class RPReporter implements Reporter {
   }
 
   onStepBegin(test: TestCase, result: TestResult, step: TestStep): void {
-    const { includeTestSteps } = this.config;
-    if (!includeTestSteps) return;
-    const playwrightProjectName = test.parent.project().name;
-    const { id: testItemId } = this.findTestItem(this.testItems, test.title, playwrightProjectName);
+    if (!this.includeTestSteps) return;
+    const playwrightProjectName = RPReporter.getTestProjectName(test);
+    const testItem = this.findTestItem(this.testItems, test.title, playwrightProjectName);
     const stepStartObj = {
       name: step.title,
       type: TEST_ITEM_TYPES.STEP,
       hasStats: false,
       startTime: this.client.helpers.now(),
     };
-    const { tempId, promise } = this.client.startTestItem(stepStartObj, this.launchId, testItemId);
+
+    const { tempId, promise } = this.client.startTestItem(
+      stepStartObj,
+      this.launchId,
+      testItem?.id,
+    );
 
     this.addRequestToPromisesQueue(promise, 'Failed to start nested step.');
-
     this.nestedSteps.set(tempId, {
       name: step.title,
       id: tempId,
@@ -408,23 +415,24 @@ export class RPReporter implements Reporter {
   }
 
   onStepEnd(test: TestCase, result: TestResult, step: TestStep): void {
-    const { includeTestSteps } = this.config;
-    if (!includeTestSteps) return;
-    const playwrightProjectName = test.parent.project().name;
-    const { id } = this.findTestItem(this.nestedSteps, step.title, playwrightProjectName);
-    const stepFinishObj = {
-      status: step.error ? STATUSES.FAILED : STATUSES.PASSED,
-      endTime: this.client.helpers.now(),
-    };
+    if (!this.includeTestSteps) return;
+    const playwrightProjectName = RPReporter.getTestProjectName(test);
+    const testItem = this.findTestItem(this.nestedSteps, step.title, playwrightProjectName);
+    if (testItem?.id) {
+      const stepFinishObj = {
+        status: step.error ? STATUSES.FAILED : STATUSES.PASSED,
+        endTime: this.client.helpers.now(),
+      };
 
-    const { promise } = this.client.finishTestItem(id, stepFinishObj);
+      const { promise } = this.client.finishTestItem(testItem?.id, stepFinishObj);
 
-    this.addRequestToPromisesQueue(promise, 'Failed to finish nested step.');
-    this.nestedSteps.delete(id);
+      this.addRequestToPromisesQueue(promise, 'Failed to finish nested step.');
+      this.nestedSteps.delete(testItem?.id);
+    }
   }
 
   async onTestEnd(test: TestCase, result: TestResult): Promise<void> {
-    const playwrightProjectName = test.parent.project().name;
+    const playwrightProjectName = RPReporter.getTestProjectName(test);
     const {
       id: testItemId,
       attributes,
@@ -506,4 +514,6 @@ export class RPReporter implements Reporter {
     await Promise.all(this.promises);
     this.launchId = null;
   }
+
+  private static getTestProjectName = (test: TestCase) => test.parent.project().name;
 }

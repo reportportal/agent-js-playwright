@@ -14,35 +14,38 @@
  *  limitations under the License.
  */
 
-import { RPReporter } from '../../reporter';
-import { mockConfig } from '../mocks/configMock';
-import { RPClientMock } from '../mocks/RPClientMock';
-import { LOG_LEVELS } from '../../constants';
+import { TestCase, TestResult } from '@playwright/test/reporter';
 import path from 'path';
 
-const playwrightProjectName = 'projectName';
-const tempTestItemId = 'tempTestItemId';
-const suiteName = 'suiteName';
+import { LOG_LEVELS } from '../../constants';
+import { RPReporter } from '../../reporter';
+import { mockConfig } from '../mocks/configMock';
+import { RPClientMock, tempLaunchId } from '../mocks/RPClientMock';
 
 describe('logs reporting', () => {
+  const playwrightProjectName = 'projectName';
+  const suiteName = 'suiteName';
   const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
-
   const file = {
     name: 'filename',
     type: 'image/png',
     content: Buffer.from([1, 2, 3, 4, 5, 6, 7]).toString('base64'),
   };
-
   const log = {
     level: LOG_LEVELS.INFO,
     message: 'info log',
     file,
   };
 
+  beforeAll(() => {
+    reporter.client = RPClientMock;
+
+    jest.clearAllMocks();
+    jest.spyOn(reporter.client, 'sendLog');
+  });
+
   describe('send log', () => {
     test('should send custom log for test item with params', () => {
-      const spySendLog = jest.spyOn(reporter.client, 'sendLog');
       const currentTest = {
         title: 'test',
         tempId: 'testItemId',
@@ -55,13 +58,11 @@ describe('logs reporting', () => {
 
       reporter.sendLog(currentTest.tempId, log);
 
-      expect(spySendLog).toHaveBeenCalledWith('testItemId', expectedSendLogObj, file);
+      expect(reporter.client.sendLog).toHaveBeenCalledWith('testItemId', expectedSendLogObj, file);
     });
 
     test('should send log for launch with params', () => {
       reporter.launchId = 'tempLaunchId';
-      const spySendLog = jest.spyOn(reporter.client, 'sendLog');
-
       const expectedSendLogObj = {
         time: reporter.client.helpers.now(),
         level: LOG_LEVELS.INFO,
@@ -70,18 +71,21 @@ describe('logs reporting', () => {
 
       reporter.sendLaunchLog(log);
 
-      expect(spySendLog).toHaveBeenCalledWith('tempLaunchId', expectedSendLogObj, file);
+      expect(reporter.client.sendLog).toHaveBeenCalledWith(
+        'tempLaunchId',
+        expectedSendLogObj,
+        file,
+      );
     });
 
     test('suitesInfo should be updated with logs', () => {
-      reporter.suites = new Map([[tempTestItemId, { id: tempTestItemId, name: 'suiteName' }]]);
+      reporter.suites = new Map([[tempLaunchId, { id: tempLaunchId, name: 'suiteName' }]]);
       const testParams = {
         title: 'testName',
-      };
+      } as TestCase;
+      const expectedSuitesInfo = new Map([[tempLaunchId, { logs: [log] }]]);
 
-      const expectedSuitesInfo = new Map([[tempTestItemId, { logs: [log] }]]);
-      // @ts-ignore
-      reporter.sendTestItemLog(log, testParams, tempTestItemId);
+      reporter.sendTestItemLog(log, testParams, tempLaunchId);
 
       expect(reporter.suitesInfo).toEqual(expectedSuitesInfo);
     });
@@ -91,7 +95,7 @@ describe('logs reporting', () => {
         [
           playwrightProjectName,
           {
-            id: tempTestItemId,
+            id: tempLaunchId,
             name: playwrightProjectName,
             testsLength: 0,
             rootSuite: playwrightProjectName,
@@ -104,7 +108,7 @@ describe('logs reporting', () => {
         ],
       ]);
       reporter.testItems = new Map([
-        [tempTestItemId, { id: tempTestItemId, name: 'test', playwrightProjectName }],
+        [tempLaunchId, { id: tempLaunchId, name: 'test', playwrightProjectName }],
       ]);
       const testParams = {
         title: 'test',
@@ -125,7 +129,7 @@ describe('logs reporting', () => {
           'parentDescribe',
           'testTitle',
         ],
-      };
+      } as TestCase;
 
       const result = {
         status: 'failed',
@@ -133,13 +137,12 @@ describe('logs reporting', () => {
           message: 'message',
           stack: 'stack',
         },
-      };
+      } as TestResult;
       jest.spyOn(reporter, 'sendLog');
 
-      // @ts-ignore
       await reporter.onTestEnd(testParams, result);
 
-      expect(reporter.sendLog).toHaveBeenCalledWith(tempTestItemId, {
+      expect(reporter.sendLog).toHaveBeenCalledWith(tempLaunchId, {
         level: LOG_LEVELS.ERROR,
         message: result.error.stack,
       });

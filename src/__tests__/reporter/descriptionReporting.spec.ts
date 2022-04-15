@@ -14,38 +14,36 @@
  *  limitations under the License.
  */
 
+import { TestCase } from '@playwright/test/reporter';
+
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
-import { RPClientMock } from '../mocks/RPClientMock';
 
-describe('description reporting', () => {
+describe('Reporter.setDescription', () => {
   const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
-
   const description = 'Description';
-
-  const testParams = {
-    title: 'testName',
-  };
-
+  const testParams = { title: 'testName' } as TestCase;
   const suite = 'tempTestItemId';
 
   test('reporter.testItems should be updated with description', () => {
     reporter.testItems = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'testName' }]]);
-    // @ts-ignore
-    reporter.setDescription(description, testParams, suite);
     const expectedTestItems = new Map([
       ['tempTestItemId', { id: 'tempTestItemId', name: 'testName', description }],
     ]);
+
+    reporter.setDescription(description, testParams, suite);
+
     expect(reporter.testItems).toEqual(expectedTestItems);
+
     reporter.testItems.delete('tempTestItemId');
   });
 
   test('reporter.suitesInfo should be with description', () => {
     reporter.suites = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }]]);
-    // @ts-ignore
-    reporter.setDescription(description, testParams, suite);
     const expectedSuitesInfo = new Map([['tempTestItemId', { description: 'Description' }]]);
+
+    reporter.setDescription(description, testParams, suite);
+
     expect(reporter.suitesInfo).toEqual(expectedSuitesInfo);
   });
 });

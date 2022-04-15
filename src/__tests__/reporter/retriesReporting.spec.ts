@@ -14,24 +14,28 @@
  *  limitations under the License.
  */
 
+import { Suite, TestCase } from '@playwright/test/reporter';
+import path from 'path';
+
+import { TEST_ITEM_TYPES } from '../../constants';
+import { StartTestObjType } from '../../models';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
-import { StartTestObjType } from '../../models';
-import { TEST_ITEM_TYPES } from '../../constants';
-import path from 'path';
 
 describe('retries reporting', () => {
   const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
-
   const testParams = {
     title: 'testTitle',
     parent: {
       title: 'suiteName',
-      location: 'tests/example.js',
+      location: { file: 'tests/example.js', line: 1, column: 1 },
+      suites: [],
+      tests: [],
       project: () => ({ name: '' }),
-    },
+      allTests: () => [],
+      titlePath: () => [],
+    } as Suite,
     location: {
       file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
       line: 5,
@@ -39,9 +43,14 @@ describe('retries reporting', () => {
     },
     titlePath: () => ['suiteName', 'testTitle'],
     results: [{}, {}],
-  };
+    expectedStatus: 'passed',
+  } as TestCase;
 
-  const spyStartTestItem = jest.spyOn(reporter.client, 'startTestItem');
+  beforeAll(() => {
+    reporter.client = RPClientMock;
+    jest.clearAllMocks();
+    jest.spyOn(reporter.client, 'startTestItem');
+  });
 
   test('client.startTestItem should be called with retry=true params', () => {
     const parentId = 'tempTestItemId';
@@ -54,9 +63,12 @@ describe('retries reporting', () => {
     };
     reporter.suites = new Map([['suiteName', { id: 'tempTestItemId', name: 'suiteName' }]]);
 
-    // @ts-ignore
-    reporter.onTestBegin(testParams);
+    reporter.onTestBegin(testParams as TestCase);
 
-    expect(spyStartTestItem).toHaveBeenCalledWith(expectedTestObj, reporter.launchId, parentId);
+    expect(reporter.client.startTestItem).toHaveBeenCalledWith(
+      expectedTestObj,
+      reporter.launchId,
+      parentId,
+    );
   });
 });

@@ -14,45 +14,53 @@
  *  limitations under the License.
  */
 
-import { RPReporter } from '../../reporter';
-import { mockConfig } from '../mocks/configMock';
-import { RPClientMock } from '../mocks/RPClientMock';
-import { StartTestObjType } from '../../models';
-import { TEST_ITEM_TYPES } from '../../constants';
+import { Suite, TestCase } from '@playwright/test/reporter';
 import path from 'path';
 
-const rootSuite = 'tests/example.js';
-const suiteName = 'suiteName';
+import { TEST_ITEM_TYPES } from '../../constants';
+import { StartTestObjType } from '../../models';
+import { RPReporter } from '../../reporter';
+import { mockConfig } from '../mocks/configMock';
+import { RPClientMock, tempLaunchId } from '../mocks/RPClientMock';
 
 describe('start reporting suite/test', () => {
+  const rootSuite = 'tests/example.js';
+  const suiteName = 'suiteName';
   const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
-  reporter.launchId = 'tempLaunchId';
-
   const testParams = {
     title: 'testTitle',
     parent: {
       title: suiteName,
-      location: 'tests/example.js',
-      tests: ['test'],
+      location: { file: 'tests/example.js', line: 1, column: 1 },
+      tests: [{ title: 'test' } as TestCase],
       project: () => ({ name: '' }),
-      allTests: () => ['test'],
+      allTests: () => [{ title: 'test' } as TestCase],
+      titlePath: () => [],
+      suites: [],
       parent: {
         title: rootSuite,
-        location: 'tests/example.js',
+        location: { file: 'tests/example.js', line: 1, column: 1 },
         project: () => ({ name: '' }),
-        allTests: () => ['test'],
-      },
-    },
+        allTests: () => [{ title: 'test' } as TestCase],
+        titlePath: () => [],
+        suites: [],
+      } as Suite,
+    } as Suite,
     location: {
       file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
       line: 5,
       column: 3,
     },
     titlePath: () => ['', rootSuite, suiteName, 'testTitle'],
-  };
+  } as TestCase;
 
-  const spyStartTestItem = jest.spyOn(reporter.client, 'startTestItem');
+  beforeAll(() => {
+    reporter.client = RPClientMock;
+    reporter.launchId = tempLaunchId;
+    jest.clearAllMocks();
+
+    jest.spyOn(reporter.client, 'startTestItem');
+  });
 
   test('client.startTestItem should be called with corresponding params to report suites and test item', () => {
     const expectedSuites = new Map([
@@ -101,18 +109,17 @@ describe('start reporting suite/test', () => {
     };
     const parentId = 'tempTestItemId';
 
-    // @ts-ignore
     reporter.onTestBegin(testParams);
 
     // the first call for the root suite start
-    expect(spyStartTestItem).toHaveBeenNthCalledWith(
+    expect(reporter.client.startTestItem).toHaveBeenNthCalledWith(
       1,
       expectedRootParentSuiteObj,
       reporter.launchId,
       undefined,
     );
     // the first call for the item parent suite start
-    expect(spyStartTestItem).toHaveBeenNthCalledWith(
+    expect(reporter.client.startTestItem).toHaveBeenNthCalledWith(
       2,
       expectedParentSuiteObj,
       reporter.launchId,
@@ -125,7 +132,7 @@ describe('start reporting suite/test', () => {
       reporter.launchId,
       parentId,
     );
-    expect(spyStartTestItem).toHaveBeenCalledTimes(3);
+    expect(reporter.client.startTestItem).toHaveBeenCalledTimes(3);
     expect(reporter.suites).toEqual(expectedSuites);
     expect(reporter.testItems).toEqual(expectedTestItems);
   });

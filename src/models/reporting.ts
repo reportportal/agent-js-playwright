@@ -15,8 +15,8 @@
  *
  */
 
-import { Attribute } from './common';
 import { TEST_ITEM_TYPES, LOG_LEVELS, LAUNCH_MODES } from '../constants';
+import { Attribute } from './common';
 
 export interface StartLaunchObjType {
   startTime?: Date | number;

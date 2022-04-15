@@ -15,8 +15,11 @@
  *
  */
 
-// @ts-ignore
+import fs from 'fs';
+import path from 'path';
+
 import { name as pjsonName, version as pjsonVersion } from '../../package.json';
+import { STATUSES } from '../constants';
 import {
   getAgentInfo,
   getCodeRef,
@@ -28,11 +31,8 @@ import {
   isErrorLog,
   convertToRpStatus,
 } from '../utils';
-import fs from 'fs';
-import path from 'path';
-import { STATUSES } from '../constants';
 
-describe('testing utils', () => {
+describe('utils', () => {
   test('isFalse', () => {
     expect(isFalse(false)).toBe(true);
     expect(isFalse('false')).toBe(true);
@@ -43,44 +43,45 @@ describe('testing utils', () => {
   describe('isErrorLog', () => {
     test('isErrorLog with letters in different cases should return true', () => {
       const message = 'Some TEXT with ErRoR';
+
       expect(isErrorLog(message)).toBe(true);
     });
+
     test('isErrorLog without "error" word should return false', () => {
       const messageWithoutError = 'Some text';
+
       expect(isErrorLog(messageWithoutError)).toBe(false);
     });
   });
 
   describe('promiseErrorHandler', () => {
-    let spyConsoleError: jest.SpyInstance;
     beforeEach(() => {
-      spyConsoleError = jest.spyOn(console, 'error');
+      jest.spyOn(console, 'error');
     });
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
+
+    afterEach(() => jest.clearAllMocks());
 
     test('should log error with empty message as it is not provided in case of promise rejected', async () => {
       const promiseWithError = Promise.reject('error message');
       await promiseErrorHandler(promiseWithError);
 
-      expect(spyConsoleError).toBeCalledTimes(1);
-      expect(spyConsoleError).toBeCalledWith('', 'error message');
+      expect(console.error).toBeCalledTimes(1);
+      expect(console.error).toBeCalledWith('', 'error message');
     });
 
     test('should log error with provided message in case of promise rejected', async () => {
       const promiseWithError = Promise.reject('error message');
       await promiseErrorHandler(promiseWithError, 'Failed to finish suite');
 
-      expect(spyConsoleError).toBeCalledTimes(1);
-      expect(spyConsoleError).toBeCalledWith('Failed to finish suite', 'error message');
+      expect(console.error).toBeCalledTimes(1);
+      expect(console.error).toBeCalledWith('Failed to finish suite', 'error message');
     });
 
     test('should not log anything in case of promise resolved', async () => {
       const promise = Promise.resolve();
       await promiseErrorHandler(promise, 'Failed to finish suite');
 
-      expect(spyConsoleError).toBeCalledTimes(0);
+      expect(console.error).toBeCalledTimes(0);
     });
   });
 
@@ -101,6 +102,7 @@ describe('testing utils', () => {
         system: true,
       },
     ];
+
     test('should return the list of system attributes', () => {
       const systemAttributes = getSystemAttributes();
 
@@ -165,6 +167,7 @@ describe('testing utils', () => {
       expect(codeRef).toBe('');
     });
   });
+
   describe('sendEventToReporter', () => {
     test('func must send event to reporter', () => {
       const type = 'ADD_ATTRIBUTES';
@@ -276,11 +279,13 @@ describe('testing utils', () => {
       expect(attachmentResult).toEqual(expectedAttachments);
     });
   });
+
   describe('convertToRpStatus', () => {
     test('convertToRpStatus should return STATUSES.FAILED', () => {
       const status = convertToRpStatus('timedOut');
       expect(status).toBe(STATUSES.FAILED);
     });
+
     test('convertToRpStatus not should return STATUSES.FAILED', () => {
       const status = convertToRpStatus('skipped');
       expect(status).not.toBe(STATUSES.FAILED);

@@ -14,15 +14,23 @@
  *  limitations under the License.
  */
 
+import { TestCase } from '@playwright/test/reporter';
+
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 
-describe('onStdOut testing', () => {
+describe('Reporter.onStdOut', () => {
   const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
 
-  test('case rp:addAttributes should call addAttributes', () => {
+  beforeAll(() => {
+    reporter.client = RPClientMock;
+
+    jest.clearAllMocks();
+    jest.spyOn(reporter, 'sendTestItemLog');
+  });
+
+  test('should call addAttributes on rp:addAttributes', () => {
     const type = 'rp:addAttributes';
     const data = [
       {
@@ -30,79 +38,92 @@ describe('onStdOut testing', () => {
         value: 'value',
       },
     ];
-    jest.spyOn(reporter, 'addAttributes');
     const chunk = JSON.stringify({ type, data });
+    jest.spyOn(reporter, 'addAttributes');
+
     reporter.onStdOut(chunk);
+
     expect(reporter.addAttributes).toHaveBeenCalled();
   });
 
-  test('case rp:setDescription should call setDescription', () => {
+  test('should call setDescription on rp:setDescription', () => {
     const type = 'rp:setDescription';
     const data = 'Description';
-    jest.spyOn(reporter, 'setDescription');
     const chunk = JSON.stringify({ type, data });
+    jest.spyOn(reporter, 'setDescription');
+
     reporter.onStdOut(chunk);
+
     expect(reporter.setDescription).toHaveBeenCalled();
   });
 
-  test('case rp:setTestCaseId should call setTestCaseId', () => {
+  test('should call setTestCaseId on rp:setTestCaseId', () => {
     const type = 'rp:setTestCaseId';
     const data = 'TestCaseIdForTheSuite';
-    jest.spyOn(reporter, 'setTestCaseId');
     const chunk = JSON.stringify({ type, data });
+    jest.spyOn(reporter, 'setTestCaseId');
+
     reporter.onStdOut(chunk);
+
     expect(reporter.setTestCaseId).toHaveBeenCalled();
   });
 
-  test('case rp:setStatus should call setStatus', () => {
+  test('should call setStatus on rp:setStatus', () => {
     const type = 'rp:setStatus';
     const data = 'status';
-    jest.spyOn(reporter, 'setStatus');
     const chunk = JSON.stringify({ type, data });
+    jest.spyOn(reporter, 'setStatus');
+
     reporter.onStdOut(chunk);
+
     expect(reporter.setStatus).toHaveBeenCalled();
   });
 
-  test('case rp:setLaunchStatus should call setLaunchStatus', () => {
+  test('should call setLaunchStatus on rp:setLaunchStatus', () => {
     const type = 'rp:setLaunchStatus';
     const data = 'statusForLaunch';
-    jest.spyOn(reporter, 'setLaunchStatus');
     const chunk = JSON.stringify({ type, data });
+    jest.spyOn(reporter, 'setLaunchStatus');
+
     reporter.onStdOut(chunk);
+
     expect(reporter.setLaunchStatus).toHaveBeenCalled();
   });
 
-  test('case rp:addLog should call sendTestItemLog', () => {
+  test('should call sendTestItemLog on rp:addLog', () => {
     const type = 'rp:addLog';
     const data = {
       level: 'INFO',
       message: 'info log',
     };
-    jest.spyOn(reporter, 'sendTestItemLog');
     const chunk = JSON.stringify({ type, data });
+
     reporter.onStdOut(chunk);
+
     expect(reporter.sendTestItemLog).toHaveBeenCalled();
   });
 
-  test('case rp:addLaunchLog should call sendLaunchLog', () => {
+  test('should call sendLaunchLog on rp:addLaunchLog', () => {
     const type = 'rp:addLaunchLog';
     const data = {
       level: 'INFO',
       message: 'info log',
     };
-    jest.spyOn(reporter, 'sendLaunchLog');
     const chunk = JSON.stringify({ type, data });
+    jest.spyOn(reporter, 'sendLaunchLog');
+
     reporter.onStdOut(chunk);
+
     expect(reporter.sendLaunchLog).toHaveBeenCalled();
   });
 
   test('case stdOut logs', () => {
     const test = {
       title: 'some test',
-    };
-    jest.spyOn(reporter, 'sendTestItemLog');
-    // @ts-ignore
+    } as TestCase;
+
     reporter.onStdOut('Some logs', test);
+
     expect(reporter.sendTestItemLog).toHaveBeenCalledWith({ message: 'Some logs' }, test);
   });
 });

@@ -16,10 +16,11 @@
  */
 
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
-import { sendEventToReporter } from './utils';
-import { Attribute } from './models';
+
 import { STATUSES, LOG_LEVELS } from './constants';
+import { Attribute } from './models/common';
 import { Attachment } from './models/reporting';
+import { sendEventToReporter } from './utils';
 
 export const ReportingApi = {
   addAttributes: (attrs: Attribute[], suite?: string): void =>

@@ -18,11 +18,12 @@
 import { TestCase, TestStatus } from '@playwright/test/reporter';
 import fs from 'fs';
 import path from 'path';
+
 // @ts-ignore
 import { name as pjsonName, version as pjsonVersion } from '../package.json';
-import { Attribute } from './models';
-import { Attachment } from './models/reporting';
 import { STATUSES } from './constants';
+import { Attribute } from './models/common';
+import { Attachment, LogRQ } from './models/reporting';
 
 const fsPromises = fs.promises;
 
@@ -34,7 +35,12 @@ export const promiseErrorHandler = (promise: Promise<void>, message = ''): Promi
     console.error(message, err);
   });
 
-export const getAgentInfo = (): { version: string; name: string } => ({
+interface AgentInfo {
+  version: string;
+  name: string;
+}
+
+export const getAgentInfo = (): AgentInfo => ({
   version: pjsonVersion,
   name: pjsonName,
 });
@@ -81,7 +87,9 @@ export const getCodeRef = (
     .replace(new RegExp('\\'.concat(path.sep), 'g'), '/');
 };
 
-export const sendEventToReporter = (type: string, data: any, suite?: string): void => {
+type EventData = Attribute[] | string | keyof typeof STATUSES | LogRQ;
+
+export const sendEventToReporter = (type: string, data: EventData, suite?: string): void => {
   process.stdout.write(JSON.stringify({ type, data, suite }));
 };
 
@@ -117,10 +125,5 @@ export const isErrorLog = (message: string): boolean => {
 
 // https://playwright.dev/docs/1.17/api/class-testresult#test-result-status
 export const convertToRpStatus = (status: TestStatus): string => {
-  const isRpStatus = Object.values(STATUSES).includes(<STATUSES>status);
-
-  if (isRpStatus) {
-    return status;
-  }
-  return STATUSES.FAILED;
+  return Object.values(STATUSES).includes(<STATUSES>status) ? status : STATUSES.FAILED;
 };

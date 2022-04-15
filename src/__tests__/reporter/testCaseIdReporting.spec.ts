@@ -14,38 +14,37 @@
  *  limitations under the License.
  */
 
+import { TestCase } from '@playwright/test/reporter';
+
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
-import { RPClientMock } from '../mocks/RPClientMock';
 
 describe('testCaseId reporting', () => {
+  const suite = 'tempTestItemId';
   const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
-
   const testParams = {
     title: 'testName',
-  };
-
-  const suite = 'tempTestItemId';
+  } as TestCase;
 
   test('reporter.testItems should be updated with testCaseId', () => {
-    reporter.testItems = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'testName' }]]);
+    reporter.testItems = new Map([[suite, { id: suite, name: 'testName' }]]);
     const testCaseId = 'TestCaseIdForTheSuite';
-    // @ts-ignore
+    const expectedTestItems = new Map([[suite, { id: suite, name: 'testName', testCaseId }]]);
+
     reporter.setTestCaseId(testCaseId, testParams, suite);
-    const expectedTestItems = new Map([
-      ['tempTestItemId', { id: 'tempTestItemId', name: 'testName', testCaseId }],
-    ]);
+
     expect(reporter.testItems).toEqual(expectedTestItems);
-    reporter.testItems.delete('tempTestItemId');
+
+    reporter.testItems.delete(suite);
   });
 
   test('reporter.suitesInfo should be with testCaseId', () => {
-    reporter.suites = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }]]);
+    reporter.suites = new Map([[suite, { id: suite, name: 'suiteName' }]]);
     const testCaseId = 'TestCaseIdForTheTest';
-    // @ts-ignore
+    const expectedSuitesInfo = new Map([[suite, { testCaseId }]]);
+
     reporter.setTestCaseId(testCaseId, testParams, suite);
-    const expectedSuitesInfo = new Map([['tempTestItemId', { testCaseId }]]);
+
     expect(reporter.suitesInfo).toEqual(expectedSuitesInfo);
   });
 });
