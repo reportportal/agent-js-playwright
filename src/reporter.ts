@@ -39,11 +39,11 @@ import {
   getAttachments,
   getCodeRef,
   getSystemAttributes,
+  getTestFilePath,
   isErrorLog,
   isFalse,
   promiseErrorHandler,
 } from './utils';
-import path from 'path';
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 
 export interface TestItem {
@@ -480,10 +480,10 @@ export class RPReporter implements Reporter {
       rootSuiteLength: rootSuite.rootSuiteLength - 1,
     });
 
-    const testFileName = path.parse(test.location.file).base;
+    const testfilePath = getTestFilePath(test, test.title);
 
     Array.from(this.suites)
-      .filter(([key]) => key.includes(testFileName) && key.includes(rootSuiteName))
+      .filter(([key]) => key.includes(testfilePath))
       .map(([key, { testsLength }]) => {
         this.suites.set(key, {
           ...this.suites.get(key),
@@ -492,7 +492,7 @@ export class RPReporter implements Reporter {
       });
 
     if (this.suites.get(fullSuiteName).testsLength === 0) {
-      this.finishSuites(testFileName, rootSuiteName);
+      this.finishSuites(testfilePath, rootSuiteName);
     }
   }
 
