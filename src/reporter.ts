@@ -388,14 +388,15 @@ export class RPReporter implements Reporter {
     const { includeTestSteps } = this.config;
     if (!includeTestSteps) return;
     const playwrightProjectName = test.parent.project().name;
-    const { id: testItemId } = this.findTestItem(this.testItems, test.title, playwrightProjectName);
+    const testItem = this.findTestItem(this.testItems, test.title, playwrightProjectName);
+    if (!testItem) return;
     const stepStartObj = {
       name: step.title,
       type: TEST_ITEM_TYPES.STEP,
       hasStats: false,
       startTime: this.client.helpers.now(),
     };
-    const { tempId, promise } = this.client.startTestItem(stepStartObj, this.launchId, testItemId);
+    const { tempId, promise } = this.client.startTestItem(stepStartObj, this.launchId, testItem.id);
 
     this.addRequestToPromisesQueue(promise, 'Failed to start nested step.');
 
@@ -410,16 +411,17 @@ export class RPReporter implements Reporter {
     const { includeTestSteps } = this.config;
     if (!includeTestSteps) return;
     const playwrightProjectName = test.parent.project().name;
-    const { id } = this.findTestItem(this.nestedSteps, step.title, playwrightProjectName);
+    const testItem = this.findTestItem(this.nestedSteps, step.title, playwrightProjectName);
+    if (!testItem) return;
     const stepFinishObj = {
       status: step.error ? STATUSES.FAILED : STATUSES.PASSED,
       endTime: this.client.helpers.now(),
     };
 
-    const { promise } = this.client.finishTestItem(id, stepFinishObj);
+    const { promise } = this.client.finishTestItem(testItem.id, stepFinishObj);
 
     this.addRequestToPromisesQueue(promise, 'Failed to finish nested step.');
-    this.nestedSteps.delete(id);
+    this.nestedSteps.delete(testItem.id);
   }
 
   async onTestEnd(test: TestCase, result: TestResult): Promise<void> {
