@@ -1,3 +1,7 @@
+### Fixed
+- [#42](https://github.com/reportportal/agent-js-playwright/issues/42) Error when using same filenames
+- Error is related to retries due to which the launch is not finish
+- [#45](https://github.com/reportportal/agent-js-playwright/issues/45) Agent failed when enabled includeTestSteps
 
 ## [5.0.3] - 2022-04-04
 ### Added

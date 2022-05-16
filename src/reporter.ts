@@ -224,7 +224,7 @@ export class RPReporter implements Reporter {
     let finishSuites: [string, Suite][];
     const suitesArray = Array.from(this.suites);
 
-    const isExistTestsInRootSuite = this.suites.get(rootSuiteName).rootSuiteLength === 0;
+    const isExistTestsInRootSuite = this.suites.get(rootSuiteName).rootSuiteLength < 1;
 
     if (isExistTestsInRootSuite) {
       finishSuites = testFileName
@@ -475,9 +475,11 @@ export class RPReporter implements Reporter {
     const rootSuiteName = parentSuiteObj.rootSuite;
     const rootSuite = this.suites.get(rootSuiteName);
 
+    const decreaseIndex = test.retries > 0 && result.status === 'passed' ? test.retries + 1 : 1;
+
     this.suites.set(rootSuiteName, {
       ...rootSuite,
-      rootSuiteLength: rootSuite.rootSuiteLength - 1,
+      rootSuiteLength: rootSuite.rootSuiteLength - decreaseIndex,
     });
 
     const testfilePath = getTestFilePath(test, test.title);
@@ -487,11 +489,11 @@ export class RPReporter implements Reporter {
       .map(([key, { testsLength }]) => {
         this.suites.set(key, {
           ...this.suites.get(key),
-          testsLength: testsLength - 1,
+          testsLength: testsLength - decreaseIndex,
         });
       });
 
-    if (this.suites.get(fullSuiteName).testsLength === 0) {
+    if (this.suites.get(fullSuiteName).testsLength < 1) {
       this.finishSuites(testfilePath, rootSuiteName);
     }
   }

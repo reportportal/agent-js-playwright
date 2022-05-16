@@ -76,7 +76,7 @@ describe('finish test reporting', () => {
     // @ts-ignore
     await reporter.onTestEnd(testParams, result);
 
-    expect(reporter.client.finishTestItem).toHaveBeenCalledTimes(1);
+    expect(reporter.client.finishTestItem).toHaveBeenCalledTimes(3);
     expect(reporter.client.finishTestItem).toHaveBeenCalledWith(
       'tempTestItemId',
       finishTestItemObj,
