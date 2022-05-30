@@ -81,6 +81,13 @@ export const getCodeRef = (
     .replace(new RegExp('\\'.concat(path.sep), 'g'), '/');
 };
 
+export const getTestFilePath = (testItem: testItemPick, itemTitle: string): string => {
+  const codeRefArray = getCodeRef(testItem, itemTitle).split('/');
+  const testFileName = path.parse(testItem.location.file).base;
+  const testFileNameIndex = codeRefArray.indexOf(testFileName);
+  return codeRefArray.slice(0, testFileNameIndex + 1).join('/');
+};
+
 export const sendEventToReporter = (type: string, data: any, suite?: string): void => {
   process.stdout.write(JSON.stringify({ type, data, suite }));
 };
