@@ -1,3 +1,5 @@
+
+## [5.0.4] - 2022-05-30
 ### Fixed
 - [#42](https://github.com/reportportal/agent-js-playwright/issues/42) Error when using same filenames
 - Error is related to retries due to which the launch is not finish
