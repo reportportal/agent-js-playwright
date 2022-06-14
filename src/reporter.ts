@@ -32,7 +32,7 @@ import {
   StartLaunchObjType,
   StartTestObjType,
 } from './models';
-import { LOG_LEVELS, STATUSES, TEST_ITEM_TYPES } from './constants';
+import { LAUNCH_MODES, LOG_LEVELS, STATUSES, TEST_ITEM_TYPES } from './constants';
 import {
   convertToRpStatus,
   getAgentInfo,
@@ -256,7 +256,7 @@ export class RPReporter implements Reporter {
   }
 
   onBegin(): void {
-    const { launch, description, attributes, skippedIssue, rerun, rerunOf } = this.config;
+    const { launch, description, attributes, skippedIssue, rerun, rerunOf, mode } = this.config;
     const systemAttributes: Attribute[] = getSystemAttributes(skippedIssue);
 
     const startLaunchObj: StartLaunchObjType = {
@@ -267,6 +267,7 @@ export class RPReporter implements Reporter {
         attributes && attributes.length ? attributes.concat(systemAttributes) : systemAttributes,
       rerun,
       rerunOf,
+      mode: mode || LAUNCH_MODES.DEFAULT,
     };
     const { tempId, promise } = this.client.startLaunch(startLaunchObj);
     this.addRequestToPromisesQueue(promise, 'Failed to launch run.');

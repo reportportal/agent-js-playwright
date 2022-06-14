@@ -16,7 +16,7 @@
  */
 
 import { Attribute } from './common';
-import { TEST_ITEM_TYPES, LOG_LEVELS } from '../constants';
+import { TEST_ITEM_TYPES, LOG_LEVELS, LAUNCH_MODES } from '../constants';
 
 export interface StartLaunchObjType {
   startTime?: Date | number;
@@ -25,6 +25,7 @@ export interface StartLaunchObjType {
   name?: string;
   rerun?: boolean;
   rerunOf?: string;
+  mode?: LAUNCH_MODES;
 }
 
 export interface StartTestObjType {
