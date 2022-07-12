@@ -1,6 +1,7 @@
 ### Fixed
 - Error with test steps finishing
 - Test steps nesting structure
+- Launch mode property support
 
 ## [5.0.4] - 2022-05-30
 ### Fixed
