@@ -66,7 +66,7 @@ npm install --save-dev @reportportal/agent-js-playwright
 
 ### Attachments
 
-Attachments can be easily added during test run via `testInfo.attachments` according to the Playwright [docs](https://playwright.dev/docs/1.17/api/class-testinfo#test-info-attachments).
+Attachments can be easily added during test run via `testInfo.attachments` according to the Playwright [docs](https://playwright.dev/docs/api/class-testinfo#test-info-attachments).
 
 ```typescript
 import { test, expect } from '@playwright/test';

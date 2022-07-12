@@ -16,30 +16,62 @@
  */
 
 import { RPReporter } from '../../reporter';
-import { mockConfig } from '../mocks/configMock';
 import { StartLaunchObjType } from '../../models';
-import { RPClientMock } from '../mocks/RPClientMock';
 import { getSystemAttributes } from '../../utils';
+import { LAUNCH_MODES } from '../../constants';
+
+import { mockConfig } from '../mocks/configMock';
+import { RPClientMock } from '../mocks/RPClientMock';
 
 describe('start report launch', () => {
-  const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
-  const startLaunchObj: StartLaunchObjType = {
-    name: mockConfig.launch,
-    startTime: reporter.client.helpers.now(),
-    attributes: getSystemAttributes(),
-    description: mockConfig.description,
-  };
+  describe('DEFAULT mode', () => {
+    const reporter = new RPReporter(mockConfig);
+    reporter.client = new RPClientMock(mockConfig);
+    const startLaunchObj: StartLaunchObjType = {
+      name: mockConfig.launch,
+      startTime: reporter.client.helpers.now(),
+      attributes: getSystemAttributes(),
+      description: mockConfig.description,
+      mode: LAUNCH_MODES.DEFAULT,
+    };
 
-  reporter.onBegin();
+    beforeAll(() => reporter.onBegin());
 
-  test('client.startLaunch should be called with corresponding params', () => {
-    expect(reporter.client.startLaunch).toHaveBeenCalledTimes(1);
-    expect(reporter.client.startLaunch).toHaveBeenCalledWith(startLaunchObj);
+    test('client.startLaunch should be called with corresponding params', () => {
+      expect(reporter.client.startLaunch).toHaveBeenCalledTimes(1);
+      expect(reporter.client.startLaunch).toHaveBeenCalledWith(startLaunchObj);
+    });
+
+    test('reporter.launchId should be set', () => {
+      expect(reporter.launchId).toEqual('tempLaunchId');
+    });
   });
 
-  test('reporter.launchId should be set', () => {
-    expect(reporter.launchId).toEqual('tempLaunchId');
+  describe('DEBUG mode', () => {
+    const customConfig = {
+      ...mockConfig,
+      mode: LAUNCH_MODES.DEBUG,
+    };
+    const reporter = new RPReporter(customConfig);
+    reporter.client = new RPClientMock(customConfig);
+    const startLaunchObj: StartLaunchObjType = {
+      name: customConfig.launch,
+      startTime: reporter.client.helpers.now(),
+      attributes: getSystemAttributes(),
+      description: customConfig.description,
+      mode: customConfig.mode,
+    };
+
+    beforeAll(() => reporter.onBegin());
+
+    test('should allow to pass mode to startLaunch', () => {
+      expect(reporter.client.startLaunch).toHaveBeenCalledTimes(1);
+      expect(reporter.client.startLaunch).toHaveBeenCalledWith(startLaunchObj);
+    });
+
+    test('reporter.launchId should be set', () => {
+      expect(reporter.launchId).toEqual('tempLaunchId');
+    });
   });
 });
 
@@ -48,8 +80,9 @@ describe('finish report launch', () => {
   reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
 
+  beforeAll(() => reporter.onEnd());
+
   test('launch should be finished', () => {
-    reporter.onEnd();
     expect(reporter.client.finishLaunch).toHaveBeenCalledTimes(1);
     expect(reporter.client.finishLaunch).toHaveBeenCalledWith('tempLaunchId', {
       endTime: reporter.client.helpers.now(),

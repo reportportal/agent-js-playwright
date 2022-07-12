@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 EPAM Systems
+ *  Copyright 2022 EPAM Systems
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -122,7 +122,7 @@ export const isErrorLog = (message: string): boolean => {
   return message.toLowerCase().includes('error');
 };
 
-// https://playwright.dev/docs/1.17/api/class-testresult#test-result-status
+// https://playwright.dev/docs/api/class-testresult#test-result-status
 export const convertToRpStatus = (status: TestStatus): string => {
   const isRpStatus = Object.values(STATUSES).includes(<STATUSES>status);
 

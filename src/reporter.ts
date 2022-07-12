@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 EPAM Systems
+ *  Copyright 2022 EPAM Systems
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import {
   StartLaunchObjType,
   StartTestObjType,
 } from './models';
-import { LOG_LEVELS, STATUSES, TEST_ITEM_TYPES } from './constants';
+import { LAUNCH_MODES, LOG_LEVELS, STATUSES, TEST_ITEM_TYPES } from './constants';
 import {
   convertToRpStatus,
   getAgentInfo,
@@ -221,24 +221,24 @@ export class RPReporter implements Reporter {
   }
 
   finishSuites(testFileName?: string, rootSuiteName?: string): void {
-    let finishSuites: [string, Suite][];
+    let suitesToFinish: [string, Suite][];
     const suitesArray = Array.from(this.suites);
 
-    const isExistTestsInRootSuite = this.suites.get(rootSuiteName).rootSuiteLength < 1;
+    const isTestsExistInRootSuite = this.suites.get(rootSuiteName).rootSuiteLength < 1;
 
-    if (isExistTestsInRootSuite) {
-      finishSuites = testFileName
+    if (isTestsExistInRootSuite) {
+      suitesToFinish = testFileName
         ? suitesArray.filter(([key]) => key.includes(rootSuiteName))
         : suitesArray;
     } else {
-      finishSuites = testFileName
+      suitesToFinish = testFileName
         ? suitesArray.filter(
             ([key, { testsLength }]) => key.includes(rootSuiteName) && testsLength < 1,
           )
         : suitesArray;
     }
 
-    finishSuites.forEach(([key, { id, status, logs }]) => {
+    suitesToFinish.forEach(([key, { id, status, logs }]) => {
       if (logs) {
         logs.map((log) => {
           this.sendLog(id, log);
@@ -256,7 +256,7 @@ export class RPReporter implements Reporter {
   }
 
   onBegin(): void {
-    const { launch, description, attributes, skippedIssue, rerun, rerunOf } = this.config;
+    const { launch, description, attributes, skippedIssue, rerun, rerunOf, mode } = this.config;
     const systemAttributes: Attribute[] = getSystemAttributes(skippedIssue);
 
     const startLaunchObj: StartLaunchObjType = {
@@ -267,6 +267,7 @@ export class RPReporter implements Reporter {
         attributes && attributes.length ? attributes.concat(systemAttributes) : systemAttributes,
       rerun,
       rerunOf,
+      mode: mode || LAUNCH_MODES.DEFAULT,
     };
     const { tempId, promise } = this.client.startLaunch(startLaunchObj);
     this.addRequestToPromisesQueue(promise, 'Failed to launch run.');
@@ -274,7 +275,7 @@ export class RPReporter implements Reporter {
   }
 
   findTestItem(testItems: Map<string, TestItem>, title: string, projectName?: string): Suite {
-    if (projectName) {
+    if (projectName !== undefined) {
       for (const [, value] of testItems) {
         if (value.name === title && projectName === value.playwrightProjectName) {
           return value;
@@ -388,15 +389,20 @@ export class RPReporter implements Reporter {
     const { includeTestSteps } = this.config;
     if (!includeTestSteps) return;
     const playwrightProjectName = test.parent.project().name;
-    const testItem = this.findTestItem(this.testItems, test.title, playwrightProjectName);
-    if (!testItem) return;
+    let parent;
+    if (step.parent) {
+      parent = this.findTestItem(this.nestedSteps, step.parent.title, playwrightProjectName);
+    } else {
+      parent = this.findTestItem(this.testItems, test.title, playwrightProjectName);
+    }
+    if (!parent) return;
     const stepStartObj = {
       name: step.title,
       type: TEST_ITEM_TYPES.STEP,
       hasStats: false,
       startTime: this.client.helpers.now(),
     };
-    const { tempId, promise } = this.client.startTestItem(stepStartObj, this.launchId, testItem.id);
+    const { tempId, promise } = this.client.startTestItem(stepStartObj, this.launchId, parent.id);
 
     this.addRequestToPromisesQueue(promise, 'Failed to start nested step.');
 
@@ -472,22 +478,23 @@ export class RPReporter implements Reporter {
     this.addRequestToPromisesQueue(promise, 'Failed to finish test.');
     this.testItems.delete(testItemId);
 
-    const fullSuiteName = getCodeRef(test, test.parent.title);
-    const parentSuiteObj = this.suites.get(fullSuiteName);
-    const rootSuiteName = parentSuiteObj.rootSuite;
+    const fullParentName = getCodeRef(test, test.parent.title);
+    const parentObj = this.suites.get(fullParentName);
+    const rootSuiteName = parentObj.rootSuite;
     const rootSuite = this.suites.get(rootSuiteName);
 
-    const decreaseIndex = test.retries > 0 && result.status === 'passed' ? test.retries + 1 : 1;
+    const decreaseIndex =
+      test.retries > 0 && result.status === STATUSES.PASSED ? test.retries + 1 : 1;
 
     this.suites.set(rootSuiteName, {
       ...rootSuite,
       rootSuiteLength: rootSuite.rootSuiteLength - decreaseIndex,
     });
 
-    const testfilePath = getTestFilePath(test, test.title);
+    const testFilePath = getTestFilePath(test, test.title);
 
     Array.from(this.suites)
-      .filter(([key]) => key.includes(testfilePath))
+      .filter(([key]) => key.includes(testFilePath))
       .map(([key, { testsLength }]) => {
         this.suites.set(key, {
           ...this.suites.get(key),
@@ -495,8 +502,9 @@ export class RPReporter implements Reporter {
         });
       });
 
-    if (this.suites.get(fullSuiteName).testsLength < 1) {
-      this.finishSuites(testfilePath, rootSuiteName);
+    // if all children of the test parent have already finished, then finish the parent
+    if (this.suites.get(fullParentName).testsLength < 1) {
+      this.finishSuites(testFilePath, rootSuiteName);
     }
   }
 

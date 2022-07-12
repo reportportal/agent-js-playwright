@@ -15,8 +15,15 @@
  *
  */
 
+import { AxiosRequestConfig } from 'axios';
+import { AgentOptions } from 'https';
+
 import { Attribute } from './common';
 import { LAUNCH_MODES } from '../constants';
+
+export interface RestClientConfig extends AxiosRequestConfig {
+  agent?: AgentOptions;
+}
 
 export interface ReportPortalConfig {
   token: string;
@@ -33,4 +40,5 @@ export interface ReportPortalConfig {
   isLaunchMergeRequired?: boolean;
   skippedIssue?: boolean;
   includeTestSteps?: boolean;
+  restClientConfig?: RestClientConfig;
 }
