@@ -1,3 +1,5 @@
+
+## [5.0.5] - 2022-07-12
 ### Fixed
 - Error with test steps finishing
 - Test steps nesting structure
