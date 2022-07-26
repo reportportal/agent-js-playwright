@@ -41,4 +41,5 @@ export interface ReportPortalConfig {
   skippedIssue?: boolean;
   includeTestSteps?: boolean;
   restClientConfig?: RestClientConfig;
+  isCodeRefEnabled?: boolean;
 }

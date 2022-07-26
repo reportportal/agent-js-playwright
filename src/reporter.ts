@@ -366,7 +366,8 @@ export class RPReporter implements Reporter {
 
     // create step
     if (parentSuiteObj) {
-      const codeRef = getCodeRef(test, test.title, playwrightProjectName);
+      const { isCodeRefEnabled } = this.config;
+      const codeRef = getCodeRef(test, test.title, playwrightProjectName, isCodeRefEnabled);
       const { id: parentId } = parentSuiteObj;
       const startTestItem: StartTestObjType = {
         name: test.title,
