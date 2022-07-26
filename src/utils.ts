@@ -73,7 +73,9 @@ export const getCodeRef = (
   }
   const filteredTitlesPath = testItem
     .titlePath()
-    .filter((itemPath) => itemPath !== '' && isCodeRefEnabled ? true : itemPath !== pathToExclude,);
+    .filter((itemPath) =>
+      itemPath !== '' && isCodeRefEnabled ? true : itemPath !== pathToExclude,
+    );
   const itemIndex = filteredTitlesPath.indexOf(itemTitle);
 
   return filteredTitlesPath
