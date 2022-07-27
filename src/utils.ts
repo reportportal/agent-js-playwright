@@ -66,7 +66,6 @@ export const getCodeRef = (
   testItem: testItemPick,
   itemTitle: string,
   pathToExclude?: string,
-  isCodeRefEnabled = false,
 ): string => {
   if (!itemTitle) {
     return '';
@@ -74,7 +73,7 @@ export const getCodeRef = (
   const filteredTitlesPath = testItem
     .titlePath()
     .filter((itemPath) =>
-      itemPath !== '' && isCodeRefEnabled ? true : itemPath !== pathToExclude,
+      itemPath !== '' && itemPath !== pathToExclude,
     );
   const itemIndex = filteredTitlesPath.indexOf(itemTitle);
 

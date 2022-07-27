@@ -1,4 +1,3 @@
-## [5.0.6] - 2022-07-26
 ### Added
 - Code ref parameter to switch on/off adding Playwright project names to code reference
 
