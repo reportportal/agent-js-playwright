@@ -1,5 +1,5 @@
 ### Added
-- Code ref parameter to switch on/off adding Playwright project names to code reference
+- Ability to switch on/off adding Playwright project names to code reference via config property `includePlaywrightProjectNameToCodeReference`.
 
 ## [5.0.5] - 2022-07-12
 ### Fixed
