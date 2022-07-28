@@ -370,7 +370,7 @@ export class RPReporter implements Reporter {
       const codeRef = getCodeRef(
         test,
         test.title,
-        !includePlaywrightProjectNameToCodeReference && playwrightProjectName
+        !includePlaywrightProjectNameToCodeReference && playwrightProjectName,
       );
       const { id: parentId } = parentSuiteObj;
       const startTestItem: StartTestObjType = {
