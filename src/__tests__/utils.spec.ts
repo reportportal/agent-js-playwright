@@ -168,7 +168,7 @@ describe('testing utils', () => {
 
     test('should return correct code reference for test title (including project name)', () => {
       const expectedCodeRef = '/Google Chrome tests/tests/example.js/rootDescribe';
-      const codeRef = getCodeRef(mockedTest, 'rootDescribe', projectName, true);
+      const codeRef = getCodeRef(mockedTest, 'rootDescribe');
 
       expect(codeRef).toBe(expectedCodeRef);
     });
