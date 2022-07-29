@@ -165,13 +165,6 @@ describe('testing utils', () => {
 
       expect(codeRef).toBe('');
     });
-
-    test('should return correct code reference for test title (including project name)', () => {
-      const expectedCodeRef = 'Google Chrome tests/tests/example.js/rootDescribe';
-      const codeRef = getCodeRef(mockedTest, 'rootDescribe');
-
-      expect(codeRef).toBe(expectedCodeRef);
-    });
   });
   describe('sendEventToReporter', () => {
     test('func must send event to reporter', () => {
