@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@reportportal/client-javascript": "^5.0.6",
-    "axios": "^0.24.0",
+    "axios": "^0.27.2",
     "strip-ansi": "^6.0.1"
   },
   "files": [
