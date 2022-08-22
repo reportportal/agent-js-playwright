@@ -489,7 +489,7 @@ export class RPReporter implements Reporter {
     const rootSuite = this.suites.get(rootSuiteName);
 
     const decreaseIndex =
-      test.retries > 0 && result.status === STATUSES.PASSED ? test.retries + 1 : 1;
+      test.retries > 0 && (result.status === STATUSES.PASSED || result.status === STATUSES.SKIPPED) ? test.retries + 1 : 1;
 
     this.suites.set(rootSuiteName, {
       ...rootSuite,
