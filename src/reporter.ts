@@ -499,7 +499,7 @@ export class RPReporter implements Reporter {
     const testFilePath = getTestFilePath(test, test.title);
 
     Array.from(this.suites)
-      .filter(([key]) => key.includes(testFilePath))
+      .filter(([key]) => key.includes(fullParentName) || key === testFilePath)
       .map(([key, { testsLength }]) => {
         this.suites.set(key, {
           ...this.suites.get(key),
