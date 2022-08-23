@@ -1,5 +1,5 @@
 ### Fixed
-- [#57](https://github.com/reportportal/agent-js-playwright/issues/57) Failed to start suite. Error: Request failed with status code 404
+- [#57](https://github.com/reportportal/agent-js-playwright/issues/57) Error (can not read property of undefined 'rootSuit') when running demo-tests witch 
 ### Added
 - Ability to switch on/off adding Playwright project names to code reference via config property `includePlaywrightProjectNameToCodeReference`.
 
