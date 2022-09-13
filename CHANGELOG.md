@@ -1,3 +1,9 @@
+### Fixed
+- [#56](https://github.com/reportportal/agent-js-playwright/issues/56) and [#57](https://github.com/reportportal/agent-js-playwright/issues/57)
+Error (cannot read property of undefined 'rootSuite').
+- Launch finishing for skipped tests with retries.
+### Added
+- Ability to switch on/off adding Playwright project names to code reference via config property `includePlaywrightProjectNameToCodeReference`.
 
 ## [5.0.5] - 2022-07-12
 ### Fixed

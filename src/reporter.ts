@@ -366,7 +366,12 @@ export class RPReporter implements Reporter {
 
     // create step
     if (parentSuiteObj) {
-      const codeRef = getCodeRef(test, test.title, playwrightProjectName);
+      const { includePlaywrightProjectNameToCodeReference } = this.config;
+      const codeRef = getCodeRef(
+        test,
+        test.title,
+        !includePlaywrightProjectNameToCodeReference && playwrightProjectName,
+      );
       const { id: parentId } = parentSuiteObj;
       const startTestItem: StartTestObjType = {
         name: test.title,
@@ -484,7 +489,9 @@ export class RPReporter implements Reporter {
     const rootSuite = this.suites.get(rootSuiteName);
 
     const decreaseIndex =
-      test.retries > 0 && result.status === STATUSES.PASSED ? test.retries + 1 : 1;
+      test.retries > 0 && (result.status === STATUSES.PASSED || result.status === STATUSES.SKIPPED)
+        ? test.retries + 1
+        : 1;
 
     this.suites.set(rootSuiteName, {
       ...rootSuite,
@@ -494,7 +501,7 @@ export class RPReporter implements Reporter {
     const testFilePath = getTestFilePath(test, test.title);
 
     Array.from(this.suites)
-      .filter(([key]) => key.includes(testFilePath))
+      .filter(([key]) => key.includes(fullParentName) || key === testFilePath)
       .map(([key, { testsLength }]) => {
         this.suites.set(key, {
           ...this.suites.get(key),
