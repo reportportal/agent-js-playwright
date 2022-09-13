@@ -1,3 +1,5 @@
+
+## [5.0.6] - 2022-09-13
 ### Fixed
 - [#56](https://github.com/reportportal/agent-js-playwright/issues/56) and [#57](https://github.com/reportportal/agent-js-playwright/issues/57)
 Error (cannot read property of undefined 'rootSuite').
