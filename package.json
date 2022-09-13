@@ -14,14 +14,13 @@
   },
   "dependencies": {
     "@reportportal/client-javascript": "^5.0.6",
-    "axios": "^0.27.2",
     "strip-ansi": "^6.0.1"
   },
   "files": [
     "/build"
   ],
   "devDependencies": {
-    "@playwright/test": "^1.17.1",
+    "@playwright/test": "^1.25.2",
     "@types/jest": "^27.0.1",
     "@types/node": "^15.14.1",
     "@typescript-eslint/eslint-plugin": "^4.29.3",
@@ -33,6 +32,7 @@
     "eslint-plugin-import": "^2.24.2",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.4.1",
+    "axios": "^0.27.2",
     "jest": "^27.4.7",
     "prettier": "^2.5.1",
     "rimraf": "^3.0.2",
