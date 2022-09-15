@@ -28,12 +28,22 @@ describe('finish report suite', () => {
   reporter.launchId = 'tempLaunchId';
 
   const testParams = {
-    title: 'test',
+    title: 'testTitle',
     parent: {
-      title: suiteName,
+      title: rootSuite,
       project: () => ({ name: rootSuite }),
+      allTests: () => [
+        { title: 'testTitle', titlePath: () => ['', rootSuite, suiteName, 'testTitle'] },
+      ],
+      parent: {
+        title: rootSuite,
+        project: () => ({ name: rootSuite }),
+        allTests: () => [
+          { title: 'testTitle', titlePath: () => ['', rootSuite, suiteName, 'testTitle'] },
+        ],
+      },
     },
-    titlePath: () => [rootSuite, suiteName, 'testTitle'],
+    titlePath: () => ['', rootSuite, suiteName, 'testTitle'],
     location: {
       file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
     },
@@ -44,13 +54,29 @@ describe('finish report suite', () => {
   };
 
   reporter.testItems = new Map([
-    ['tempTestItemId', { id: 'tempTestItemId', name: 'test', playwrightProjectName: rootSuite }],
+    [
+      'tempTestItemId',
+      { id: 'tempTestItemId', name: 'testTitle', playwrightProjectName: rootSuite },
+    ],
   ]);
   reporter.suites = new Map([
-    [rootSuite, { id: 'rootsuiteId', name: rootSuite, rootSuiteLength: 1, rootSuite }],
+    [
+      rootSuite,
+      {
+        id: 'rootsuiteId',
+        name: rootSuite,
+        testCount: 1,
+        descendants: [`${rootSuite}/${suiteName}/testTitle`],
+      },
+    ],
     [
       `${rootSuite}/${suiteName}`,
-      { id: 'parentSuiteId', name: suiteName, testsLength: 1, rootSuite },
+      {
+        id: 'parentSuiteId',
+        name: suiteName,
+        testCount: 1,
+        descendants: [`${rootSuite}/${suiteName}/testTitle`],
+      },
     ],
   ]);
 
