@@ -1,3 +1,5 @@
+
+## [5.0.7] - 2022-09-15
 ### Fixed
 - Suites finishing algorithm bugfixes
 
