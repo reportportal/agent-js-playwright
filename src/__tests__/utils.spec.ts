@@ -27,7 +27,6 @@ import {
   getAttachments,
   isErrorLog,
   convertToRpStatus,
-  getTestFilePath,
 } from '../utils';
 import fs from 'fs';
 import path from 'path';
@@ -285,23 +284,6 @@ describe('testing utils', () => {
     test('convertToRpStatus not should return STATUSES.FAILED', () => {
       const status = convertToRpStatus('skipped');
       expect(status).not.toBe(STATUSES.FAILED);
-    });
-  });
-  describe('getTestFilePath', () => {
-    test('getTestFilePath should return test file path string', () => {
-      const mockedTest = {
-        title: 'first',
-        location: {
-          file: `C:${path.sep}project${path.sep}tests${path.sep}simpleTest.spec.ts`,
-        },
-        titlePath: () => ['', 'project', 'tests/simpleTest.spec.ts', 'first'],
-      };
-
-      // @ts-ignore
-      const receivedValue = getTestFilePath(mockedTest, mockedTest.title);
-      const expectedValue = 'project/tests/simpleTest.spec.ts';
-
-      expect(receivedValue).toBe(expectedValue);
     });
   });
 });

@@ -91,40 +91,56 @@ describe('logs reporting', () => {
         [
           playwrightProjectName,
           {
-            id: tempTestItemId,
+            id: 'rootSuiteId',
             name: playwrightProjectName,
-            testsLength: 0,
-            rootSuite: playwrightProjectName,
-            rootSuiteLength: 1,
+            testCount: 1,
+            descendants: [`${playwrightProjectName}/${suiteName}/testTitle`],
           },
         ],
         [
           `${playwrightProjectName}/${suiteName}`,
-          { id: 'suiteId', name: suiteName, testsLength: 1, rootSuite: playwrightProjectName },
+          {
+            id: 'suiteId',
+            name: suiteName,
+            testCount: 1,
+            descendants: [`${playwrightProjectName}/${suiteName}/testTitle`],
+          },
         ],
       ]);
       reporter.testItems = new Map([
-        [tempTestItemId, { id: tempTestItemId, name: 'test', playwrightProjectName }],
+        [tempTestItemId, { id: tempTestItemId, name: 'testTitle', playwrightProjectName }],
       ]);
       const testParams = {
-        title: 'test',
+        title: 'testTitle',
         parent: {
           title: playwrightProjectName,
+          location: 'tests/example.js',
+          tests: ['testTitle'],
           project: () => ({ name: playwrightProjectName }),
+          allTests: () => [
+            {
+              title: 'testTitle',
+              titlePath: () => ['', playwrightProjectName, suiteName, 'testTitle'],
+            },
+          ],
+          parent: {
+            title: suiteName,
+            location: 'tests/example.js',
+            project: () => ({ name: playwrightProjectName }),
+            allTests: () => [
+              {
+                title: 'testTitle',
+                titlePath: () => ['', playwrightProjectName, suiteName, 'testTitle'],
+              },
+            ],
+          },
         },
         location: {
           file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
           line: 5,
           column: 3,
         },
-        titlePath: () => [
-          '',
-          playwrightProjectName,
-          'tests/example.js',
-          'rootDescribe',
-          'parentDescribe',
-          'testTitle',
-        ],
+        titlePath: () => ['', playwrightProjectName, suiteName, 'testTitle'],
       };
 
       const result = {

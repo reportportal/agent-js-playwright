@@ -34,14 +34,17 @@ describe('start reporting suite/test', () => {
     parent: {
       title: suiteName,
       location: 'tests/example.js',
-      tests: ['test'],
       project: () => ({ name: '' }),
-      allTests: () => ['test'],
+      allTests: () => [
+        { title: 'testTitle', titlePath: () => ['', rootSuite, suiteName, 'testTitle'] },
+      ],
       parent: {
         title: rootSuite,
         location: 'tests/example.js',
         project: () => ({ name: '' }),
-        allTests: () => ['test'],
+        allTests: () => [
+          { title: 'testTitle', titlePath: () => ['', rootSuite, suiteName, 'testTitle'] },
+        ],
       },
     },
     location: {
@@ -61,9 +64,8 @@ describe('start reporting suite/test', () => {
         {
           id: 'tempTestItemId',
           name: rootSuite,
-          rootSuite,
-          rootSuiteLength: 1,
-          testsLength: 1,
+          testCount: 1,
+          descendants: [`${rootSuite}/${suiteName}/testTitle`],
         },
       ],
       [
@@ -71,9 +73,8 @@ describe('start reporting suite/test', () => {
         {
           id: 'tempTestItemId',
           name: suiteName,
-          rootSuite,
-          rootSuiteLength: undefined,
-          testsLength: 1,
+          descendants: [`${rootSuite}/${suiteName}/testTitle`],
+          testCount: 1,
         },
       ],
     ]);

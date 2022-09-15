@@ -39,7 +39,6 @@ import {
   getAttachments,
   getCodeRef,
   getSystemAttributes,
-  getTestFilePath,
   isErrorLog,
   isFalse,
   promiseErrorHandler,
@@ -57,10 +56,9 @@ export interface TestItem {
 }
 
 interface Suite extends TestItem {
-  rootSuite?: string;
   logs?: LogRQ[];
-  testsLength?: number;
-  rootSuiteLength?: number | undefined;
+  testCount?: number;
+  descendants?: string[];
 }
 
 export class RPReporter implements Reporter {
@@ -220,23 +218,8 @@ export class RPReporter implements Reporter {
     promiseErrorHandler(promise, 'Failed to send log');
   }
 
-  finishSuites(testFileName?: string, rootSuiteName?: string): void {
-    let suitesToFinish: [string, Suite][];
-    const suitesArray = Array.from(this.suites);
-
-    const isTestsExistInRootSuite = this.suites.get(rootSuiteName).rootSuiteLength < 1;
-
-    if (isTestsExistInRootSuite) {
-      suitesToFinish = testFileName
-        ? suitesArray.filter(([key]) => key.includes(rootSuiteName))
-        : suitesArray;
-    } else {
-      suitesToFinish = testFileName
-        ? suitesArray.filter(
-            ([key, { testsLength }]) => key.includes(rootSuiteName) && testsLength < 1,
-          )
-        : suitesArray;
-    }
+  finishSuites(): void {
+    const suitesToFinish = Array.from(this.suites).filter(([, { testCount }]) => testCount < 1);
 
     suitesToFinish.forEach(([key, { id, status, logs }]) => {
       if (logs) {
@@ -274,10 +257,14 @@ export class RPReporter implements Reporter {
     this.launchId = tempId;
   }
 
-  findTestItem(testItems: Map<string, TestItem>, title: string, projectName?: string): Suite {
-    if (projectName !== undefined) {
+  findTestItem(
+    testItems: Map<string, TestItem>,
+    title: string,
+    playwrightProjectName?: string,
+  ): Suite {
+    if (playwrightProjectName !== undefined) {
       for (const [, value] of testItems) {
-        if (value.name === title && projectName === value.playwrightProjectName) {
+        if (value.name === title && playwrightProjectName === value.playwrightProjectName) {
           return value;
         }
       }
@@ -306,7 +293,8 @@ export class RPReporter implements Reporter {
     const projectName = test.parent.project().name;
 
     for (let i = lastSuiteIndex; i >= 0; i--) {
-      const currentSuiteTitle = orderedSuites[i].title;
+      const currentSuite = orderedSuites[i];
+      const currentSuiteTitle = currentSuite.title;
       const fullSuiteName = getCodeRef(test, currentSuiteTitle);
 
       if (this.suites.get(fullSuiteName)?.id) {
@@ -332,22 +320,20 @@ export class RPReporter implements Reporter {
       const suiteObj = this.client.startTestItem(startSuiteObj, this.launchId, parentId);
       this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
 
-      let rootSuiteLength =
-        i === lastSuiteIndex ? orderedSuites[lastSuiteIndex].allTests().length : undefined;
-
-      let testsLength = orderedSuites[i].allTests().length;
+      const allSuiteTests = currentSuite.allTests();
+      const descendants = allSuiteTests.map((testCase) => getCodeRef(testCase, testCase.title));
+      let testCount = allSuiteTests.length;
 
       if (test.retries) {
-        testsLength = testsLength * (test.retries + 1);
-        rootSuiteLength = rootSuiteLength * (test.retries + 1);
+        const possibleInvocations = test.retries + 1;
+        testCount = testCount * possibleInvocations;
       }
 
       this.suites.set(fullSuiteName, {
         id: suiteObj.tempId,
         name: currentSuiteTitle,
-        testsLength,
-        rootSuiteLength,
-        rootSuite: getCodeRef(test, orderedSuites[lastSuiteIndex].title),
+        testCount,
+        descendants,
         ...(status && { status }),
         ...(logs && { logs }), // TODO: may be send it on suite start
       });
@@ -483,36 +469,47 @@ export class RPReporter implements Reporter {
     this.addRequestToPromisesQueue(promise, 'Failed to finish test.');
     this.testItems.delete(testItemId);
 
+    this.updateAncestorsTestCount(test, result);
+
     const fullParentName = getCodeRef(test, test.parent.title);
-    const parentObj = this.suites.get(fullParentName);
-    const rootSuiteName = parentObj.rootSuite;
-    const rootSuite = this.suites.get(rootSuiteName);
 
-    const decreaseIndex =
-      test.retries > 0 && (result.status === STATUSES.PASSED || result.status === STATUSES.SKIPPED)
-        ? test.retries + 1
-        : 1;
-
-    this.suites.set(rootSuiteName, {
-      ...rootSuite,
-      rootSuiteLength: rootSuite.rootSuiteLength - decreaseIndex,
-    });
-
-    const testFilePath = getTestFilePath(test, test.title);
-
-    Array.from(this.suites)
-      .filter(([key]) => key.includes(fullParentName) || key === testFilePath)
-      .map(([key, { testsLength }]) => {
-        this.suites.set(key, {
-          ...this.suites.get(key),
-          testsLength: testsLength - decreaseIndex,
-        });
-      });
-
-    // if all children of the test parent have already finished, then finish the parent
-    if (this.suites.get(fullParentName).testsLength < 1) {
-      this.finishSuites(testFilePath, rootSuiteName);
+    // if all children of the test parent have already finished, then finish all empty ancestors
+    if (this.suites.get(fullParentName).testCount < 1) {
+      this.finishSuites();
     }
+  }
+
+  updateAncestorsTestCount(test: TestCase, result: TestResult): void {
+    // decrease by 1 by default as only one test case finished
+    let decreaseIndex = 1;
+    const nonRetriedResult =
+      result.status === STATUSES.PASSED || result.status === STATUSES.SKIPPED;
+
+    // if test case has retries, and it will not be retried anymore
+    if (test.retries > 0 && nonRetriedResult) {
+      const possibleInvocations = test.retries + 1;
+      const possibleInvocationsLeft = possibleInvocations - test.results.length;
+      // we need to decrease also all the rest possible invocations as the test case will not be retried anymore
+      decreaseIndex = decreaseIndex + possibleInvocationsLeft;
+    }
+
+    const fullTestName = getCodeRef(test, test.title);
+
+    this.suites.forEach((value, key) => {
+      const { descendants, testCount } = value;
+
+      if (descendants.length && descendants.includes(fullTestName)) {
+        const newTestCount = testCount - decreaseIndex;
+        this.suites.set(key, {
+          ...value,
+          testCount: newTestCount,
+          descendants:
+            newTestCount < 1
+              ? descendants.filter((testName) => testName !== fullTestName)
+              : descendants,
+        });
+      }
+    });
   }
 
   async onEnd(): Promise<void> {
