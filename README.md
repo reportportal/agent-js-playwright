@@ -67,6 +67,10 @@ npm install --save-dev @reportportal/agent-js-playwright
 ```
 ## Reporting
 
+When organizing tests, specify titles for `test.describe` blocks, as this is necessary to build the correct structure of reports.
+
+It is also required to specify playwright project names in `playwright.config.ts` when running the same tests in different playwright projects.
+
 ### Attachments
 
 Attachments can be easily added during test run via `testInfo.attachments` according to the Playwright [docs](https://playwright.dev/docs/api/class-testinfo#test-info-attachments).
