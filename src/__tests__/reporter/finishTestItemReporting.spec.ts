@@ -28,11 +28,30 @@ describe('finish test reporting', () => {
   reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
   reporter.testItems = new Map([
-    ['tempTestItemId', { id: 'tempTestItemId', name: 'test', playwrightProjectName: rootSuite }],
+    [
+      'tempTestItemId',
+      { id: 'tempTestItemId', name: 'testTitle', playwrightProjectName: rootSuite },
+    ],
   ]);
   reporter.suites = new Map([
-    [rootSuite, { id: 'rootsuiteId', name: rootSuite, rootSuiteLength: 1, rootSuite }],
-    [`${rootSuite}/${suiteName}`, { id: 'suiteId', name: suiteName, testsLength: 1, rootSuite }],
+    [
+      rootSuite,
+      {
+        id: 'rootsuiteId',
+        name: rootSuite,
+        testCount: 1,
+        descendants: [`${rootSuite}/${suiteName}/testTitle`],
+      },
+    ],
+    [
+      `${rootSuite}/${suiteName}`,
+      {
+        id: 'suiteId',
+        name: suiteName,
+        testCount: 1,
+        descendants: [`${rootSuite}/${suiteName}/testTitle`],
+      },
+    ],
   ]);
   const attributes = [
     {
@@ -44,10 +63,20 @@ describe('finish test reporting', () => {
   const description = 'description';
 
   const testParams = {
-    title: 'test',
+    title: 'testTitle',
     parent: {
-      title: suiteName,
+      title: rootSuite,
       project: () => ({ name: rootSuite }),
+      allTests: () => [
+        { title: 'testTitle', titlePath: () => ['', rootSuite, suiteName, 'testTitle'] },
+      ],
+      parent: {
+        title: rootSuite,
+        project: () => ({ name: rootSuite }),
+        allTests: () => [
+          { title: 'testTitle', titlePath: () => ['', rootSuite, suiteName, 'testTitle'] },
+        ],
+      },
     },
     titlePath: () => [rootSuite, suiteName, 'testTitle'],
     location: {
