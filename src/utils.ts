@@ -60,7 +60,7 @@ export const getSystemAttributes = (skippedIssue = true): Array<Attribute> => {
   return systemAttributes;
 };
 
-type testItemPick = Pick<TestCase, 'location' | 'titlePath'>;
+type testItemPick = Pick<TestCase, 'titlePath'>;
 
 export const getCodeRef = (
   testItem: testItemPick,
@@ -116,11 +116,11 @@ export const isErrorLog = (message: string): boolean => {
 };
 
 // https://playwright.dev/docs/api/class-testresult#test-result-status
-export const convertToRpStatus = (status: TestStatus): string => {
+export const convertToRpStatus = (status: TestStatus): STATUSES => {
   const isRpStatus = Object.values(STATUSES).includes(<STATUSES>status);
 
   if (isRpStatus) {
-    return status;
+    return <STATUSES>status;
   }
   return STATUSES.FAILED;
 };
