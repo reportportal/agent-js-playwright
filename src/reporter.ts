@@ -490,8 +490,11 @@ export class RPReporter implements Reporter {
   updateAncestorsTestCount(test: TestCase, result: TestResult, calculatedStatus: STATUSES): void {
     // decrease by 1 by default as only one test case finished
     let decreaseIndex = 1;
+    // TODO: post an issue on GitHub for playwright/test to provide more clear output for this purpose
+    const isTestFinishedFromHook = result.workerIndex === -1; // in case test finished by hook error it will be retried
     const nonRetriedResult =
-      calculatedStatus === STATUSES.PASSED || calculatedStatus === STATUSES.SKIPPED;
+      calculatedStatus === STATUSES.PASSED ||
+      (calculatedStatus === STATUSES.SKIPPED && !isTestFinishedFromHook);
 
     // if test case has retries, and it will not be retried anymore
     if (test.retries > 0 && nonRetriedResult) {
