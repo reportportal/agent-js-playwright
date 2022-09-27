@@ -323,6 +323,7 @@ export class RPReporter implements Reporter {
       const descendants = allSuiteTests.map((testCase) => getCodeRef(testCase, testCase.title));
       let testCount = allSuiteTests.length;
 
+      // TODO: cover with tests
       if (test.retries) {
         const possibleInvocations = test.retries + 1;
         testCount = testCount * possibleInvocations;
@@ -426,7 +427,7 @@ export class RPReporter implements Reporter {
     const { promise } = this.client.finishTestItem(testItem.id, stepFinishObj);
 
     this.addRequestToPromisesQueue(promise, 'Failed to finish nested step.');
-    this.nestedSteps.delete(testItem.id);
+    this.nestedSteps.delete(fullStepName);
   }
 
   async onTestEnd(test: TestCase, result: TestResult): Promise<void> {
@@ -445,6 +446,7 @@ export class RPReporter implements Reporter {
       withoutIssue = isFalse(this.config.skippedIssue);
     }
 
+    // TODO: cover with tests
     if (result.attachments?.length) {
       const attachmentsFiles = await getAttachments(result.attachments);
 
@@ -487,6 +489,7 @@ export class RPReporter implements Reporter {
     }
   }
 
+  // TODO: cover with tests
   updateAncestorsTestCount(test: TestCase, result: TestResult, calculatedStatus: STATUSES): void {
     // decrease by 1 by default as only one test case finished
     let decreaseIndex = 1;

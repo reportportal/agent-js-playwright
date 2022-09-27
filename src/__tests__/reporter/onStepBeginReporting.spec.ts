@@ -20,37 +20,52 @@ import { RPClientMock } from '../mocks/RPClientMock';
 import { TEST_ITEM_TYPES } from '../../constants';
 
 const playwrightProjectName = 'projectName';
+const suiteName = 'suiteName';
 const tempTestItemId = 'tempTestItemId';
 
 describe('onStepBegin reporting', () => {
-  mockConfig.includeTestSteps = true;
-  const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
+  let reporter: RPReporter;
 
-  reporter.launchId = 'launchId';
+  beforeEach(() => {
+    mockConfig.includeTestSteps = true;
+    reporter = new RPReporter(mockConfig);
+    reporter.client = new RPClientMock(mockConfig);
 
-  reporter.testItems = new Map([
-    [tempTestItemId, { id: tempTestItemId, name: 'testName', playwrightProjectName }],
-  ]);
+    reporter.launchId = 'launchId';
+
+    reporter.testItems = new Map([
+      [
+        `${playwrightProjectName}/${suiteName}/testTitle`,
+        { id: tempTestItemId, name: 'testTitle' },
+      ],
+    ]);
+  });
 
   const testParams = {
-    title: 'testName',
+    title: 'testTitle',
     parent: {
-      title: 'suiteName',
+      title: suiteName,
       project: () => ({ name: playwrightProjectName }),
+      parent: {
+        title: playwrightProjectName,
+        project: () => ({ name: playwrightProjectName }),
+      },
     },
+    titlePath: () => ['', playwrightProjectName, suiteName, 'testTitle'],
   };
 
-  const step = {
-    title: 'stepName',
-    error: {
-      message: 'some error',
-    },
-  };
-  // @ts-ignore
-  reporter.onStepBegin(testParams, undefined, step);
-
-  test('client.startTestItem should be called with corresponding params', () => {
+  test('client.startTestItem should be called with test item id as a parent id', () => {
+    const step = {
+      title: 'stepName',
+      error: {
+        message: 'some error',
+      },
+      titlePath: () => ['stepName'],
+    };
+    const expectedFullStepName = `${playwrightProjectName}/${suiteName}/testTitle/stepName`;
+    const expectedNestedSteps = new Map([
+      [expectedFullStepName, { id: tempTestItemId, name: 'stepName' }],
+    ]);
     const expectedStepObj = {
       name: step.title,
       type: TEST_ITEM_TYPES.STEP,
@@ -58,18 +73,53 @@ describe('onStepBegin reporting', () => {
       startTime: reporter.client.helpers.now(),
     };
 
+    // @ts-ignore
+    reporter.onStepBegin(testParams, undefined, step);
+
     expect(reporter.client.startTestItem).toHaveBeenCalledWith(
       expectedStepObj,
       reporter.launchId,
       tempTestItemId,
     );
+    expect(reporter.nestedSteps).toEqual(expectedNestedSteps);
   });
 
-  test('nestedSteps should be updated', () => {
-    const exptectedNestedSteps = new Map([
-      [tempTestItemId, { id: tempTestItemId, name: 'stepName', playwrightProjectName }],
+  test('client.startTestItem should be called with test step parent id', () => {
+    const fullTestCaseName = `${playwrightProjectName}/${suiteName}/testTitle`;
+    const stepParent = {
+      title: 'stepParent',
+      titlePath: () => ['stepParent'],
+    };
+    reporter.nestedSteps = new Map([
+      [`${fullTestCaseName}/stepParent`, { id: 'parentStepId', name: 'stepParent' }],
     ]);
+    const step = {
+      title: 'stepName',
+      parent: stepParent,
+      error: {
+        message: 'some error',
+      },
+      titlePath: () => ['stepParent', 'stepName'],
+    };
+    const expectedNestedSteps = new Map([
+      [`${fullTestCaseName}/stepParent`, { id: 'parentStepId', name: 'stepParent' }],
+      [`${fullTestCaseName}/stepParent/stepName`, { id: tempTestItemId, name: 'stepName' }],
+    ]);
+    const expectedStepObj = {
+      name: step.title,
+      type: TEST_ITEM_TYPES.STEP,
+      hasStats: false,
+      startTime: reporter.client.helpers.now(),
+    };
 
-    expect(reporter.nestedSteps).toEqual(exptectedNestedSteps);
+    // @ts-ignore
+    reporter.onStepBegin(testParams, undefined, step);
+
+    expect(reporter.client.startTestItem).toHaveBeenCalledWith(
+      expectedStepObj,
+      reporter.launchId,
+      'parentStepId',
+    );
+    expect(reporter.nestedSteps).toEqual(expectedNestedSteps);
   });
 });
