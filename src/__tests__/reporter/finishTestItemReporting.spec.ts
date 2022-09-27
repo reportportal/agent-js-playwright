@@ -18,51 +18,12 @@ import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 import { FinishTestItemObjType } from '../../models';
-import path from 'path';
 
 const rootSuite = 'rootSuite';
 const suiteName = 'suiteName';
 
 describe('finish test reporting', () => {
-  const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
-  reporter.launchId = 'tempLaunchId';
-  reporter.testItems = new Map([
-    [
-      'tempTestItemId',
-      { id: 'tempTestItemId', name: 'testTitle', playwrightProjectName: rootSuite },
-    ],
-  ]);
-  reporter.suites = new Map([
-    [
-      rootSuite,
-      {
-        id: 'rootsuiteId',
-        name: rootSuite,
-        testCount: 1,
-        descendants: [`${rootSuite}/${suiteName}/testTitle`],
-      },
-    ],
-    [
-      `${rootSuite}/${suiteName}`,
-      {
-        id: 'suiteId',
-        name: suiteName,
-        testCount: 1,
-        descendants: [`${rootSuite}/${suiteName}/testTitle`],
-      },
-    ],
-  ]);
-  const attributes = [
-    {
-      key: 'key',
-      value: 'value',
-    },
-  ];
-
-  const description = 'description';
-
-  const testParams = {
+  const testCase = {
     title: 'testTitle',
     parent: {
       title: rootSuite,
@@ -79,34 +40,85 @@ describe('finish test reporting', () => {
       },
     },
     titlePath: () => [rootSuite, suiteName, 'testTitle'],
-    location: {
-      file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
-    },
   };
+  let reporter: RPReporter;
 
-  const result = {
-    status: 'skipped',
-  };
+  beforeEach(() => {
+    reporter = new RPReporter(mockConfig);
+    reporter.client = new RPClientMock(mockConfig);
+    reporter.launchId = 'tempLaunchId';
+    reporter.testItems = new Map([
+      [`${rootSuite}/${suiteName}/testTitle`, { id: 'tempTestItemId', name: 'testTitle' }],
+    ]);
+    reporter.suites = new Map([
+      [
+        rootSuite,
+        {
+          id: 'rootsuiteId',
+          name: rootSuite,
+          testCount: 1,
+          descendants: [`${rootSuite}/${suiteName}/testTitle`],
+        },
+      ],
+      [
+        `${rootSuite}/${suiteName}`,
+        {
+          id: 'suiteId',
+          name: suiteName,
+          testCount: 1,
+          descendants: [`${rootSuite}/${suiteName}/testTitle`],
+        },
+      ],
+    ]);
 
-  const suite = 'tempTestItemId';
-
-  const finishTestItemObj: FinishTestItemObjType = {
-    endTime: reporter.client.helpers.now(),
-    status: result.status,
-    attributes,
-    description,
-  };
-  // @ts-ignore
-  reporter.addAttributes(attributes, testParams, suite);
-  // @ts-ignore
-  reporter.setDescription(description, testParams, suite);
-
-  test('client.finishTestItem should be called with suite id', async () => {
     // @ts-ignore
-    await reporter.onTestEnd(testParams, result);
+    reporter.addAttributes([{ key: 'key', value: 'value' }], testCase);
+    // @ts-ignore
+    reporter.setDescription('description', testCase);
+  });
+
+  test('client.finishTestItem should be called with test item id', async () => {
+    reporter.config.skippedIssue = true;
+    const result = {
+      status: 'passed',
+    };
+    const finishTestItemObj: FinishTestItemObjType = {
+      endTime: reporter.client.helpers.now(),
+      status: result.status,
+      attributes: [{ key: 'key', value: 'value' }],
+      description: 'description',
+    };
+
+    // @ts-ignore
+    await reporter.onTestEnd(testCase, result);
 
     expect(reporter.client.finishTestItem).toHaveBeenCalledTimes(3);
-    expect(reporter.client.finishTestItem).toHaveBeenCalledWith(
+    expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(
+      1,
+      'tempTestItemId',
+      finishTestItemObj,
+    );
+    expect(reporter.testItems.size).toBe(0);
+  });
+
+  test('client.finishTestItem should be called with issueType NOT_ISSUE', async () => {
+    reporter.config.skippedIssue = false;
+    const result = {
+      status: 'skipped',
+    };
+    const finishTestItemObj: FinishTestItemObjType = {
+      endTime: reporter.client.helpers.now(),
+      status: result.status,
+      attributes: [{ key: 'key', value: 'value' }],
+      description: 'description',
+      issue: { issueType: 'NOT_ISSUE' },
+    };
+    // @ts-ignore
+    await reporter.onTestEnd(testCase, result);
+
+    expect(reporter.client.finishTestItem).toHaveBeenCalledTimes(3);
+    expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(
+      1,
       'tempTestItemId',
       finishTestItemObj,
     );

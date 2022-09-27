@@ -18,6 +18,8 @@ import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 
+const suiteName = 'suiteName';
+
 describe('description reporting', () => {
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
@@ -25,27 +27,26 @@ describe('description reporting', () => {
   const description = 'Description';
 
   const testParams = {
-    title: 'testName',
+    title: 'testTitle',
+    titlePath: () => ['', suiteName, 'testTitle'],
   };
 
-  const suite = 'tempTestItemId';
-
   test('reporter.testItems should be updated with description', () => {
-    reporter.testItems = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'testName' }]]);
+    reporter.testItems = new Map([
+      [`${suiteName}/testTitle`, { id: 'tempTestItemId', name: 'testTitle' }],
+    ]);
     // @ts-ignore
-    reporter.setDescription(description, testParams, suite);
+    reporter.setDescription(description, testParams);
     const expectedTestItems = new Map([
-      ['tempTestItemId', { id: 'tempTestItemId', name: 'testName', description }],
+      [`${suiteName}/testTitle`, { id: 'tempTestItemId', name: 'testTitle', description }],
     ]);
     expect(reporter.testItems).toEqual(expectedTestItems);
-    reporter.testItems.delete('tempTestItemId');
   });
 
   test('reporter.suitesInfo should be with description', () => {
-    reporter.suites = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }]]);
     // @ts-ignore
-    reporter.setDescription(description, testParams, suite);
-    const expectedSuitesInfo = new Map([['tempTestItemId', { description: 'Description' }]]);
+    reporter.setDescription(description, testParams, suiteName);
+    const expectedSuitesInfo = new Map([[suiteName, { description }]]);
     expect(reporter.suitesInfo).toEqual(expectedSuitesInfo);
   });
 });

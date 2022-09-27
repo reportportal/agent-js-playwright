@@ -20,3 +20,7 @@ export interface Attribute {
   key?: string;
   system?: boolean;
 }
+
+export interface Issue {
+  issueType: string;
+}

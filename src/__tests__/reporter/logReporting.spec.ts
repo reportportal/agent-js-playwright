@@ -108,7 +108,10 @@ describe('logs reporting', () => {
         ],
       ]);
       reporter.testItems = new Map([
-        [tempTestItemId, { id: tempTestItemId, name: 'testTitle', playwrightProjectName }],
+        [
+          `${playwrightProjectName}/${suiteName}/testTitle`,
+          { id: tempTestItemId, name: 'testTitle' },
+        ],
       ]);
       const testParams = {
         title: 'testTitle',
@@ -125,7 +128,6 @@ describe('logs reporting', () => {
           ],
           parent: {
             title: suiteName,
-            location: 'tests/example.js',
             project: () => ({ name: playwrightProjectName }),
             allTests: () => [
               {
@@ -134,11 +136,6 @@ describe('logs reporting', () => {
               },
             ],
           },
-        },
-        location: {
-          file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
-          line: 5,
-          column: 3,
         },
         titlePath: () => ['', playwrightProjectName, suiteName, 'testTitle'],
       };
