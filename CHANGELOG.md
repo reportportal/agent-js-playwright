@@ -1,3 +1,6 @@
+### Fixed
+- Issue [#46](https://github.com/reportportal/agent-js-playwright/issues/46) with suites finishing when retrying skipped tests.
+- Issue [#69](https://github.com/reportportal/agent-js-playwright/issues/69) with wrong logs attaching.
 
 ## [5.0.7] - 2022-09-15
 ### Fixed
