@@ -17,20 +17,20 @@ npm install --save-dev @reportportal/agent-js-playwright
   import { PlaywrightTestConfig } from '@playwright/test';
 
   const RPconfig = {
-    'token': '00000000-0000-0000-0000-000000000000',
-    'endpoint': 'https://your.reportportal.server/api/v1',
-    'project': 'Your project',
-    'launch': 'Playwright test',
-    'attributes': [
+    token: '00000000-0000-0000-0000-000000000000',
+    endpoint: 'https://your.reportportal.server/api/v1',
+    project: 'Your project',
+    launch: 'Playwright test',
+    attributes: [
       {
-        'key': 'key',
-        'value': 'value',
+        key: 'key',
+        value: 'value',
       },
       {
-        'value': 'value',
+        value: 'value',
       },
     ],
-    'description': 'Your launch description',
+    description: 'Your launch description',
   };
 
   const config: PlaywrightTestConfig = {
