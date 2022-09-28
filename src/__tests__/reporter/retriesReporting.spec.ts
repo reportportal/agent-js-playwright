@@ -32,11 +32,6 @@ describe('retries reporting', () => {
       location: 'tests/example.js',
       project: () => ({ name: '' }),
     },
-    location: {
-      file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
-      line: 5,
-      column: 3,
-    },
     titlePath: () => ['suiteName', 'testTitle'],
     results: [{}, {}],
   };

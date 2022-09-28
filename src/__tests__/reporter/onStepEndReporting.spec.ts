@@ -19,6 +19,7 @@ import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 
 const playwrightProjectName = 'projectName';
+const suiteName = 'suiteName';
 const tempTestItemId = 'tempTestItemId';
 
 describe('onStepBegin reporting', () => {
@@ -29,19 +30,27 @@ describe('onStepBegin reporting', () => {
   reporter.launchId = 'launchId';
 
   reporter.testItems = new Map([
-    [tempTestItemId, { id: tempTestItemId, name: 'testName', playwrightProjectName }],
+    [`${playwrightProjectName}/${suiteName}/testTitle`, { id: tempTestItemId, name: 'testTitle' }],
   ]);
 
   reporter.nestedSteps = new Map([
-    [tempTestItemId, { id: tempTestItemId, name: 'stepName', playwrightProjectName }],
+    [
+      `${playwrightProjectName}/${suiteName}/testTitle/stepName`,
+      { id: tempTestItemId, name: 'stepName' },
+    ],
   ]);
 
   const testParams = {
-    title: 'testName',
+    title: 'testTitle',
     parent: {
-      title: 'suiteName',
+      title: suiteName,
       project: () => ({ name: playwrightProjectName }),
+      parent: {
+        title: playwrightProjectName,
+        project: () => ({ name: playwrightProjectName }),
+      },
     },
+    titlePath: () => ['', playwrightProjectName, suiteName, 'testTitle'],
   };
 
   const step = {
@@ -49,6 +58,7 @@ describe('onStepBegin reporting', () => {
     error: {
       message: 'some error',
     },
+    titlePath: () => ['stepName'],
   };
 
   // @ts-ignore

@@ -15,7 +15,7 @@
  *
  */
 
-import { Attribute } from './common';
+import { Attribute, Issue } from './common';
 import { TEST_ITEM_TYPES, LOG_LEVELS, LAUNCH_MODES } from '../constants';
 
 export interface StartLaunchObjType {
@@ -45,6 +45,7 @@ export interface FinishTestItemObjType {
   attributes?: Attribute[];
   description?: string;
   testCaseId?: string;
+  issue?: Issue;
 }
 
 export interface Attachment {

@@ -49,15 +49,13 @@ describe('finish report suite', () => {
     },
   };
 
+  // TODO: add tests for skipped status and different workerIndex values
   const result = {
-    status: 'skipped',
+    status: 'passed',
   };
 
   reporter.testItems = new Map([
-    [
-      'tempTestItemId',
-      { id: 'tempTestItemId', name: 'testTitle', playwrightProjectName: rootSuite },
-    ],
+    [`${rootSuite}/${suiteName}/testTitle`, { id: 'tempTestItemId', name: 'testTitle' }],
   ]);
   reporter.suites = new Map([
     [
@@ -86,7 +84,7 @@ describe('finish report suite', () => {
   test('client.finishTestItem should be called with suite id', () => {
     expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(1, 'tempTestItemId', {
       endTime: reporter.client.helpers.now(),
-      status: 'skipped',
+      status: 'passed',
     });
     expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(2, 'rootsuiteId', {
       endTime: reporter.client.helpers.now(),

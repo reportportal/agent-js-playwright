@@ -22,30 +22,28 @@ import { LOG_LEVELS } from '../../constants';
 describe('onStdErr testing', () => {
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
+  const testCase = {
+    title: 'testTitle',
+    titlePath: () => ['rootSuite', 'suiteName', 'testTitle'],
+  };
 
   test('onStdErr call sendTestItemLog with LOG_LEVELS.ERROR', () => {
-    const test = {
-      title: 'some test',
-    };
     jest.spyOn(reporter, 'sendTestItemLog');
     // @ts-ignore
-    reporter.onStdErr('Some error log', test);
+    reporter.onStdErr('Some error log', testCase);
     expect(reporter.sendTestItemLog).toHaveBeenCalledWith(
       { level: LOG_LEVELS.ERROR, message: 'Some error log' },
-      test,
+      testCase,
     );
   });
 
   test('onStdErr call sendTestItemLog with LOG_LEVELS.WARN', () => {
-    const test = {
-      title: 'some test',
-    };
     jest.spyOn(reporter, 'sendTestItemLog');
     // @ts-ignore
-    reporter.onStdErr('Some warn message', test);
+    reporter.onStdErr('Some warn message', testCase);
     expect(reporter.sendTestItemLog).toHaveBeenCalledWith(
       { level: LOG_LEVELS.WARN, message: 'Some warn message' },
-      test,
+      testCase,
     );
   });
 });

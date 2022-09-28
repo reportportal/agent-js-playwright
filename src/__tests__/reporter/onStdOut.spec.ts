@@ -14,6 +14,7 @@
  *  limitations under the License.
  */
 
+import { TestCase } from '@playwright/test/reporter';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
@@ -21,6 +22,10 @@ import { RPClientMock } from '../mocks/RPClientMock';
 describe('onStdOut testing', () => {
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
+  const testCase = <TestCase>{
+    title: 'testTitle',
+    titlePath: () => ['rootSuite', 'suiteName', 'testTitle'],
+  };
 
   test('case rp:addAttributes should call addAttributes', () => {
     const type = 'rp:addAttributes';
@@ -32,8 +37,8 @@ describe('onStdOut testing', () => {
     ];
     jest.spyOn(reporter, 'addAttributes');
     const chunk = JSON.stringify({ type, data });
-    reporter.onStdOut(chunk);
-    expect(reporter.addAttributes).toHaveBeenCalled();
+    reporter.onStdOut(chunk, testCase);
+    expect(reporter.addAttributes).toHaveBeenCalledWith(data, testCase, undefined);
   });
 
   test('case rp:setDescription should call setDescription', () => {
@@ -41,8 +46,8 @@ describe('onStdOut testing', () => {
     const data = 'Description';
     jest.spyOn(reporter, 'setDescription');
     const chunk = JSON.stringify({ type, data });
-    reporter.onStdOut(chunk);
-    expect(reporter.setDescription).toHaveBeenCalled();
+    reporter.onStdOut(chunk, testCase);
+    expect(reporter.setDescription).toHaveBeenCalledWith(data, testCase, undefined);
   });
 
   test('case rp:setTestCaseId should call setTestCaseId', () => {
@@ -50,8 +55,8 @@ describe('onStdOut testing', () => {
     const data = 'TestCaseIdForTheSuite';
     jest.spyOn(reporter, 'setTestCaseId');
     const chunk = JSON.stringify({ type, data });
-    reporter.onStdOut(chunk);
-    expect(reporter.setTestCaseId).toHaveBeenCalled();
+    reporter.onStdOut(chunk, testCase);
+    expect(reporter.setTestCaseId).toHaveBeenCalledWith(data, testCase, undefined);
   });
 
   test('case rp:setStatus should call setStatus', () => {
@@ -59,8 +64,8 @@ describe('onStdOut testing', () => {
     const data = 'status';
     jest.spyOn(reporter, 'setStatus');
     const chunk = JSON.stringify({ type, data });
-    reporter.onStdOut(chunk);
-    expect(reporter.setStatus).toHaveBeenCalled();
+    reporter.onStdOut(chunk, testCase);
+    expect(reporter.setStatus).toHaveBeenCalledWith(data, testCase, undefined);
   });
 
   test('case rp:setLaunchStatus should call setLaunchStatus', () => {
@@ -68,8 +73,8 @@ describe('onStdOut testing', () => {
     const data = 'statusForLaunch';
     jest.spyOn(reporter, 'setLaunchStatus');
     const chunk = JSON.stringify({ type, data });
-    reporter.onStdOut(chunk);
-    expect(reporter.setLaunchStatus).toHaveBeenCalled();
+    reporter.onStdOut(chunk, testCase);
+    expect(reporter.setLaunchStatus).toHaveBeenCalledWith(data);
   });
 
   test('case rp:addLog should call sendTestItemLog', () => {
@@ -80,8 +85,8 @@ describe('onStdOut testing', () => {
     };
     jest.spyOn(reporter, 'sendTestItemLog');
     const chunk = JSON.stringify({ type, data });
-    reporter.onStdOut(chunk);
-    expect(reporter.sendTestItemLog).toHaveBeenCalled();
+    reporter.onStdOut(chunk, testCase);
+    expect(reporter.sendTestItemLog).toHaveBeenCalledWith(data, testCase, undefined);
   });
 
   test('case rp:addLaunchLog should call sendLaunchLog', () => {
@@ -92,17 +97,14 @@ describe('onStdOut testing', () => {
     };
     jest.spyOn(reporter, 'sendLaunchLog');
     const chunk = JSON.stringify({ type, data });
-    reporter.onStdOut(chunk);
-    expect(reporter.sendLaunchLog).toHaveBeenCalled();
+    reporter.onStdOut(chunk, testCase);
+    expect(reporter.sendLaunchLog).toHaveBeenCalledWith(data);
   });
 
   test('case stdOut logs', () => {
-    const test = {
-      title: 'some test',
-    };
     jest.spyOn(reporter, 'sendTestItemLog');
     // @ts-ignore
-    reporter.onStdOut('Some logs', test);
-    expect(reporter.sendTestItemLog).toHaveBeenCalledWith({ message: 'Some logs' }, test);
+    reporter.onStdOut('Some logs', testCase);
+    expect(reporter.sendTestItemLog).toHaveBeenCalledWith({ message: 'Some logs' }, testCase);
   });
 });

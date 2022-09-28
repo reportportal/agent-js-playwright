@@ -19,34 +19,35 @@ import { STATUSES } from '../../constants';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 
+const suiteName = 'suiteName';
+
 describe('statuses reporting', () => {
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
 
   const testParams = {
-    title: 'testName',
+    title: 'testTitle',
+    titlePath: () => ['', suiteName, 'testTitle'],
   };
 
-  const suite = 'tempTestItemId';
-
   test('reporter.testItems should be updated with statuses', () => {
-    reporter.testItems = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'testName' }]]);
+    reporter.testItems = new Map([
+      [`${suiteName}/testTitle`, { id: 'tempTestItemId', name: 'testTitle' }],
+    ]);
     const status = STATUSES.PASSED;
     // @ts-ignore
-    reporter.setStatus(status, testParams, suite);
+    reporter.setStatus(status, testParams);
     const expectedTestItems = new Map([
-      ['tempTestItemId', { id: 'tempTestItemId', name: 'testName', status }],
+      [`${suiteName}/testTitle`, { id: 'tempTestItemId', name: 'testTitle', status }],
     ]);
     expect(reporter.testItems).toEqual(expectedTestItems);
-    reporter.testItems.delete('tempTestItemId');
   });
 
   test('reporter.suitesInfo should be with statuses', () => {
-    reporter.suites = new Map([['tempTestItemId', { id: 'tempTestItemId', name: 'suiteName' }]]);
     const status = STATUSES.PASSED;
     // @ts-ignore
-    reporter.setStatus(status, testParams, suite);
-    const expectedSuitesInfo = new Map([['tempTestItemId', { status }]]);
+    reporter.setStatus(status, testParams, suiteName);
+    const expectedSuitesInfo = new Map([[suiteName, { status }]]);
     expect(reporter.suitesInfo).toEqual(expectedSuitesInfo);
   });
 
