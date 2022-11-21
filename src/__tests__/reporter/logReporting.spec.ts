@@ -18,7 +18,6 @@ import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 import { LOG_LEVELS } from '../../constants';
-import path from 'path';
 
 const playwrightProjectName = 'projectName';
 const tempTestItemId = 'tempTestItemId';
@@ -138,6 +137,7 @@ describe('logs reporting', () => {
           },
         },
         titlePath: () => ['', playwrightProjectName, suiteName, 'testTitle'],
+        outcome: () => 'unexpected',
       };
 
       const result = {

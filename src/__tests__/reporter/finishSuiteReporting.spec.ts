@@ -47,6 +47,7 @@ describe('finish report suite', () => {
     location: {
       file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
     },
+    outcome: () => 'passed',
   };
 
   // TODO: add tests for skipped status and different workerIndex values

@@ -496,7 +496,8 @@ export class RPReporter implements Reporter {
     // TODO: post an issue on GitHub for playwright/test to provide more clear output for this purpose
     const isTestFinishedFromHook = result.workerIndex === -1; // in case test finished by hook error it will be retried
     const nonRetriedResult =
-      calculatedStatus === STATUSES.PASSED ||
+      test.outcome() === 'expected' ||
+      test.outcome() === 'flaky' ||
       (calculatedStatus === STATUSES.SKIPPED && !isTestFinishedFromHook);
 
     // if test case has retries, and it will not be retried anymore

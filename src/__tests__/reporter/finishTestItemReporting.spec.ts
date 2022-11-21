@@ -90,7 +90,7 @@ describe('finish test reporting', () => {
     };
 
     // @ts-ignore
-    await reporter.onTestEnd(testCase, result);
+    await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
 
     expect(reporter.client.finishTestItem).toHaveBeenCalledTimes(3);
     expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(
@@ -114,7 +114,7 @@ describe('finish test reporting', () => {
       issue: { issueType: 'NOT_ISSUE' },
     };
     // @ts-ignore
-    await reporter.onTestEnd(testCase, result);
+    await reporter.onTestEnd({ ...testCase, outcome: () => 'skipped' }, result);
 
     expect(reporter.client.finishTestItem).toHaveBeenCalledTimes(3);
     expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(
