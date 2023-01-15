@@ -104,10 +104,9 @@ console.warn();
 console.error();
 ```
 
-console`log`, `info`,`dubug` report as info log.
+console's `log`, `info`,`dubug` reports as info log.
 
-console `error`, `warn` report as error log if message contains "error" mention.
-In other cases report as warn log.
+console's `error`, `warn` reports as error log if message contains "error" mention, otherwise as warn log.
 
 As an alternative to this approach the [`ReportingAPI`](#log) methods can be used.
 
