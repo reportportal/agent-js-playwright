@@ -82,7 +82,7 @@ export const getCodeRef = (
 };
 
 export const sendEventToReporter = (type: string, data: any, suite?: string): void => {
-  process.stdout.write(JSON.stringify({ type, data, suite }));
+  process.stdout.write(JSON.stringify({ type, data }));
 };
 
 type attachments = { name: string; path?: string; body?: Buffer; contentType: string }[];
