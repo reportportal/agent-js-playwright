@@ -50,7 +50,7 @@
   },
   "homepage": "https://github.com/reportportal/agent-js-playwright#readme",
   "engines": {
-    "node": ">= 10.0.0"
+    "node": ">=14.x"
   },
   "keywords": [
     "epam",
