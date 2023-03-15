@@ -73,7 +73,7 @@ It is also required to specify playwright project names in `playwright.config.ts
 
 ### Attachments
 
-Attachments can be easily added during test run via `testInfo.attachments` according to the Playwright [docs](https://playwright.dev/docs/api/class-testinfo#test-info-attachments).
+Attachments can be easily added during test run via `testInfo.attach` according to the Playwright [docs](https://playwright.dev/docs/api/class-testinfo#test-info-attach).
 
 ```typescript
 import { test, expect } from '@playwright/test';
@@ -81,16 +81,17 @@ import { test, expect } from '@playwright/test';
 test('basic test', async ({ page }, testInfo) => {
   await page.goto('https://playwright.dev');
 
-  // Capture a screenshot and attach it.
-  const path = testInfo.outputPath('screenshot.png');
-  await page.screenshot({ path });
-  testInfo.attachments.push({ name: 'screenshot', path, contentType: 'image/png' });
+  // Capture a screenshot and attach it
+  const screenshot = await page.screenshot();
+  await testInfo.attach('screenshot', { body: screenshot, contentType: 'image/png' });
 });
 ```
 
 *Note:* attachment body can be provided instead of path.
 
 As an alternative to this approach the [`ReportingAPI`](#log) methods can be used.
+
+*Note:* [`ReportingAPI`](#log) methods will send attachments to ReportPortal right after their call, unlike attachments provided via `testInfo.attach` that will be reported only on the test item finish.
 
 ### Logging
 
@@ -104,10 +105,9 @@ console.warn();
 console.error();
 ```
 
-console`log`, `info`,`dubug` report as info log.
+console's `log`, `info`,`dubug` reports as info log.
 
-console `error`, `warn` report as error log if message contains "error" mention.
-In other cases report as warn log.
+console's `error`, `warn` reports as error log if message contains "error" mention, otherwise as warn log.
 
 As an alternative to this approach the [`ReportingAPI`](#log) methods can be used.
 

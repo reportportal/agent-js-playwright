@@ -441,7 +441,8 @@ export class RPReporter implements Reporter {
     } = this.testItems.get(fullTestName);
     let withoutIssue;
     let testDescription = description;
-    const status = predefinedStatus || convertToRpStatus(result.status);
+    const calculatedStatus = convertToRpStatus(result.status);
+    const status = predefinedStatus || calculatedStatus;
     if (status === STATUSES.SKIPPED) {
       withoutIssue = isFalse(this.config.skippedIssue);
     }
@@ -479,7 +480,7 @@ export class RPReporter implements Reporter {
     this.addRequestToPromisesQueue(promise, 'Failed to finish test.');
     this.testItems.delete(fullTestName);
 
-    this.updateAncestorsTestCount(test, result, status);
+    this.updateAncestorsTestCount(test, result, calculatedStatus);
 
     const fullParentName = getCodeRef(test, test.parent.title);
 
@@ -494,11 +495,12 @@ export class RPReporter implements Reporter {
     // decrease by 1 by default as only one test case finished
     let decreaseIndex = 1;
     // TODO: post an issue on GitHub for playwright/test to provide more clear output for this purpose
-    const isTestFinishedFromHook = result.workerIndex === -1; // in case test finished by hook error it will be retried
+    const isTestFinishedFromHookOrStaticAnnotation = result.workerIndex === -1; // in case test finished by hook error it will be retried
     const nonRetriedResult =
       test.outcome() === 'expected' ||
       test.outcome() === 'flaky' ||
-      (calculatedStatus === STATUSES.SKIPPED && !isTestFinishedFromHook);
+      // This check broke `decreaseIndex` calculation for tests with .skip() static annotations and enabled retries (additional info required from Playwright to correctly determine failure from hook)
+      (calculatedStatus === STATUSES.SKIPPED && !isTestFinishedFromHookOrStaticAnnotation);
 
     // if test case has retries, and it will not be retried anymore
     if (test.retries > 0 && nonRetriedResult) {
