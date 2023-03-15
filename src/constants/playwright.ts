@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 EPAM Systems
+ *  Copyright 2023 EPAM Systems
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,13 +15,19 @@
  *
  */
 
-export { LAUNCH_MODES } from './launchModes';
-export { TEST_ITEM_TYPES } from './testItemTypes';
-export { STATUSES } from './statuses';
-export { LOG_LEVELS } from './logLevels';
-export {
-  TestAnnotation,
-  TestOutcome,
-  TEST_ANNOTATION_TYPES,
-  TEST_OUTCOME_TYPES,
-} from './playwright';
+export enum TEST_ANNOTATION_TYPES {
+  FIXME = 'fixme',
+  SKIP = 'skip',
+  FAIL = 'fail',
+}
+
+export enum TEST_OUTCOME_TYPES {
+  SKIPPED = 'skipped',
+  EXPECTED = 'expected',
+  UNEXPECTED = 'unexpected',
+  FLAKY = 'flaky',
+}
+
+export type TestAnnotation = { type: string; description?: string };
+
+export type TestOutcome = 'skipped' | 'expected' | 'unexpected' | 'flaky';
