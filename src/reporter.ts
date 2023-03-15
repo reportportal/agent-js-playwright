@@ -497,7 +497,8 @@ export class RPReporter implements Reporter {
     // TODO: post an issue on GitHub for playwright/test to provide more clear output for this purpose
     const isTestFinishedFromHookOrStaticAnnotation = result.workerIndex === -1; // in case test finished by hook error it will be retried
     const nonRetriedResult =
-      calculatedStatus === STATUSES.PASSED ||
+      test.outcome() === 'expected' ||
+      test.outcome() === 'flaky' ||
       // This check broke `decreaseIndex` calculation for tests with .skip() static annotations and enabled retries (additional info required from Playwright to correctly determine failure from hook)
       (calculatedStatus === STATUSES.SKIPPED && !isTestFinishedFromHookOrStaticAnnotation);
 
