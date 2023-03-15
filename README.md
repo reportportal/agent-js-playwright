@@ -65,6 +65,7 @@ npm install --save-dev @reportportal/agent-js-playwright
   }
 }
 ```
+
 ## Reporting
 
 When organizing tests, specify titles for `test.describe` blocks, as this is necessary to build the correct structure of reports.
@@ -334,4 +335,27 @@ To integrate with Sauce Labs just add attributes for the test case:
  "key": "SLDC",
  "value": "EU (your job region in Sauce Labs)"
 }]
+```
+
+## Issue troubleshooting
+
+### Launches stuck in progress on RP side
+
+There is known issue that in some cases launches not finished as expected in ReportPortal while using static annotations (`.skip()`, `.fixme()`) that expect the test to be 'SKIPPED'.<br/>
+This may happen in case of error thrown from `before`/`beforeAll` and retries enabled.<br/>
+In this case as a workaround we suggest to use `.skip()` and `.fixme()` annotations inside the test body:
+
+use 
+```javascript
+  test('example fail', async ({}) => {
+    test.fixme();
+    expect(1).toBeGreaterThan(2);
+  });
+```
+
+instead of 
+```javascript
+  test.fixme('example fail', async ({}) => {
+    expect(1).toBeGreaterThan(2);
+  });
 ```
