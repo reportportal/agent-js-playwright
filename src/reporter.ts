@@ -32,9 +32,16 @@ import {
   StartLaunchObjType,
   StartTestObjType,
 } from './models';
-import { LAUNCH_MODES, LOG_LEVELS, STATUSES, TEST_ITEM_TYPES } from './constants';
 import {
-  convertToRpStatus,
+  LAUNCH_MODES,
+  LOG_LEVELS,
+  STATUSES,
+  TEST_ITEM_TYPES,
+  TEST_ANNOTATION_TYPES,
+  TEST_OUTCOME_TYPES,
+} from './constants';
+import {
+  calculateRpStatus,
   getAgentInfo,
   getAttachments,
   getCodeRef,
@@ -441,7 +448,7 @@ export class RPReporter implements Reporter {
     } = this.testItems.get(fullTestName);
     let withoutIssue;
     let testDescription = description;
-    const calculatedStatus = convertToRpStatus(result.status);
+    const calculatedStatus = calculateRpStatus(test.outcome(), result.status, test.annotations);
     const status = predefinedStatus || calculatedStatus;
     if (status === STATUSES.SKIPPED) {
       withoutIssue = isFalse(this.config.skippedIssue);
@@ -480,7 +487,7 @@ export class RPReporter implements Reporter {
     this.addRequestToPromisesQueue(promise, 'Failed to finish test.');
     this.testItems.delete(fullTestName);
 
-    this.updateAncestorsTestCount(test, result, calculatedStatus);
+    this.updateAncestorsTestCount(test, result);
 
     const fullParentName = getCodeRef(test, test.parent.title);
 
@@ -491,16 +498,29 @@ export class RPReporter implements Reporter {
   }
 
   // TODO: cover with tests
-  updateAncestorsTestCount(test: TestCase, result: TestResult, calculatedStatus: STATUSES): void {
-    // decrease by 1 by default as only one test case finished
+  updateAncestorsTestCount(test: TestCase, result: TestResult): void {
+    // Decrease by 1 by default as only one test case finished
     let decreaseIndex = 1;
-    // TODO: post an issue on GitHub for playwright/test to provide more clear output for this purpose
-    const isTestFinishedFromHookOrStaticAnnotation = result.workerIndex === -1; // in case test finished by hook error it will be retried
+    const isTestFinishedFromHookOrStaticAnnotation = result.workerIndex === -1;
+    const testOutcome = test.outcome();
+    // @ts-ignore access to private property _staticAnnotations
+    const isStaticallyAnnotatedWithSkippedAnnotation = test._staticAnnotations.some(
+      (annotation: { type: TEST_ANNOTATION_TYPES; description: string }) =>
+        annotation.type === TEST_ANNOTATION_TYPES.SKIP ||
+        annotation.type === TEST_ANNOTATION_TYPES.FIXME,
+    );
+
+    // TODO: post an issue on GitHub for playwright/test to provide clear output for this purpose
+    const isFinishedFromHook =
+      isTestFinishedFromHookOrStaticAnnotation && !isStaticallyAnnotatedWithSkippedAnnotation; // In case test finished by hook error it will be retried.
+
     const nonRetriedResult =
-      test.outcome() === 'expected' ||
-      test.outcome() === 'flaky' ||
-      // This check broke `decreaseIndex` calculation for tests with .skip() static annotations and enabled retries (additional info required from Playwright to correctly determine failure from hook)
-      (calculatedStatus === STATUSES.SKIPPED && !isTestFinishedFromHookOrStaticAnnotation);
+      testOutcome === TEST_OUTCOME_TYPES.EXPECTED ||
+      testOutcome === TEST_OUTCOME_TYPES.FLAKY ||
+      // This check broke `decreaseIndex` calculation for tests with .skip()/.fixme() static annotations and enabled retries after error from hook,
+      // but helps to calculate `decreaseIndex`correctly in other cases.
+      // Additional info required from Playwright to correctly determine failure from hook.
+      (testOutcome === TEST_OUTCOME_TYPES.SKIPPED && !isFinishedFromHook);
 
     // if test case has retries, and it will not be retried anymore
     if (test.retries > 0 && nonRetriedResult) {
