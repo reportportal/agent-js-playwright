@@ -342,7 +342,7 @@ To integrate with Sauce Labs just add attributes for the test case:
 ### Launches stuck in progress on RP side
 
 There is known issue that in some cases launches not finished as expected in ReportPortal while using static annotations (`.skip()`, `.fixme()`) that expect the test to be 'SKIPPED'.<br/>
-This may happen in case of error thrown from `before`/`beforeAll` and retries enabled, associated with [#85](https://github.com/reportportal/agent-js-playwright/issues/85).<br/>
+This may happen in case of error thrown from `before`/`beforeAll`, retries enabled and `fullyParallel: false`. Associated with [#85](https://github.com/reportportal/agent-js-playwright/issues/85).<br/>
 In this case as a workaround we suggest to use `.skip()` and `.fixme()` annotations inside the test body:
 
 use 
