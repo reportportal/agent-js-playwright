@@ -155,12 +155,11 @@ export class RPReporter implements Reporter {
       const attributes = (suiteItem?.attributes || []).concat(attr);
       this.suitesInfo.set(suiteName, { ...suiteItem, attributes });
     } else if (test) {
-      const fullTestName = getCodeRef(test, test.title);
-      const testItem = this.testItems.get(fullTestName);
+      const testItem = this.testItems.get(test.id);
 
       if (testItem) {
         const attributes = (testItem.attributes || []).concat(attr);
-        this.testItems.set(fullTestName, { ...testItem, attributes });
+        this.testItems.set(test.id, { ...testItem, attributes });
       }
     }
   }
@@ -169,11 +168,10 @@ export class RPReporter implements Reporter {
     if (suiteName) {
       this.suitesInfo.set(suiteName, { ...this.suitesInfo.get(suiteName), description });
     } else if (test) {
-      const fullTestName = getCodeRef(test, test.title);
-      const testItem = this.testItems.get(fullTestName);
+      const testItem = this.testItems.get(test.id);
 
       if (testItem) {
-        this.testItems.set(fullTestName, { ...testItem, description });
+        this.testItems.set(test.id, { ...testItem, description });
       }
     }
   }
@@ -182,11 +180,10 @@ export class RPReporter implements Reporter {
     if (suiteName) {
       this.suitesInfo.set(suiteName, { ...this.suitesInfo.get(suiteName), testCaseId });
     } else if (test) {
-      const fullTestName = getCodeRef(test, test.title);
-      const testItem = this.testItems.get(fullTestName);
+      const testItem = this.testItems.get(test.id);
 
       if (testItem) {
-        this.testItems.set(fullTestName, { ...testItem, testCaseId });
+        this.testItems.set(test.id, { ...testItem, testCaseId });
       }
     }
   }
@@ -195,11 +192,10 @@ export class RPReporter implements Reporter {
     if (suiteName) {
       this.suitesInfo.set(suiteName, { ...this.suitesInfo.get(suiteName), status });
     } else if (test) {
-      const fullTestName = getCodeRef(test, test.title);
-      const testItem = this.testItems.get(fullTestName);
+      const testItem = this.testItems.get(test.id);
 
       if (testItem) {
-        this.testItems.set(fullTestName, { ...testItem, status });
+        this.testItems.set(test.id, { ...testItem, status });
       }
     }
   }
@@ -214,8 +210,7 @@ export class RPReporter implements Reporter {
       const logs = (suiteItem?.logs || []).concat(log);
       this.suitesInfo.set(suiteName, { ...suiteItem, logs });
     } else if (test) {
-      const fullTestName = getCodeRef(test, test.title);
-      const testItem = this.testItems.get(fullTestName);
+      const testItem = this.testItems.get(test.id);
 
       if (testItem) {
         this.sendLog(testItem.id, log);
@@ -327,7 +322,7 @@ export class RPReporter implements Reporter {
       this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
 
       const allSuiteTests = currentSuite.allTests();
-      const descendants = allSuiteTests.map((testCase) => getCodeRef(testCase, testCase.title));
+      const descendants = allSuiteTests.map((testCase) => testCase.id);
       let testCount = allSuiteTests.length;
 
       // TODO: cover with tests
@@ -357,7 +352,7 @@ export class RPReporter implements Reporter {
     const fullSuiteName = getCodeRef(test, test.parent.title);
     const parentSuiteObj = this.suites.get(fullSuiteName);
 
-    // create step
+    // create test case
     if (parentSuiteObj) {
       const { includePlaywrightProjectNameToCodeReference } = this.config;
       const codeRef = getCodeRef(
@@ -365,7 +360,6 @@ export class RPReporter implements Reporter {
         test.title,
         !includePlaywrightProjectNameToCodeReference && playwrightProjectName,
       );
-      const fullTestName = getCodeRef(test, test.title);
       const { id: parentId } = parentSuiteObj;
       const startTestItem: StartTestObjType = {
         name: test.title,
@@ -376,7 +370,7 @@ export class RPReporter implements Reporter {
       };
       const stepObj = this.client.startTestItem(startTestItem, this.launchId, parentId);
       this.addRequestToPromisesQueue(stepObj.promise, 'Failed to start test.');
-      this.testItems.set(fullTestName, {
+      this.testItems.set(test.id, {
         name: test.title,
         id: stepObj.tempId,
       });
@@ -387,14 +381,13 @@ export class RPReporter implements Reporter {
     const { includeTestSteps } = this.config;
     if (!includeTestSteps) return;
 
-    const fullTestName = getCodeRef(test, test.title);
     let parent;
     if (step.parent) {
       const stepParentName = getCodeRef(step.parent, step.parent.title);
-      const fullStepParentName = `${fullTestName}/${stepParentName}`;
+      const fullStepParentName = `${test.id}/${stepParentName}`;
       parent = this.nestedSteps.get(fullStepParentName);
     } else {
-      parent = this.testItems.get(fullTestName);
+      parent = this.testItems.get(test.id);
     }
     if (!parent) return;
 
@@ -405,7 +398,7 @@ export class RPReporter implements Reporter {
       startTime: this.client.helpers.now(),
     };
     const stepName = getCodeRef(step, step.title);
-    const fullStepName = `${fullTestName}/${stepName}`;
+    const fullStepName = `${test.id}/${stepName}`;
     const { tempId, promise } = this.client.startTestItem(stepStartObj, this.launchId, parent.id);
 
     this.addRequestToPromisesQueue(promise, 'Failed to start nested step.');
@@ -420,9 +413,8 @@ export class RPReporter implements Reporter {
     const { includeTestSteps } = this.config;
     if (!includeTestSteps) return;
 
-    const fullTestName = getCodeRef(test, test.title);
     const stepName = getCodeRef(step, step.title);
-    const fullStepName = `${fullTestName}/${stepName}`;
+    const fullStepName = `${test.id}/${stepName}`;
     const testItem = this.nestedSteps.get(fullStepName);
     if (!testItem) return;
 
@@ -438,14 +430,13 @@ export class RPReporter implements Reporter {
   }
 
   async onTestEnd(test: TestCase, result: TestResult): Promise<void> {
-    const fullTestName = getCodeRef(test, test.title);
     const {
       id: testItemId,
       attributes,
       description,
       testCaseId,
       status: predefinedStatus,
-    } = this.testItems.get(fullTestName);
+    } = this.testItems.get(test.id);
     let withoutIssue;
     let testDescription = description;
     const calculatedStatus = calculateRpStatus(test.outcome(), result.status, test.annotations);
@@ -485,7 +476,7 @@ export class RPReporter implements Reporter {
     const { promise } = this.client.finishTestItem(testItemId, finishTestItemObj);
 
     this.addRequestToPromisesQueue(promise, 'Failed to finish test.');
-    this.testItems.delete(fullTestName);
+    this.testItems.delete(test.id);
 
     this.updateAncestorsTestCount(test, result);
 
@@ -530,20 +521,15 @@ export class RPReporter implements Reporter {
       decreaseIndex = decreaseIndex + possibleInvocationsLeft;
     }
 
-    const fullTestName = getCodeRef(test, test.title);
-
     this.suites.forEach((value, key) => {
       const { descendants, testCount } = value;
 
-      if (descendants.length && descendants.includes(fullTestName)) {
+      if (descendants.length && descendants.includes(test.id)) {
         const newTestCount = testCount - decreaseIndex;
         this.suites.set(key, {
           ...value,
           testCount: newTestCount,
-          descendants:
-            newTestCount < 1
-              ? descendants.filter((testName) => testName !== fullTestName)
-              : descendants,
+          descendants: newTestCount < 1 ? descendants.filter((id) => id !== test.id) : descendants,
         });
       }
     });
