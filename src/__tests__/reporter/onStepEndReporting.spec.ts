@@ -29,9 +29,7 @@ describe('onStepBegin reporting', () => {
 
   reporter.launchId = 'launchId';
 
-  reporter.testItems = new Map([
-    ['testItemId', { id: tempTestItemId, name: 'testTitle' }],
-  ]);
+  reporter.testItems = new Map([['testItemId', { id: tempTestItemId, name: 'testTitle' }]]);
 
   reporter.nestedSteps = new Map([
     ['testItemId/stepName', { id: tempTestItemId, name: 'stepName' }],
