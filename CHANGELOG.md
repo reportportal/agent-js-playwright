@@ -1,3 +1,5 @@
+
+## [5.0.9] - 2023-03-21
 ### Fixed
 - Issue [#79](https://github.com/reportportal/agent-js-playwright/issues/79) with duplicating tests with wrong statuses using `testInfo.fail()`.
 - Issue [#85](https://github.com/reportportal/agent-js-playwright/issues/85) with suites finishing when retrying statically annotated (`.fixme()` or `.skip()`) tests. The issue still reproducible in some rare cases, refer [Issues troubleshooting](./README.md#issues-troubleshooting) for details.
