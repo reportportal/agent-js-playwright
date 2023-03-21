@@ -33,9 +33,7 @@ describe('onStepBegin reporting', () => {
 
     reporter.launchId = 'launchId';
 
-    reporter.testItems = new Map([
-      ['testItemId', { id: tempTestItemId, name: 'testTitle' }],
-    ]);
+    reporter.testItems = new Map([['testItemId', { id: tempTestItemId, name: 'testTitle' }]]);
   });
 
   const testCase = {
