@@ -25,20 +25,19 @@ describe('statuses reporting', () => {
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
 
-  const testParams = {
+  const testCase = {
     title: 'testTitle',
+    id: 'testItemId',
     titlePath: () => ['', suiteName, 'testTitle'],
   };
 
   test('reporter.testItems should be updated with statuses', () => {
-    reporter.testItems = new Map([
-      [`${suiteName}/testTitle`, { id: 'tempTestItemId', name: 'testTitle' }],
-    ]);
+    reporter.testItems = new Map([['testItemId', { id: 'tempTestItemId', name: 'testTitle' }]]);
     const status = STATUSES.PASSED;
     // @ts-ignore
-    reporter.setStatus(status, testParams);
+    reporter.setStatus(status, testCase);
     const expectedTestItems = new Map([
-      [`${suiteName}/testTitle`, { id: 'tempTestItemId', name: 'testTitle', status }],
+      ['testItemId', { id: 'tempTestItemId', name: 'testTitle', status }],
     ]);
     expect(reporter.testItems).toEqual(expectedTestItems);
   });
@@ -46,7 +45,7 @@ describe('statuses reporting', () => {
   test('reporter.suitesInfo should be with statuses', () => {
     const status = STATUSES.PASSED;
     // @ts-ignore
-    reporter.setStatus(status, testParams, suiteName);
+    reporter.setStatus(status, testCase, suiteName);
     const expectedSuitesInfo = new Map([[suiteName, { status }]]);
     expect(reporter.suitesInfo).toEqual(expectedSuitesInfo);
   });

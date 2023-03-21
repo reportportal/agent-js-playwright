@@ -27,19 +27,28 @@ describe('finish report suite', () => {
   reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
 
-  const testParams = {
+  const testCase = {
     title: 'testTitle',
+    id: 'testItemId',
     parent: {
       title: rootSuite,
       project: () => ({ name: rootSuite }),
       allTests: () => [
-        { title: 'testTitle', titlePath: () => ['', rootSuite, suiteName, 'testTitle'] },
+        {
+          id: 'testItemId',
+          title: 'testTitle',
+          titlePath: () => ['', rootSuite, suiteName, 'testTitle'],
+        },
       ],
       parent: {
         title: rootSuite,
         project: () => ({ name: rootSuite }),
         allTests: () => [
-          { title: 'testTitle', titlePath: () => ['', rootSuite, suiteName, 'testTitle'] },
+          {
+            id: 'testItemId',
+            title: 'testTitle',
+            titlePath: () => ['', rootSuite, suiteName, 'testTitle'],
+          },
         ],
       },
     },
@@ -47,7 +56,9 @@ describe('finish report suite', () => {
     location: {
       file: `C:${path.sep}testProject${path.sep}tests${path.sep}example.js`,
     },
-    outcome: () => 'passed',
+    outcome: () => 'expected',
+    annotations: [{ type: 'custom' }],
+    _staticAnnotations: [{ type: 'custom' }],
   };
 
   // TODO: add tests for skipped status and different workerIndex values
@@ -55,9 +66,7 @@ describe('finish report suite', () => {
     status: 'passed',
   };
 
-  reporter.testItems = new Map([
-    [`${rootSuite}/${suiteName}/testTitle`, { id: 'tempTestItemId', name: 'testTitle' }],
-  ]);
+  reporter.testItems = new Map([['testItemId', { id: 'tempTestItemId', name: 'testTitle' }]]);
   reporter.suites = new Map([
     [
       rootSuite,
@@ -65,7 +74,7 @@ describe('finish report suite', () => {
         id: 'rootsuiteId',
         name: rootSuite,
         testCount: 1,
-        descendants: [`${rootSuite}/${suiteName}/testTitle`],
+        descendants: ['testItemId'],
       },
     ],
     [
@@ -74,13 +83,13 @@ describe('finish report suite', () => {
         id: 'parentSuiteId',
         name: suiteName,
         testCount: 1,
-        descendants: [`${rootSuite}/${suiteName}/testTitle`],
+        descendants: ['testItemId'],
       },
     ],
   ]);
 
   // @ts-ignore
-  reporter.onTestEnd(testParams, result);
+  reporter.onTestEnd(testCase, result);
 
   test('client.finishTestItem should be called with suite id', () => {
     expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(1, 'tempTestItemId', {
