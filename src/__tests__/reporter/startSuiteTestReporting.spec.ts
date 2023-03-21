@@ -29,21 +29,30 @@ describe('start reporting suite/test', () => {
   reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
 
-  const testParams = {
+  const testCase = {
     title: 'testTitle',
+    id: 'testItemId',
     parent: {
       title: suiteName,
       location: 'tests/example.js',
       project: () => ({ name: '' }),
       allTests: () => [
-        { title: 'testTitle', titlePath: () => ['', rootSuite, suiteName, 'testTitle'] },
+        {
+          id: 'testItemId',
+          title: 'testTitle',
+          titlePath: () => ['', rootSuite, suiteName, 'testTitle'],
+        },
       ],
       parent: {
         title: rootSuite,
         location: 'tests/example.js',
         project: () => ({ name: '' }),
         allTests: () => [
-          { title: 'testTitle', titlePath: () => ['', rootSuite, suiteName, 'testTitle'] },
+          {
+            id: 'testItemId',
+            title: 'testTitle',
+            titlePath: () => ['', rootSuite, suiteName, 'testTitle'],
+          },
         ],
       },
     },
@@ -65,7 +74,7 @@ describe('start reporting suite/test', () => {
           id: 'tempTestItemId',
           name: rootSuite,
           testCount: 1,
-          descendants: [`${rootSuite}/${suiteName}/testTitle`],
+          descendants: ['testItemId'],
         },
       ],
       [
@@ -73,13 +82,13 @@ describe('start reporting suite/test', () => {
         {
           id: 'tempTestItemId',
           name: suiteName,
-          descendants: [`${rootSuite}/${suiteName}/testTitle`],
+          descendants: ['testItemId'],
           testCount: 1,
         },
       ],
     ]);
     const expectedTestItems = new Map([
-      [`${rootSuite}/${suiteName}/testTitle`, { id: 'tempTestItemId', name: 'testTitle' }],
+      ['testItemId', { id: 'tempTestItemId', name: 'testTitle' }],
     ]);
     const expectedRootParentSuiteObj: StartTestObjType = {
       startTime: reporter.client.helpers.now(),
@@ -103,7 +112,7 @@ describe('start reporting suite/test', () => {
     const parentId = 'tempTestItemId';
 
     // @ts-ignore
-    reporter.onTestBegin(testParams);
+    reporter.onTestBegin(testCase);
 
     // the first call for the root suite start
     expect(spyStartTestItem).toHaveBeenNthCalledWith(

@@ -24,6 +24,7 @@ describe('onStdOut testing', () => {
   reporter.client = new RPClientMock(mockConfig);
   const testCase = <TestCase>{
     title: 'testTitle',
+    id: 'testItemId',
     titlePath: () => ['rootSuite', 'suiteName', 'testTitle'],
   };
 

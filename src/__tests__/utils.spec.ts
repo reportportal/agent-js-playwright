@@ -287,7 +287,7 @@ describe('testing utils', () => {
     });
     test('calculateRpStatus should return STATUSES.SKIPPED in case of "skipped" outcome', () => {
       const status = calculateRpStatus('skipped', 'failed', []);
-      expect(status).toBe(STATUSES.PASSED);
+      expect(status).toBe(STATUSES.SKIPPED);
     });
     test('calculateRpStatus should return STATUSES.FAILED in case of "unexpected" outcome and no "fail" annotations', () => {
       const status = calculateRpStatus('unexpected', 'failed', []);

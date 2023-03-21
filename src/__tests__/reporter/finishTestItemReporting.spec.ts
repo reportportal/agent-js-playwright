@@ -25,21 +25,32 @@ const suiteName = 'suiteName';
 describe('finish test reporting', () => {
   const testCase = {
     title: 'testTitle',
+    id: 'testItemId',
     parent: {
       title: rootSuite,
       project: () => ({ name: rootSuite }),
       allTests: () => [
-        { title: 'testTitle', titlePath: () => ['', rootSuite, suiteName, 'testTitle'] },
+        {
+          id: 'testItemId',
+          title: 'testTitle',
+          titlePath: () => ['', rootSuite, suiteName, 'testTitle'],
+        },
       ],
       parent: {
         title: rootSuite,
         project: () => ({ name: rootSuite }),
         allTests: () => [
-          { title: 'testTitle', titlePath: () => ['', rootSuite, suiteName, 'testTitle'] },
+          {
+            id: 'testItemId',
+            title: 'testTitle',
+            titlePath: () => ['', rootSuite, suiteName, 'testTitle'],
+          },
         ],
       },
     },
     titlePath: () => [rootSuite, suiteName, 'testTitle'],
+    annotations: [{ type: 'custom' }],
+    _staticAnnotations: [{ type: 'custom' }],
   };
   let reporter: RPReporter;
 
@@ -47,9 +58,7 @@ describe('finish test reporting', () => {
     reporter = new RPReporter(mockConfig);
     reporter.client = new RPClientMock(mockConfig);
     reporter.launchId = 'tempLaunchId';
-    reporter.testItems = new Map([
-      [`${rootSuite}/${suiteName}/testTitle`, { id: 'tempTestItemId', name: 'testTitle' }],
-    ]);
+    reporter.testItems = new Map([['testItemId', { id: 'tempTestItemId', name: 'testTitle' }]]);
     reporter.suites = new Map([
       [
         rootSuite,
@@ -57,7 +66,7 @@ describe('finish test reporting', () => {
           id: 'rootsuiteId',
           name: rootSuite,
           testCount: 1,
-          descendants: [`${rootSuite}/${suiteName}/testTitle`],
+          descendants: ['testItemId'],
         },
       ],
       [
@@ -66,7 +75,7 @@ describe('finish test reporting', () => {
           id: 'suiteId',
           name: suiteName,
           testCount: 1,
-          descendants: [`${rootSuite}/${suiteName}/testTitle`],
+          descendants: ['testItemId'],
         },
       ],
     ]);

@@ -30,18 +30,16 @@ describe('onStepBegin reporting', () => {
   reporter.launchId = 'launchId';
 
   reporter.testItems = new Map([
-    [`${playwrightProjectName}/${suiteName}/testTitle`, { id: tempTestItemId, name: 'testTitle' }],
+    ['testItemId', { id: tempTestItemId, name: 'testTitle' }],
   ]);
 
   reporter.nestedSteps = new Map([
-    [
-      `${playwrightProjectName}/${suiteName}/testTitle/stepName`,
-      { id: tempTestItemId, name: 'stepName' },
-    ],
+    ['testItemId/stepName', { id: tempTestItemId, name: 'stepName' }],
   ]);
 
-  const testParams = {
+  const testCase = {
     title: 'testTitle',
+    id: 'testItemId',
     parent: {
       title: suiteName,
       project: () => ({ name: playwrightProjectName }),
@@ -62,7 +60,7 @@ describe('onStepBegin reporting', () => {
   };
 
   // @ts-ignore
-  reporter.onStepEnd(testParams, undefined, step);
+  reporter.onStepEnd(testCase, undefined, step);
 
   test('client.finishTestItem should be called with corresponding params', () => {
     const expectedStepObj = {
