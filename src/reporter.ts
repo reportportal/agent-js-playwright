@@ -32,9 +32,16 @@ import {
   StartLaunchObjType,
   StartTestObjType,
 } from './models';
-import { LAUNCH_MODES, LOG_LEVELS, STATUSES, TEST_ITEM_TYPES } from './constants';
 import {
-  convertToRpStatus,
+  LAUNCH_MODES,
+  LOG_LEVELS,
+  STATUSES,
+  TEST_ITEM_TYPES,
+  TEST_ANNOTATION_TYPES,
+  TEST_OUTCOME_TYPES,
+} from './constants';
+import {
+  calculateRpStatus,
   getAgentInfo,
   getAttachments,
   getCodeRef,
@@ -148,12 +155,11 @@ export class RPReporter implements Reporter {
       const attributes = (suiteItem?.attributes || []).concat(attr);
       this.suitesInfo.set(suiteName, { ...suiteItem, attributes });
     } else if (test) {
-      const fullTestName = getCodeRef(test, test.title);
-      const testItem = this.testItems.get(fullTestName);
+      const testItem = this.testItems.get(test.id);
 
       if (testItem) {
         const attributes = (testItem.attributes || []).concat(attr);
-        this.testItems.set(fullTestName, { ...testItem, attributes });
+        this.testItems.set(test.id, { ...testItem, attributes });
       }
     }
   }
@@ -162,11 +168,10 @@ export class RPReporter implements Reporter {
     if (suiteName) {
       this.suitesInfo.set(suiteName, { ...this.suitesInfo.get(suiteName), description });
     } else if (test) {
-      const fullTestName = getCodeRef(test, test.title);
-      const testItem = this.testItems.get(fullTestName);
+      const testItem = this.testItems.get(test.id);
 
       if (testItem) {
-        this.testItems.set(fullTestName, { ...testItem, description });
+        this.testItems.set(test.id, { ...testItem, description });
       }
     }
   }
@@ -175,11 +180,10 @@ export class RPReporter implements Reporter {
     if (suiteName) {
       this.suitesInfo.set(suiteName, { ...this.suitesInfo.get(suiteName), testCaseId });
     } else if (test) {
-      const fullTestName = getCodeRef(test, test.title);
-      const testItem = this.testItems.get(fullTestName);
+      const testItem = this.testItems.get(test.id);
 
       if (testItem) {
-        this.testItems.set(fullTestName, { ...testItem, testCaseId });
+        this.testItems.set(test.id, { ...testItem, testCaseId });
       }
     }
   }
@@ -188,11 +192,10 @@ export class RPReporter implements Reporter {
     if (suiteName) {
       this.suitesInfo.set(suiteName, { ...this.suitesInfo.get(suiteName), status });
     } else if (test) {
-      const fullTestName = getCodeRef(test, test.title);
-      const testItem = this.testItems.get(fullTestName);
+      const testItem = this.testItems.get(test.id);
 
       if (testItem) {
-        this.testItems.set(fullTestName, { ...testItem, status });
+        this.testItems.set(test.id, { ...testItem, status });
       }
     }
   }
@@ -207,8 +210,7 @@ export class RPReporter implements Reporter {
       const logs = (suiteItem?.logs || []).concat(log);
       this.suitesInfo.set(suiteName, { ...suiteItem, logs });
     } else if (test) {
-      const fullTestName = getCodeRef(test, test.title);
-      const testItem = this.testItems.get(fullTestName);
+      const testItem = this.testItems.get(test.id);
 
       if (testItem) {
         this.sendLog(testItem.id, log);
@@ -320,7 +322,7 @@ export class RPReporter implements Reporter {
       this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
 
       const allSuiteTests = currentSuite.allTests();
-      const descendants = allSuiteTests.map((testCase) => getCodeRef(testCase, testCase.title));
+      const descendants = allSuiteTests.map((testCase) => testCase.id);
       let testCount = allSuiteTests.length;
 
       // TODO: cover with tests
@@ -350,7 +352,7 @@ export class RPReporter implements Reporter {
     const fullSuiteName = getCodeRef(test, test.parent.title);
     const parentSuiteObj = this.suites.get(fullSuiteName);
 
-    // create step
+    // create test case
     if (parentSuiteObj) {
       const { includePlaywrightProjectNameToCodeReference } = this.config;
       const codeRef = getCodeRef(
@@ -358,7 +360,6 @@ export class RPReporter implements Reporter {
         test.title,
         !includePlaywrightProjectNameToCodeReference && playwrightProjectName,
       );
-      const fullTestName = getCodeRef(test, test.title);
       const { id: parentId } = parentSuiteObj;
       const startTestItem: StartTestObjType = {
         name: test.title,
@@ -369,7 +370,7 @@ export class RPReporter implements Reporter {
       };
       const stepObj = this.client.startTestItem(startTestItem, this.launchId, parentId);
       this.addRequestToPromisesQueue(stepObj.promise, 'Failed to start test.');
-      this.testItems.set(fullTestName, {
+      this.testItems.set(test.id, {
         name: test.title,
         id: stepObj.tempId,
       });
@@ -380,14 +381,13 @@ export class RPReporter implements Reporter {
     const { includeTestSteps } = this.config;
     if (!includeTestSteps) return;
 
-    const fullTestName = getCodeRef(test, test.title);
     let parent;
     if (step.parent) {
       const stepParentName = getCodeRef(step.parent, step.parent.title);
-      const fullStepParentName = `${fullTestName}/${stepParentName}`;
+      const fullStepParentName = `${test.id}/${stepParentName}`;
       parent = this.nestedSteps.get(fullStepParentName);
     } else {
-      parent = this.testItems.get(fullTestName);
+      parent = this.testItems.get(test.id);
     }
     if (!parent) return;
 
@@ -398,7 +398,7 @@ export class RPReporter implements Reporter {
       startTime: this.client.helpers.now(),
     };
     const stepName = getCodeRef(step, step.title);
-    const fullStepName = `${fullTestName}/${stepName}`;
+    const fullStepName = `${test.id}/${stepName}`;
     const { tempId, promise } = this.client.startTestItem(stepStartObj, this.launchId, parent.id);
 
     this.addRequestToPromisesQueue(promise, 'Failed to start nested step.');
@@ -413,9 +413,8 @@ export class RPReporter implements Reporter {
     const { includeTestSteps } = this.config;
     if (!includeTestSteps) return;
 
-    const fullTestName = getCodeRef(test, test.title);
     const stepName = getCodeRef(step, step.title);
-    const fullStepName = `${fullTestName}/${stepName}`;
+    const fullStepName = `${test.id}/${stepName}`;
     const testItem = this.nestedSteps.get(fullStepName);
     if (!testItem) return;
 
@@ -431,17 +430,17 @@ export class RPReporter implements Reporter {
   }
 
   async onTestEnd(test: TestCase, result: TestResult): Promise<void> {
-    const fullTestName = getCodeRef(test, test.title);
     const {
       id: testItemId,
       attributes,
       description,
       testCaseId,
       status: predefinedStatus,
-    } = this.testItems.get(fullTestName);
+    } = this.testItems.get(test.id);
     let withoutIssue;
     let testDescription = description;
-    const status = predefinedStatus || convertToRpStatus(result.status);
+    const calculatedStatus = calculateRpStatus(test.outcome(), result.status, test.annotations);
+    const status = predefinedStatus || calculatedStatus;
     if (status === STATUSES.SKIPPED) {
       withoutIssue = isFalse(this.config.skippedIssue);
     }
@@ -477,9 +476,9 @@ export class RPReporter implements Reporter {
     const { promise } = this.client.finishTestItem(testItemId, finishTestItemObj);
 
     this.addRequestToPromisesQueue(promise, 'Failed to finish test.');
-    this.testItems.delete(fullTestName);
+    this.testItems.delete(test.id);
 
-    this.updateAncestorsTestCount(test, result, status);
+    this.updateAncestorsTestCount(test, result);
 
     const fullParentName = getCodeRef(test, test.parent.title);
 
@@ -490,14 +489,29 @@ export class RPReporter implements Reporter {
   }
 
   // TODO: cover with tests
-  updateAncestorsTestCount(test: TestCase, result: TestResult, calculatedStatus: STATUSES): void {
-    // decrease by 1 by default as only one test case finished
+  updateAncestorsTestCount(test: TestCase, result: TestResult): void {
+    // Decrease by 1 by default as only one test case finished
     let decreaseIndex = 1;
-    // TODO: post an issue on GitHub for playwright/test to provide more clear output for this purpose
-    const isTestFinishedFromHook = result.workerIndex === -1; // in case test finished by hook error it will be retried
+    const isTestFinishedFromHookOrStaticAnnotation = result.workerIndex === -1;
+    const testOutcome = test.outcome();
+    // @ts-ignore access to private property _staticAnnotations
+    const isStaticallyAnnotatedWithSkippedAnnotation = test._staticAnnotations.some(
+      (annotation: { type: TEST_ANNOTATION_TYPES; description: string }) =>
+        annotation.type === TEST_ANNOTATION_TYPES.SKIP ||
+        annotation.type === TEST_ANNOTATION_TYPES.FIXME,
+    );
+
+    // TODO: post an issue on GitHub for playwright/test to provide clear output for this purpose
+    const isFinishedFromHook =
+      isTestFinishedFromHookOrStaticAnnotation && !isStaticallyAnnotatedWithSkippedAnnotation; // In case test finished by hook error it will be retried.
+
     const nonRetriedResult =
-      calculatedStatus === STATUSES.PASSED ||
-      (calculatedStatus === STATUSES.SKIPPED && !isTestFinishedFromHook);
+      testOutcome === TEST_OUTCOME_TYPES.EXPECTED ||
+      testOutcome === TEST_OUTCOME_TYPES.FLAKY ||
+      // This check broke `decreaseIndex` calculation for tests with .skip()/.fixme() static annotations and enabled retries after error from hook,
+      // but helps to calculate `decreaseIndex`correctly in other cases.
+      // Additional info required from Playwright to correctly determine failure from hook.
+      (testOutcome === TEST_OUTCOME_TYPES.SKIPPED && !isFinishedFromHook);
 
     // if test case has retries, and it will not be retried anymore
     if (test.retries > 0 && nonRetriedResult) {
@@ -507,20 +521,15 @@ export class RPReporter implements Reporter {
       decreaseIndex = decreaseIndex + possibleInvocationsLeft;
     }
 
-    const fullTestName = getCodeRef(test, test.title);
-
     this.suites.forEach((value, key) => {
       const { descendants, testCount } = value;
 
-      if (descendants.length && descendants.includes(fullTestName)) {
+      if (descendants.length && descendants.includes(test.id)) {
         const newTestCount = testCount - decreaseIndex;
         this.suites.set(key, {
           ...value,
           testCount: newTestCount,
-          descendants:
-            newTestCount < 1
-              ? descendants.filter((testName) => testName !== fullTestName)
-              : descendants,
+          descendants: newTestCount < 1 ? descendants.filter((id) => id !== test.id) : descendants,
         });
       }
     });

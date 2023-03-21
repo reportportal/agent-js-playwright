@@ -26,7 +26,7 @@ import {
   isFalse,
   getAttachments,
   isErrorLog,
-  convertToRpStatus,
+  calculateRpStatus,
 } from '../utils';
 import fs from 'fs';
 import path from 'path';
@@ -276,14 +276,30 @@ describe('testing utils', () => {
       expect(attachmentResult).toEqual(expectedAttachments);
     });
   });
-  describe('convertToRpStatus', () => {
-    test('convertToRpStatus should return STATUSES.FAILED', () => {
-      const status = convertToRpStatus('timedOut');
+  describe('calculateRpStatus', () => {
+    test('calculateRpStatus should return STATUSES.PASSED in case of "expected" outcome', () => {
+      const status = calculateRpStatus('expected', 'failed', []);
+      expect(status).toBe(STATUSES.PASSED);
+    });
+    test('calculateRpStatus should return STATUSES.PASSED in case of "flaky" outcome', () => {
+      const status = calculateRpStatus('flaky', 'failed', []);
+      expect(status).toBe(STATUSES.PASSED);
+    });
+    test('calculateRpStatus should return STATUSES.SKIPPED in case of "skipped" outcome', () => {
+      const status = calculateRpStatus('skipped', 'failed', []);
+      expect(status).toBe(STATUSES.SKIPPED);
+    });
+    test('calculateRpStatus should return STATUSES.FAILED in case of "unexpected" outcome and no "fail" annotations', () => {
+      const status = calculateRpStatus('unexpected', 'failed', []);
       expect(status).toBe(STATUSES.FAILED);
     });
-    test('convertToRpStatus not should return STATUSES.FAILED', () => {
-      const status = convertToRpStatus('skipped');
-      expect(status).not.toBe(STATUSES.FAILED);
+    test('calculateRpStatus should return STATUSES.FAILED in case of "unexpected" outcome, "fail" annotation and "passed" status', () => {
+      const status = calculateRpStatus('unexpected', 'passed', [{ type: 'fail' }]);
+      expect(status).toBe(STATUSES.FAILED);
+    });
+    test('calculateRpStatus should return STATUSES.PASSED in case of "unexpected" outcome, "fail" annotation and "failed" status', () => {
+      const status = calculateRpStatus('unexpected', 'failed', [{ type: 'fail' }]);
+      expect(status).toBe(STATUSES.PASSED);
     });
   });
 });

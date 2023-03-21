@@ -19,14 +19,14 @@ import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 import { StartTestObjType } from '../../models';
 import { TEST_ITEM_TYPES } from '../../constants';
-import path from 'path';
 
 describe('retries reporting', () => {
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
 
-  const testParams = {
+  const testCase = {
     title: 'testTitle',
+    id: 'testItemId',
     parent: {
       title: 'suiteName',
       location: 'tests/example.js',
@@ -50,7 +50,7 @@ describe('retries reporting', () => {
     reporter.suites = new Map([['suiteName', { id: 'tempTestItemId', name: 'suiteName' }]]);
 
     // @ts-ignore
-    reporter.onTestBegin(testParams);
+    reporter.onTestBegin(testCase);
 
     expect(spyStartTestItem).toHaveBeenCalledWith(expectedTestObj, reporter.launchId, parentId);
   });

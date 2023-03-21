@@ -31,26 +31,25 @@ describe('attributes reporting', () => {
     },
   ];
 
-  const testParams = {
+  const testCase = {
     title: 'testTitle',
+    id: 'testItemId',
     titlePath: () => ['', suiteName, 'testTitle'],
   };
 
   test('reporter.testItems should be updated with attributes', () => {
-    reporter.testItems = new Map([
-      [`${suiteName}/testTitle`, { id: 'tempTestItemId', name: 'testTitle' }],
-    ]);
+    reporter.testItems = new Map([['testItemId', { id: 'tempTestItemId', name: 'testTitle' }]]);
     // @ts-ignore
-    reporter.addAttributes(attributes, testParams);
+    reporter.addAttributes(attributes, testCase);
     const expectedTestItems = new Map([
-      [`${suiteName}/testTitle`, { id: 'tempTestItemId', name: 'testTitle', attributes }],
+      ['testItemId', { id: 'tempTestItemId', name: 'testTitle', attributes }],
     ]);
     expect(reporter.testItems).toEqual(expectedTestItems);
   });
 
   test('reporter.suitesInfo should be with attributes', () => {
     // @ts-ignore
-    reporter.addAttributes(attributes, testParams, suiteName);
+    reporter.addAttributes(attributes, testCase, suiteName);
     const expectedSuitesInfo = new Map([
       [
         suiteName,

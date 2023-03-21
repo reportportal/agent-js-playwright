@@ -33,16 +33,12 @@ describe('onStepBegin reporting', () => {
 
     reporter.launchId = 'launchId';
 
-    reporter.testItems = new Map([
-      [
-        `${playwrightProjectName}/${suiteName}/testTitle`,
-        { id: tempTestItemId, name: 'testTitle' },
-      ],
-    ]);
+    reporter.testItems = new Map([['testItemId', { id: tempTestItemId, name: 'testTitle' }]]);
   });
 
-  const testParams = {
+  const testCase = {
     title: 'testTitle',
+    id: 'testItemId',
     parent: {
       title: suiteName,
       project: () => ({ name: playwrightProjectName }),
@@ -62,7 +58,7 @@ describe('onStepBegin reporting', () => {
       },
       titlePath: () => ['stepName'],
     };
-    const expectedFullStepName = `${playwrightProjectName}/${suiteName}/testTitle/stepName`;
+    const expectedFullStepName = `testItemId/stepName`;
     const expectedNestedSteps = new Map([
       [expectedFullStepName, { id: tempTestItemId, name: 'stepName' }],
     ]);
@@ -74,7 +70,7 @@ describe('onStepBegin reporting', () => {
     };
 
     // @ts-ignore
-    reporter.onStepBegin(testParams, undefined, step);
+    reporter.onStepBegin(testCase, undefined, step);
 
     expect(reporter.client.startTestItem).toHaveBeenCalledWith(
       expectedStepObj,
@@ -85,13 +81,12 @@ describe('onStepBegin reporting', () => {
   });
 
   test('client.startTestItem should be called with test step parent id', () => {
-    const fullTestCaseName = `${playwrightProjectName}/${suiteName}/testTitle`;
     const stepParent = {
       title: 'stepParent',
       titlePath: () => ['stepParent'],
     };
     reporter.nestedSteps = new Map([
-      [`${fullTestCaseName}/stepParent`, { id: 'parentStepId', name: 'stepParent' }],
+      ['testItemId/stepParent', { id: 'parentStepId', name: 'stepParent' }],
     ]);
     const step = {
       title: 'stepName',
@@ -102,8 +97,8 @@ describe('onStepBegin reporting', () => {
       titlePath: () => ['stepParent', 'stepName'],
     };
     const expectedNestedSteps = new Map([
-      [`${fullTestCaseName}/stepParent`, { id: 'parentStepId', name: 'stepParent' }],
-      [`${fullTestCaseName}/stepParent/stepName`, { id: tempTestItemId, name: 'stepName' }],
+      ['testItemId/stepParent', { id: 'parentStepId', name: 'stepParent' }],
+      ['testItemId/stepParent/stepName', { id: tempTestItemId, name: 'stepName' }],
     ]);
     const expectedStepObj = {
       name: step.title,
@@ -113,7 +108,7 @@ describe('onStepBegin reporting', () => {
     };
 
     // @ts-ignore
-    reporter.onStepBegin(testParams, undefined, step);
+    reporter.onStepBegin(testCase, undefined, step);
 
     expect(reporter.client.startTestItem).toHaveBeenCalledWith(
       expectedStepObj,

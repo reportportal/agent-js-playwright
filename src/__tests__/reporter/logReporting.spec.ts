@@ -18,7 +18,6 @@ import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 import { LOG_LEVELS } from '../../constants';
-import path from 'path';
 
 const playwrightProjectName = 'projectName';
 const tempTestItemId = 'tempTestItemId';
@@ -75,13 +74,13 @@ describe('logs reporting', () => {
 
     test('suitesInfo should be updated with logs', () => {
       reporter.suites = new Map([[tempTestItemId, { id: tempTestItemId, name: 'suiteName' }]]);
-      const testParams = {
+      const testCase = {
         title: 'testName',
       };
 
       const expectedSuitesInfo = new Map([[tempTestItemId, { logs: [log] }]]);
       // @ts-ignore
-      reporter.sendTestItemLog(log, testParams, tempTestItemId);
+      reporter.sendTestItemLog(log, testCase, tempTestItemId);
 
       expect(reporter.suitesInfo).toEqual(expectedSuitesInfo);
     });
@@ -107,14 +106,10 @@ describe('logs reporting', () => {
           },
         ],
       ]);
-      reporter.testItems = new Map([
-        [
-          `${playwrightProjectName}/${suiteName}/testTitle`,
-          { id: tempTestItemId, name: 'testTitle' },
-        ],
-      ]);
-      const testParams = {
+      reporter.testItems = new Map([['testItemId', { id: tempTestItemId, name: 'testTitle' }]]);
+      const testCase = {
         title: 'testTitle',
+        id: 'testItemId',
         parent: {
           title: playwrightProjectName,
           location: 'tests/example.js',
@@ -123,6 +118,7 @@ describe('logs reporting', () => {
           allTests: () => [
             {
               title: 'testTitle',
+              id: 'testItemId',
               titlePath: () => ['', playwrightProjectName, suiteName, 'testTitle'],
             },
           ],
@@ -132,12 +128,16 @@ describe('logs reporting', () => {
             allTests: () => [
               {
                 title: 'testTitle',
+                id: 'testItemId',
                 titlePath: () => ['', playwrightProjectName, suiteName, 'testTitle'],
               },
             ],
           },
         },
         titlePath: () => ['', playwrightProjectName, suiteName, 'testTitle'],
+        outcome: () => 'unexpected',
+        annotations: [{ type: 'custom' }],
+        _staticAnnotations: [{ type: 'custom' }],
       };
 
       const result = {
@@ -150,7 +150,7 @@ describe('logs reporting', () => {
       jest.spyOn(reporter, 'sendLog');
 
       // @ts-ignore
-      await reporter.onTestEnd(testParams, result);
+      await reporter.onTestEnd(testCase, result);
 
       expect(reporter.sendLog).toHaveBeenCalledWith(tempTestItemId, {
         level: LOG_LEVELS.ERROR,

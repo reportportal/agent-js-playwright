@@ -1,3 +1,13 @@
+### Fixed
+- Issue [#79](https://github.com/reportportal/agent-js-playwright/issues/79) with duplicating tests with wrong statuses using `testInfo.fail()`.
+- Issue [#85](https://github.com/reportportal/agent-js-playwright/issues/85) with suites finishing when retrying statically annotated (`.fixme()` or `.skip()`) tests. The issue still reproducible in some rare cases, refer [Issues troubleshooting](./README.md#issues-troubleshooting) for details.
+### Changed
+- `testCase.outcome()` used instead of `testResult.status` to calculate the final status for the test case in RP. Thanks to [clouddra](https://github.com/clouddra).
+- `testCase.id` used instead of full test path to identify the test case.
+- `engines` field in `package.json`. The agent supports the minimal version of `Node.js` required by `@playwright/test` (>=14).
+- TypeScript compilation target changed to ES6.
+- Docs [Attachments](./README.md#attachments) section actualized.
+- `@reportportal/client-javascript` bumped to version `5.0.8`.
 
 ## [5.0.8] - 2022-09-28
 ### Fixed

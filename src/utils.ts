@@ -22,7 +22,13 @@ import path from 'path';
 import { name as pjsonName, version as pjsonVersion } from '../package.json';
 import { Attribute } from './models';
 import { Attachment } from './models/reporting';
-import { STATUSES } from './constants';
+import {
+  STATUSES,
+  TestAnnotation,
+  TestOutcome,
+  TEST_ANNOTATION_TYPES,
+  TEST_OUTCOME_TYPES,
+} from './constants';
 
 const fsPromises = fs.promises;
 
@@ -116,11 +122,31 @@ export const isErrorLog = (message: string): boolean => {
 };
 
 // https://playwright.dev/docs/api/class-testresult#test-result-status
-export const convertToRpStatus = (status: TestStatus): STATUSES => {
-  const isRpStatus = Object.values(STATUSES).includes(<STATUSES>status);
+export const calculateRpStatus = (
+  outcome: TestOutcome,
+  status: TestStatus,
+  annotations: TestAnnotation[],
+): STATUSES => {
+  let calculatedStatus = STATUSES.FAILED;
 
-  if (isRpStatus) {
-    return <STATUSES>status;
+  switch (outcome) {
+    case TEST_OUTCOME_TYPES.EXPECTED:
+      calculatedStatus = STATUSES.PASSED;
+      break;
+    case TEST_OUTCOME_TYPES.FLAKY:
+      calculatedStatus = STATUSES.PASSED;
+      break;
+    case TEST_OUTCOME_TYPES.UNEXPECTED:
+      if (annotations.some((annotation) => annotation.type === TEST_ANNOTATION_TYPES.FAIL)) {
+        calculatedStatus = status === STATUSES.PASSED ? STATUSES.FAILED : STATUSES.PASSED;
+      }
+      break;
+    case TEST_OUTCOME_TYPES.SKIPPED:
+      calculatedStatus = STATUSES.SKIPPED;
+      break;
+    default:
+      break;
   }
-  return STATUSES.FAILED;
+
+  return calculatedStatus;
 };
