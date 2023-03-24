@@ -1,6 +1,6 @@
 # @reportportal/agent-js-playwright
 
-Agent for integration Playwright with ReportPortal.
+Agent to integrate Playwright with ReportPortal.
 * More about [Playwright](https://playwright.dev/)
 * More about [ReportPortal](http://reportportal.io/)
 
