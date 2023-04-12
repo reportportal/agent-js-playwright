@@ -22,10 +22,12 @@ import path from 'path';
 const rootSuite = 'rootSuite';
 const suiteName = 'example.js';
 
-describe('finish report suite', () => {
+// TODO: add tests for skipped status and different workerIndex values
+describe('finish suites on finish all of their children', () => {
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
+  let spyFinishTestItem: jest.SpyInstance;
 
   const testCase = {
     title: 'testTitle',
@@ -61,50 +63,73 @@ describe('finish report suite', () => {
     _staticAnnotations: [{ type: 'custom' }],
   };
 
-  // TODO: add tests for skipped status and different workerIndex values
-  const result = {
-    status: 'passed',
-  };
+  beforeEach(() => {
+    spyFinishTestItem = jest.spyOn(reporter.client, 'finishTestItem');
 
-  reporter.testItems = new Map([['testItemId', { id: 'tempTestItemId', name: 'testTitle' }]]);
-  reporter.suites = new Map([
-    [
-      rootSuite,
-      {
-        id: 'rootsuiteId',
-        name: rootSuite,
-        testCount: 1,
-        descendants: ['testItemId'],
-      },
-    ],
-    [
-      `${rootSuite}/${suiteName}`,
-      {
-        id: 'parentSuiteId',
-        name: suiteName,
-        testCount: 1,
-        descendants: ['testItemId'],
-      },
-    ],
-  ]);
+    reporter.testItems = new Map([['testItemId', { id: 'tempTestItemId', name: 'testTitle' }]]);
+    reporter.suites = new Map([
+      [
+        rootSuite,
+        {
+          id: 'rootsuiteId',
+          name: rootSuite,
+          testCount: 1,
+          descendants: ['testItemId'],
+        },
+      ],
+      [
+        `${rootSuite}/${suiteName}`,
+        {
+          id: 'parentSuiteId',
+          name: suiteName,
+          testCount: 1,
+          descendants: ['testItemId'],
+        },
+      ],
+    ]);
+  });
 
-  // @ts-ignore
-  reporter.onTestEnd(testCase, result);
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
-  test('client.finishTestItem should be called with suite id', () => {
-    expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(1, 'tempTestItemId', {
+  test('client.finishTestItem should be called with suite id after finishing last suite children', () => {
+    const testResult = {
+      status: 'passed',
+    };
+    // @ts-ignore
+    reporter.onTestEnd(testCase, testResult);
+
+    expect(spyFinishTestItem).toHaveBeenNthCalledWith(1, 'tempTestItemId', {
       endTime: reporter.client.helpers.now(),
       status: 'passed',
     });
-    expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(2, 'rootsuiteId', {
+    expect(spyFinishTestItem).toHaveBeenNthCalledWith(2, 'rootsuiteId', {
       endTime: reporter.client.helpers.now(),
     });
-    expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(3, 'parentSuiteId', {
+    expect(spyFinishTestItem).toHaveBeenNthCalledWith(3, 'parentSuiteId', {
       endTime: reporter.client.helpers.now(),
     });
+    expect(reporter.suites).toEqual(new Map());
   });
 
-  test('suites should be reset', () => {
+  test('client.finishTestItem should be called with suite id in case of run end with unfinished suites', () => {
+    reporter.onEnd();
+
+    expect(spyFinishTestItem).toHaveBeenNthCalledWith(1, 'rootsuiteId', {
+      endTime: reporter.client.helpers.now(),
+    });
+    expect(spyFinishTestItem).toHaveBeenNthCalledWith(2, 'parentSuiteId', {
+      endTime: reporter.client.helpers.now(),
+    });
+    expect(reporter.suites).toEqual(new Map());
+  });
+
+  test('client.finishTestItem should be called with suite id in case of run end without unfinished suites', () => {
+    reporter.suites = new Map();
+    reporter.onEnd();
+
+    expect(spyFinishTestItem).toBeCalledTimes(0);
     expect(reporter.suites).toEqual(new Map());
   });
 });
