@@ -88,7 +88,7 @@ test('basic test', async ({ page }, testInfo) => {
 });
 ```
 
-*Note:* attachment body can be provided instead of path.
+*Note:* attachment path can be provided instead of body.
 
 As an alternative to this approach the [`ReportingAPI`](#log) methods can be used.
 
