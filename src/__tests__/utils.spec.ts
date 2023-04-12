@@ -30,7 +30,7 @@ import {
 } from '../utils';
 import fs from 'fs';
 import path from 'path';
-import { STATUSES } from '../constants';
+import { STATUSES, TestOutcome } from '../constants';
 
 describe('testing utils', () => {
   test('isFalse', () => {
@@ -277,6 +277,10 @@ describe('testing utils', () => {
     });
   });
   describe('calculateRpStatus', () => {
+    test('calculateRpStatus should return STATUSES.FAILED in case of unknown outcome', () => {
+      const status = calculateRpStatus(<TestOutcome>'foo', 'interrupted', []);
+      expect(status).toBe(STATUSES.FAILED);
+    });
     test('calculateRpStatus should return STATUSES.PASSED in case of "expected" outcome', () => {
       const status = calculateRpStatus('expected', 'failed', []);
       expect(status).toBe(STATUSES.PASSED);
@@ -285,9 +289,13 @@ describe('testing utils', () => {
       const status = calculateRpStatus('flaky', 'failed', []);
       expect(status).toBe(STATUSES.PASSED);
     });
-    test('calculateRpStatus should return STATUSES.SKIPPED in case of "skipped" outcome', () => {
+    test('calculateRpStatus should return STATUSES.SKIPPED in case of "skipped" outcome and "skipped" status', () => {
       const status = calculateRpStatus('skipped', 'failed', []);
       expect(status).toBe(STATUSES.SKIPPED);
+    });
+    test('calculateRpStatus should return STATUSES.INTERRUPTED in case of "skipped" outcome and "interrupted" status', () => {
+      const status = calculateRpStatus('skipped', 'interrupted', []);
+      expect(status).toBe(STATUSES.INTERRUPTED);
     });
     test('calculateRpStatus should return STATUSES.FAILED in case of "unexpected" outcome and no "fail" annotations', () => {
       const status = calculateRpStatus('unexpected', 'failed', []);

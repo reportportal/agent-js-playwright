@@ -133,4 +133,16 @@ describe('finish test reporting', () => {
     );
     expect(reporter.testItems.size).toBe(0);
   });
+
+  test('client.finishTestItem should not be called in case of test item not found', async () => {
+    const result = {
+      status: 'passed',
+    };
+    reporter.testItems = new Map();
+    // @ts-ignore
+    await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
+
+    expect(reporter.client.finishTestItem).toHaveBeenCalledTimes(0);
+    expect(reporter.testItems.size).toBe(0);
+  });
 });

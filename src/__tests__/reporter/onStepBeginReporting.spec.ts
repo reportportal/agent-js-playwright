@@ -50,6 +50,23 @@ describe('onStepBegin reporting', () => {
     titlePath: () => ['', playwrightProjectName, suiteName, 'testTitle'],
   };
 
+  test('client.startTestItem should not be called in case of launch finish request have been send', () => {
+    reporter.isLaunchFinishSend = true;
+    const step = {
+      title: 'stepName',
+      error: {
+        message: 'some error',
+      },
+      titlePath: () => ['stepName'],
+    };
+
+    // @ts-ignore
+    reporter.onStepBegin(testCase, undefined, step);
+
+    expect(reporter.client.startTestItem).toHaveBeenCalledTimes(0);
+    expect(reporter.nestedSteps).toEqual(new Map());
+  });
+
   test('client.startTestItem should be called with test item id as a parent id', () => {
     const step = {
       title: 'stepName',

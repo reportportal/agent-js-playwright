@@ -87,5 +87,6 @@ describe('finish report launch', () => {
     expect(reporter.client.finishLaunch).toHaveBeenCalledWith('tempLaunchId', {
       endTime: reporter.client.helpers.now(),
     });
+    expect(reporter.isLaunchFinishSend).toBe(true);
   });
 });

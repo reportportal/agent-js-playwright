@@ -25,9 +25,8 @@ const rootSuite = 'tests/example.js';
 const suiteName = 'suiteName';
 
 describe('start reporting suite/test', () => {
-  const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
-  reporter.launchId = 'tempLaunchId';
+  let reporter: RPReporter;
+  let spyStartTestItem: jest.SpyInstance;
 
   const testCase = {
     title: 'testTitle',
@@ -64,7 +63,17 @@ describe('start reporting suite/test', () => {
     titlePath: () => ['', rootSuite, suiteName, 'testTitle'],
   };
 
-  const spyStartTestItem = jest.spyOn(reporter.client, 'startTestItem');
+  beforeEach(() => {
+    reporter = new RPReporter(mockConfig);
+    reporter.client = new RPClientMock(mockConfig);
+    reporter.launchId = 'tempLaunchId';
+
+    spyStartTestItem = jest.spyOn(reporter.client, 'startTestItem');
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
   test('client.startTestItem should be called with corresponding params to report suites and test item', () => {
     const expectedSuites = new Map([
@@ -138,5 +147,15 @@ describe('start reporting suite/test', () => {
     expect(spyStartTestItem).toHaveBeenCalledTimes(3);
     expect(reporter.suites).toEqual(expectedSuites);
     expect(reporter.testItems).toEqual(expectedTestItems);
+  });
+
+  test('client.startTestItem should not be called in case of launch finish request have been send', () => {
+    reporter.isLaunchFinishSend = true;
+    // @ts-ignore
+    reporter.onTestBegin(testCase);
+
+    expect(spyStartTestItem).toHaveBeenCalledTimes(0);
+    expect(reporter.suites).toEqual(new Map());
+    expect(reporter.testItems).toEqual(new Map());
   });
 });
