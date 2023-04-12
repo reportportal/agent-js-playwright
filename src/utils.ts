@@ -142,7 +142,7 @@ export const calculateRpStatus = (
       }
       break;
     case TEST_OUTCOME_TYPES.SKIPPED:
-      calculatedStatus = STATUSES.SKIPPED;
+      calculatedStatus = status === STATUSES.INTERRUPTED ? STATUSES.INTERRUPTED : STATUSES.SKIPPED;
       break;
     default:
       break;

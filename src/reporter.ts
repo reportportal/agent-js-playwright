@@ -88,6 +88,8 @@ export class RPReporter implements Reporter {
 
   nestedSteps: Map<string, TestItem>;
 
+  isLaunchFinishSend: boolean;
+
   constructor(config: ReportPortalConfig) {
     this.config = config;
     this.suites = new Map();
@@ -274,7 +276,7 @@ export class RPReporter implements Reporter {
       mode: mode || LAUNCH_MODES.DEFAULT,
     };
     const { tempId, promise } = this.client.startLaunch(startLaunchObj);
-    this.addRequestToPromisesQueue(promise, 'Failed to launch run.');
+    this.addRequestToPromisesQueue(promise, 'Failed to start launch.');
     this.launchId = tempId;
   }
 
@@ -347,6 +349,9 @@ export class RPReporter implements Reporter {
   }
 
   onTestBegin(test: TestCase): void {
+    if (this.isLaunchFinishSend) {
+      return;
+    }
     const playwrightProjectName = this.createSuites(test);
 
     const fullSuiteName = getCodeRef(test, test.parent.title);
@@ -378,6 +383,9 @@ export class RPReporter implements Reporter {
   }
 
   onStepBegin(test: TestCase, result: TestResult, step: TestStep): void {
+    if (this.isLaunchFinishSend) {
+      return;
+    }
     const { includeTestSteps } = this.config;
     if (!includeTestSteps) return;
 
@@ -415,28 +423,32 @@ export class RPReporter implements Reporter {
 
     const stepName = getCodeRef(step, step.title);
     const fullStepName = `${test.id}/${stepName}`;
-    const testItem = this.nestedSteps.get(fullStepName);
-    if (!testItem) return;
+    const nestedStep = this.nestedSteps.get(fullStepName);
+    if (!nestedStep) return;
 
     const stepFinishObj = {
       status: step.error ? STATUSES.FAILED : STATUSES.PASSED,
       endTime: this.client.helpers.now(),
     };
 
-    const { promise } = this.client.finishTestItem(testItem.id, stepFinishObj);
+    const { promise } = this.client.finishTestItem(nestedStep.id, stepFinishObj);
 
     this.addRequestToPromisesQueue(promise, 'Failed to finish nested step.');
     this.nestedSteps.delete(fullStepName);
   }
 
   async onTestEnd(test: TestCase, result: TestResult): Promise<void> {
+    const savedTestItem = this.testItems.get(test.id);
+    if (!savedTestItem) {
+      return Promise.resolve();
+    }
     const {
       id: testItemId,
       attributes,
       description,
       testCaseId,
       status: predefinedStatus,
-    } = this.testItems.get(test.id);
+    } = savedTestItem;
     let withoutIssue;
     let testDescription = description;
     const calculatedStatus = calculateRpStatus(test.outcome(), result.status, test.annotations);
@@ -481,9 +493,10 @@ export class RPReporter implements Reporter {
     this.updateAncestorsTestCount(test, result);
 
     const fullParentName = getCodeRef(test, test.parent.title);
+    const parentSuite = this.suites.get(fullParentName);
 
     // if all children of the test parent have already finished, then finish all empty ancestors
-    if (this.suites.get(fullParentName).testCount < 1) {
+    if (parentSuite && 'testCount' in parentSuite && parentSuite.testCount < 1) {
       this.finishSuites();
     }
   }
@@ -536,10 +549,22 @@ export class RPReporter implements Reporter {
   }
 
   async onEnd(): Promise<void> {
+    // Force finish unfinished suites in case of interruptions
+    if (this.suites.size > 0) {
+      this.suites.forEach((value, key) => {
+        this.suites.set(key, {
+          ...value,
+          testCount: 0,
+          descendants: [],
+        });
+      });
+      this.finishSuites();
+    }
     const { promise } = this.client.finishLaunch(this.launchId, {
       endTime: this.client.helpers.now(),
       ...(this.customLaunchStatus && { status: this.customLaunchStatus }),
     });
+    this.isLaunchFinishSend = true;
     this.addRequestToPromisesQueue(promise, 'Failed to finish launch.');
     await Promise.all(this.promises);
     this.launchId = null;
