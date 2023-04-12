@@ -1,3 +1,5 @@
+
+## [5.0.10] - 2023-04-12
 ### Fixed
 - Issue with suites finishing after run interruption via Playwright [`globalTimeout`](https://playwright.dev/docs/api/class-testconfig#test-config-global-timeout).
 
