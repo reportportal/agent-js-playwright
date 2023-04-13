@@ -507,12 +507,17 @@ export class RPReporter implements Reporter {
     let decreaseIndex = 1;
     const isTestFinishedFromHookOrStaticAnnotation = result.workerIndex === -1;
     const testOutcome = test.outcome();
-    // @ts-ignore access to private property _staticAnnotations
-    const isStaticallyAnnotatedWithSkippedAnnotation = test._staticAnnotations.some(
-      (annotation: { type: TEST_ANNOTATION_TYPES; description: string }) =>
-        annotation.type === TEST_ANNOTATION_TYPES.SKIP ||
-        annotation.type === TEST_ANNOTATION_TYPES.FIXME,
-    );
+    const isTestHasStaticAnnotations =
+      // @ts-ignore access to private property _staticAnnotations
+      test._staticAnnotations && Array.isArray(test._staticAnnotations);
+    const isStaticallyAnnotatedWithSkippedAnnotation = isTestHasStaticAnnotations
+      ? // @ts-ignore access to private property _staticAnnotations
+        test._staticAnnotations.some(
+          (annotation: { type: TEST_ANNOTATION_TYPES; description: string }) =>
+            annotation.type === TEST_ANNOTATION_TYPES.SKIP ||
+            annotation.type === TEST_ANNOTATION_TYPES.FIXME,
+        )
+      : false;
 
     // TODO: post an issue on GitHub for playwright/test to provide clear output for this purpose
     const isFinishedFromHook =
