@@ -1,3 +1,5 @@
+
+## [5.0.11] - 2023-04-13
 ### Fixed
 - Errors in case of Playwright doesn't provide the internal `_staticAnnotations` property to the `TestCase`s.
 ### Added

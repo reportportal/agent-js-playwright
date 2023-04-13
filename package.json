@@ -1,6 +1,6 @@
 {
   "name": "@reportportal/agent-js-playwright",
-  "version": "5.0.10",
+  "version": "5.0.11",
   "description": "Agent to integrate Playwright with ReportPortal.",
   "main": "build/index.js",
   "types": "build/index.d.ts",
