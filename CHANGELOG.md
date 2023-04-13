@@ -1,3 +1,7 @@
+### Fixed
+- Errors in case of Playwright doesn't provide the internal `_staticAnnotations` property to the `TestCase`s.
+### Added
+- [`printsToStdio`](https://playwright.dev/docs/api/class-reporter#reporter-prints-to-stdio) method implemented. Now the Playwright will provide additional output to the terminal to enhance user experience in case of only `@reportportal/agent-js-playwright` reporter used.
 
 ## [5.0.10] - 2023-04-12
 ### Fixed
