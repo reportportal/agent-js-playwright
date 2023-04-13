@@ -574,4 +574,8 @@ export class RPReporter implements Reporter {
     await Promise.all(this.promises);
     this.launchId = null;
   }
+
+  printsToStdio(): boolean {
+    return false;
+  }
 }
