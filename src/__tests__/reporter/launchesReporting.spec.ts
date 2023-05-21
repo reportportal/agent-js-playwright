@@ -21,7 +21,7 @@ import { getSystemAttributes } from '../../utils';
 import { LAUNCH_MODES } from '../../constants';
 
 import { mockConfig } from '../mocks/configMock';
-import { RPClientMock } from '../mocks/RPClientMock';
+import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
 
 describe('start launch', () => {
   describe('DEFAULT mode', () => {
@@ -29,7 +29,7 @@ describe('start launch', () => {
     reporter.client = new RPClientMock(mockConfig);
     const startLaunchObj: StartLaunchObjType = {
       name: mockConfig.launch,
-      startTime: reporter.client.helpers.now(),
+      startTime: mockedDate,
       attributes: getSystemAttributes(),
       description: mockConfig.description,
       mode: LAUNCH_MODES.DEFAULT,
@@ -56,7 +56,7 @@ describe('start launch', () => {
     reporter.client = new RPClientMock(customConfig);
     const startLaunchObj: StartLaunchObjType = {
       name: customConfig.launch,
-      startTime: reporter.client.helpers.now(),
+      startTime: mockedDate,
       attributes: getSystemAttributes(),
       description: customConfig.description,
       mode: customConfig.mode,
@@ -64,7 +64,7 @@ describe('start launch', () => {
 
     beforeAll(() => reporter.onBegin());
 
-    test('should allow to pass mode to startLaunch', () => {
+    test('client.startLaunch should be called with corresponding params', () => {
       expect(reporter.client.startLaunch).toHaveBeenCalledTimes(1);
       expect(reporter.client.startLaunch).toHaveBeenCalledWith(startLaunchObj);
     });
@@ -83,7 +83,7 @@ describe('start launch', () => {
     reporter.client = new RPClientMock(customConfig);
     const startLaunchObj: StartLaunchObjType = {
       name: customConfig.launch,
-      startTime: reporter.client.helpers.now(),
+      startTime: mockedDate,
       attributes: getSystemAttributes(),
       description: customConfig.description,
       mode: LAUNCH_MODES.DEFAULT,
@@ -92,7 +92,40 @@ describe('start launch', () => {
 
     beforeAll(() => reporter.onBegin());
 
-    test('should allow to pass mode to startLaunch', () => {
+    test('client.startLaunch should be called with corresponding params', () => {
+      expect(reporter.client.startLaunch).toHaveBeenCalledTimes(1);
+      expect(reporter.client.startLaunch).toHaveBeenCalledWith(startLaunchObj);
+    });
+
+    test('reporter.launchId should be set', () => {
+      expect(reporter.launchId).toEqual('tempLaunchId');
+    });
+  });
+
+  describe('with existing launch id provided by ENV variable', () => {
+    let reporter: RPReporter;
+    const startLaunchObj: StartLaunchObjType = {
+      name: mockConfig.launch,
+      startTime: mockedDate,
+      attributes: getSystemAttributes(),
+      description: mockConfig.description,
+      mode: LAUNCH_MODES.DEFAULT,
+      id: 'id',
+    };
+
+    beforeAll(() => {
+      process.env.RP_LAUNCH_ID = 'id';
+      reporter = new RPReporter(mockConfig);
+      reporter.client = new RPClientMock(mockConfig);
+
+      reporter.onBegin();
+    });
+
+    afterAll(() => {
+      delete process.env.RP_LAUNCH_ID;
+    });
+
+    test('client.startLaunch should be called with corresponding params', () => {
       expect(reporter.client.startLaunch).toHaveBeenCalledTimes(1);
       expect(reporter.client.startLaunch).toHaveBeenCalledWith(startLaunchObj);
     });
@@ -114,7 +147,7 @@ describe('finish launch', () => {
     test('launch should be finished', () => {
       expect(reporter.client.finishLaunch).toHaveBeenCalledTimes(1);
       expect(reporter.client.finishLaunch).toHaveBeenCalledWith('tempLaunchId', {
-        endTime: reporter.client.helpers.now(),
+        endTime: mockedDate,
       });
       expect(reporter.isLaunchFinishSend).toBe(true);
     });
@@ -131,7 +164,29 @@ describe('finish launch', () => {
 
     beforeAll(() => reporter.onEnd());
 
-    test('launch should be finished', () => {
+    test('launch finish request should not be sent', () => {
+      expect(reporter.client.finishLaunch).toHaveBeenCalledTimes(0);
+      expect(reporter.isLaunchFinishSend).toBe(true);
+    });
+  });
+
+  describe('with existing launch id provided by ENV variable', () => {
+    let reporter: RPReporter;
+
+    beforeAll(() => {
+      process.env.RP_LAUNCH_ID = 'id';
+      reporter = new RPReporter(mockConfig);
+      reporter.client = new RPClientMock(mockConfig);
+      reporter.launchId = 'tempLaunchId';
+
+      reporter.onEnd();
+    });
+
+    afterAll(() => {
+      delete process.env.RP_LAUNCH_ID;
+    });
+
+    test('launch finish request should not be sent', () => {
       expect(reporter.client.finishLaunch).toHaveBeenCalledTimes(0);
       expect(reporter.isLaunchFinishSend).toBe(true);
     });

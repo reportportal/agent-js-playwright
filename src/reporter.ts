@@ -91,7 +91,10 @@ export class RPReporter implements Reporter {
   isLaunchFinishSend: boolean;
 
   constructor(config: ReportPortalConfig) {
-    this.config = config;
+    this.config = {
+      ...config,
+      launchId: process.env.RP_LAUNCH_ID || config.launchId,
+    };
     this.suites = new Map();
     this.suitesInfo = new Map();
     this.testItems = new Map();
@@ -275,7 +278,7 @@ export class RPReporter implements Reporter {
       rerun,
       rerunOf,
       mode: mode || LAUNCH_MODES.DEFAULT,
-      id: process.env.RP_LAUNCH_ID || launchId,
+      id: launchId,
     };
     const { tempId, promise } = this.client.startLaunch(startLaunchObj);
     this.addRequestToPromisesQueue(promise, 'Failed to start launch.');

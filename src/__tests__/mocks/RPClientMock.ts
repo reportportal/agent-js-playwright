@@ -17,7 +17,7 @@
 
 import { ReportPortalConfig } from '../../models';
 
-const mockedDate = Date.now();
+export const mockedDate = Date.now();
 
 export class RPClientMock {
   private config: ReportPortalConfig;
