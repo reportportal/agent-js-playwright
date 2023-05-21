@@ -262,7 +262,8 @@ export class RPReporter implements Reporter {
   }
 
   onBegin(): void {
-    const { launch, description, attributes, skippedIssue, rerun, rerunOf, mode } = this.config;
+    const { launch, description, attributes, skippedIssue, rerun, rerunOf, mode, launchId } =
+      this.config;
     const systemAttributes: Attribute[] = getSystemAttributes(skippedIssue);
 
     const startLaunchObj: StartLaunchObjType = {
@@ -274,6 +275,7 @@ export class RPReporter implements Reporter {
       rerun,
       rerunOf,
       mode: mode || LAUNCH_MODES.DEFAULT,
+      id: process.env.RP_LAUNCH_ID || launchId,
     };
     const { tempId, promise } = this.client.startLaunch(startLaunchObj);
     this.addRequestToPromisesQueue(promise, 'Failed to start launch.');
@@ -565,12 +567,16 @@ export class RPReporter implements Reporter {
       });
       this.finishSuites();
     }
-    const { promise } = this.client.finishLaunch(this.launchId, {
-      endTime: this.client.helpers.now(),
-      ...(this.customLaunchStatus && { status: this.customLaunchStatus }),
-    });
+
+    if (!this.config.launchId) {
+      const { promise } = this.client.finishLaunch(this.launchId, {
+        endTime: this.client.helpers.now(),
+        ...(this.customLaunchStatus && { status: this.customLaunchStatus }),
+      });
+      this.addRequestToPromisesQueue(promise, 'Failed to finish launch.');
+    }
+
     this.isLaunchFinishSend = true;
-    this.addRequestToPromisesQueue(promise, 'Failed to finish launch.');
     await Promise.all(this.promises);
     this.launchId = null;
   }

@@ -31,6 +31,7 @@ export interface ReportPortalConfig {
   endpoint: string;
   launch: string;
 
+  launchId?: string;
   debug?: boolean;
   attributes?: Array<Attribute>;
   description?: string;
