@@ -58,7 +58,7 @@ npm install --save-dev @reportportal/agent-js-playwright
 | includeTestSteps                            | (optional) *Default: false.* Allows you to see the test steps at the log level.                                                                                                                                                                                                                                                                                                                                        |
 | includePlaywrightProjectNameToCodeReference | (optional) *Default: false.* Includes Playwright project name to code reference. See [`testCaseId and codeRef calculation`](#setTestCaseId). It may be useful when you want to see the different history for the same test cases within different playwright projects.                                                                                                                                                 |                                                                                                                                                                             |
 
-The following options can be overrided using ENVIRONMENT variables:
+The following options can be overridden using ENVIRONMENT variables:
 
 | Parameter | ENV variable |
 |-----------|--------------|

@@ -28,6 +28,16 @@ export enum TEST_OUTCOME_TYPES {
   FLAKY = 'flaky',
 }
 
+export enum BASIC_ATTACHMENT_CONTENT_TYPES {
+  VIDEO = 'video/webm',
+  TRACE = 'application/zip',
+}
+
+export enum BASIC_ATTACHMENT_NAMES {
+  VIDEO = 'video',
+  TRACE = 'trace',
+}
+
 export type TestAnnotation = { type: string; description?: string };
 
 export type TestOutcome = 'skipped' | 'expected' | 'unexpected' | 'flaky';
