@@ -30,7 +30,12 @@ import {
 } from '../utils';
 import fs from 'fs';
 import path from 'path';
-import { STATUSES, TestOutcome } from '../constants';
+import {
+  STATUSES,
+  TestOutcome,
+  BASIC_ATTACHMENT_CONTENT_TYPES,
+  BASIC_ATTACHMENT_NAMES,
+} from '../constants';
 
 describe('testing utils', () => {
   test('isFalse', () => {
@@ -274,6 +279,70 @@ describe('testing utils', () => {
       const attachmentResult = await getAttachments(attachments);
 
       expect(attachmentResult).toEqual(expectedAttachments);
+    });
+
+    describe('with attachments options', () => {
+      test('should return empty attachment list without trace in case of uploadTrace option is false', async () => {
+        const attachments = [
+          {
+            name: BASIC_ATTACHMENT_NAMES.TRACE,
+            contentType: BASIC_ATTACHMENT_CONTENT_TYPES.TRACE,
+            path: 'path/to/trace-attachment',
+          },
+        ];
+
+        const attachmentResult = await getAttachments(attachments, { uploadTrace: false });
+
+        expect(attachmentResult).toEqual([]);
+      });
+
+      test('should return empty attachment list without video in case of uploadVideo option is false', async () => {
+        const attachments = [
+          {
+            name: BASIC_ATTACHMENT_NAMES.VIDEO,
+            contentType: BASIC_ATTACHMENT_CONTENT_TYPES.VIDEO,
+            path: 'path/to/trace-attachment',
+          },
+        ];
+
+        const attachmentResult = await getAttachments(attachments, { uploadVideo: false });
+
+        expect(attachmentResult).toEqual([]);
+      });
+
+      test('should return correct attachment list with video and trace as uploadVideo and uploadTrace options are true by default', async () => {
+        const fileData = Buffer.from([1, 2, 3, 4, 5, 6, 7]);
+
+        const attachments = [
+          {
+            name: BASIC_ATTACHMENT_NAMES.TRACE,
+            contentType: BASIC_ATTACHMENT_CONTENT_TYPES.TRACE,
+            body: fileData,
+          },
+          {
+            name: BASIC_ATTACHMENT_NAMES.VIDEO,
+            contentType: BASIC_ATTACHMENT_CONTENT_TYPES.VIDEO,
+            body: fileData,
+          },
+        ];
+
+        const expectedAttachments = [
+          {
+            name: BASIC_ATTACHMENT_NAMES.TRACE,
+            type: BASIC_ATTACHMENT_CONTENT_TYPES.TRACE,
+            content: fileData,
+          },
+          {
+            name: BASIC_ATTACHMENT_NAMES.VIDEO,
+            type: BASIC_ATTACHMENT_CONTENT_TYPES.VIDEO,
+            content: fileData,
+          },
+        ];
+
+        const attachmentResult = await getAttachments(attachments);
+
+        expect(attachmentResult).toEqual(expectedAttachments);
+      });
     });
   });
   describe('calculateRpStatus', () => {
