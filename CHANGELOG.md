@@ -1,3 +1,5 @@
+### Added
+- `launchId` option to the config to attach run results to an existing launch. Related to parallel execution on one and several machines [#86](https://github.com/reportportal/agent-js-playwright/issues/86).
 
 ## [5.0.11] - 2023-04-13
 ### Fixed
