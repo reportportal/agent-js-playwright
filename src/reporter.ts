@@ -92,6 +92,8 @@ export class RPReporter implements Reporter {
 
   constructor(config: ReportPortalConfig) {
     this.config = {
+      uploadTrace: true,
+      uploadVideo: true,
       ...config,
       launchId: process.env.RP_LAUNCH_ID || config.launchId,
     };
@@ -465,7 +467,10 @@ export class RPReporter implements Reporter {
     // TODO: cover with tests
     if (result.attachments?.length) {
       const { uploadVideo, uploadTrace } = this.config;
-      const attachmentsFiles = await getAttachments(result.attachments, { uploadVideo, uploadTrace });
+      const attachmentsFiles = await getAttachments(result.attachments, {
+        uploadVideo,
+        uploadTrace,
+      });
 
       attachmentsFiles.map((file) => {
         this.sendLog(testItemId, {

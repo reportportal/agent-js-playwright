@@ -20,7 +20,7 @@ import fs from 'fs';
 import path from 'path';
 // @ts-ignore
 import { name as pjsonName, version as pjsonVersion } from '../package.json';
-import { Attribute, Attachment, AttachmentsConfig } from "./models";
+import { Attribute, Attachment, AttachmentsConfig } from './models';
 import {
   STATUSES,
   TestAnnotation,
