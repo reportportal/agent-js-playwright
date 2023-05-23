@@ -117,13 +117,19 @@ export const getAttachments = async (
     })
     .map(async ({ name, path: attachmentPath, contentType, body }) => {
       let fileContent;
-      if (body) {
-        fileContent = body;
-      } else {
-        if (!fs.existsSync(attachmentPath)) {
-          return;
+
+      try {
+        if (body) {
+          fileContent = body;
+        } else {
+          if (!fs.existsSync(attachmentPath)) {
+            return;
+          }
+          fileContent = await fsPromises.readFile(attachmentPath);
         }
-        fileContent = await fsPromises.readFile(attachmentPath);
+      } catch (e) {
+        console.error(e);
+        return;
       }
 
       return {

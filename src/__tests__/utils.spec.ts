@@ -281,6 +281,45 @@ describe('testing utils', () => {
       expect(attachmentResult).toEqual(expectedAttachments);
     });
 
+    test('should return only attachments that have been read without errors', async () => {
+      const file2Data = Buffer.from([1, 2, 3, 4, 5, 6, 7]);
+
+      jest.spyOn(fs, 'existsSync').mockImplementationOnce((): boolean => true);
+
+      jest.spyOn(fs.promises, 'readFile').mockImplementationOnce(async () => {
+        throw new Error('Read file error');
+      });
+
+      const attachments = [
+        {
+          name: 'filename1',
+          contentType: 'image/png',
+          path: 'path/to/attachment',
+        },
+        {
+          name: 'filename2',
+          contentType: 'image/png',
+          body: file2Data,
+        },
+        {
+          name: 'filename3',
+          contentType: 'image/png',
+        },
+      ];
+
+      const expectedAttachments = [
+        {
+          name: 'filename2',
+          type: 'image/png',
+          content: file2Data,
+        },
+      ];
+
+      const attachmentResult = await getAttachments(attachments);
+
+      expect(attachmentResult).toEqual(expectedAttachments);
+    });
+
     describe('with attachments options', () => {
       test('should return empty attachment list without trace in case of uploadTrace option is false', async () => {
         const attachments = [
