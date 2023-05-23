@@ -15,8 +15,14 @@
  *
  */
 
-import { StartLaunchObjType, StartTestObjType, FinishTestItemObjType, LogRQ } from './reporting';
-import { ReportPortalConfig } from './configs';
+import {
+  StartLaunchObjType,
+  StartTestObjType,
+  FinishTestItemObjType,
+  LogRQ,
+  Attachment,
+} from './reporting';
+import { ReportPortalConfig, AttachmentsConfig } from './configs';
 import { Attribute } from './common';
 
 export {
@@ -24,6 +30,8 @@ export {
   StartTestObjType,
   FinishTestItemObjType,
   ReportPortalConfig,
+  AttachmentsConfig,
+  Attachment,
   Attribute,
   LogRQ,
 };

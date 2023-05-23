@@ -15,17 +15,18 @@
  *
  */
 
-import { TestCase, TestStatus } from '@playwright/test/reporter';
+import { TestCase, TestStatus, TestResult } from '@playwright/test/reporter';
 import fs from 'fs';
 import path from 'path';
 // @ts-ignore
 import { name as pjsonName, version as pjsonVersion } from '../package.json';
-import { Attribute } from './models';
-import { Attachment } from './models/reporting';
+import { Attribute, Attachment, AttachmentsConfig } from './models';
 import {
   STATUSES,
   TestAnnotation,
   TestOutcome,
+  BASIC_ATTACHMENT_NAMES,
+  BASIC_ATTACHMENT_CONTENT_TYPES,
   TEST_ANNOTATION_TYPES,
   TEST_OUTCOME_TYPES,
 } from './constants';
@@ -91,20 +92,44 @@ export const sendEventToReporter = (type: string, data: any, suite?: string): vo
   process.stdout.write(JSON.stringify({ type, data, suite }));
 };
 
-type attachments = { name: string; path?: string; body?: Buffer; contentType: string }[];
+export const getAttachments = async (
+  attachments: TestResult['attachments'],
+  { uploadTrace, uploadVideo }: AttachmentsConfig = { uploadTrace: true, uploadVideo: true },
+): Promise<Attachment[]> => {
+  const isTraceNotAllowed = isFalse(uploadTrace);
+  const isVideoNotAllowed = isFalse(uploadVideo);
 
-export const getAttachments = async (attachments: attachments): Promise<Attachment[]> => {
   const readFilePromises = attachments
-    .filter((attachment) => attachment.body || attachment.path)
+    .filter(({ name, path: attachmentPath, contentType, body }) => {
+      const isValidAttachment = body || attachmentPath;
+
+      const ignoreAsTrace =
+        isTraceNotAllowed &&
+        name === BASIC_ATTACHMENT_NAMES.TRACE &&
+        contentType === BASIC_ATTACHMENT_CONTENT_TYPES.TRACE;
+
+      const ignoreAsVideo =
+        isVideoNotAllowed &&
+        name === BASIC_ATTACHMENT_NAMES.VIDEO &&
+        contentType === BASIC_ATTACHMENT_CONTENT_TYPES.VIDEO;
+
+      return isValidAttachment && !ignoreAsTrace && !ignoreAsVideo;
+    })
     .map(async ({ name, path: attachmentPath, contentType, body }) => {
       let fileContent;
-      if (body) {
-        fileContent = body;
-      } else {
-        if (!fs.existsSync(attachmentPath)) {
-          return;
+
+      try {
+        if (body) {
+          fileContent = body;
+        } else {
+          if (!fs.existsSync(attachmentPath)) {
+            return;
+          }
+          fileContent = await fsPromises.readFile(attachmentPath);
         }
-        fileContent = await fsPromises.readFile(attachmentPath);
+      } catch (e) {
+        console.error(e);
+        return;
       }
 
       return {
