@@ -25,21 +25,32 @@ export interface RestClientConfig extends AxiosRequestConfig {
   agent?: AgentOptions;
 }
 
-export interface ReportPortalConfig {
+interface ClientConfig {
   token: string;
   project: string;
   endpoint: string;
   launch: string;
 
   debug?: boolean;
+  isLaunchMergeRequired?: boolean; // not used for this agent
+  restClientConfig?: RestClientConfig;
+  headers?: Record<string, string>;
+}
+
+export interface AttachmentsConfig {
+  uploadVideo?: boolean;
+  uploadTrace?: boolean;
+}
+
+export interface ReportPortalConfig extends ClientConfig, AttachmentsConfig {
+  launchId?: string;
   attributes?: Array<Attribute>;
   description?: string;
   rerun?: boolean;
   rerunOf?: string;
   mode?: LAUNCH_MODES;
-  isLaunchMergeRequired?: boolean; // not used for this agent
+
   skippedIssue?: boolean;
   includeTestSteps?: boolean;
-  restClientConfig?: RestClientConfig;
   includePlaywrightProjectNameToCodeReference?: boolean;
 }

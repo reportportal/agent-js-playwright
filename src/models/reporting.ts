@@ -26,6 +26,7 @@ export interface StartLaunchObjType {
   rerun?: boolean;
   rerunOf?: string;
   mode?: LAUNCH_MODES;
+  id?: string;
 }
 
 export interface StartTestObjType {
