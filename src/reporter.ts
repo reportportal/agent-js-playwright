@@ -413,7 +413,6 @@ export class RPReporter implements Reporter {
 
     Object.defineProperty(step, 'id', {
       value: randomUUID(),
-      configurable: true,
     });
 
     const stepName = getCodeRef(step, step.title);
