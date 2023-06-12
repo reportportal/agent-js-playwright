@@ -1,3 +1,5 @@
+### Fixed
+- Issue [#76](https://github.com/reportportal/agent-js-playwright/issues/76) nested steps are not finished when `nestedSteps : true`
 
 ## [5.1.0] - 2023-06-05
 ### Added
