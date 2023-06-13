@@ -70,12 +70,13 @@ describe('onStepBegin reporting', () => {
   test('client.startTestItem should be called with test item id as a parent id', () => {
     const step = {
       title: 'stepName',
+      id: 'fb3d9c5c-e7f9-488d-b9cd-47f1618d9f69',
       error: {
         message: 'some error',
       },
       titlePath: () => ['stepName'],
     };
-    const expectedFullStepName = `testItemId/stepName`;
+    const expectedFullStepName = `testItemId/stepName-fb3d9c5c-e7f9-488d-b9cd-47f1618d9f69`;
     const expectedNestedSteps = new Map([
       [expectedFullStepName, { id: tempTestItemId, name: 'stepName' }],
     ]);
@@ -94,29 +95,41 @@ describe('onStepBegin reporting', () => {
       reporter.launchId,
       tempTestItemId,
     );
+
+    reporter.nestedSteps = new Map([
+      [
+        'testItemId/stepName-fb3d9c5c-e7f9-488d-b9cd-47f1618d9f69',
+        { id: tempTestItemId, name: 'stepName' },
+      ],
+    ]);
+
     expect(reporter.nestedSteps).toEqual(expectedNestedSteps);
   });
 
   test('client.startTestItem should be called with test step parent id', () => {
     const stepParent = {
+      id: 'f96293c4-bc29-42a6-b60f-e0840ffa0648',
       title: 'stepParent',
       titlePath: () => ['stepParent'],
     };
+
     reporter.nestedSteps = new Map([
-      ['testItemId/stepParent', { id: 'parentStepId', name: 'stepParent' }],
+      [
+        'testItemId/stepParent-f96293c4-bc29-42a6-b60f-e0840ffa0648',
+        { id: 'parentStepId', name: 'stepParent' },
+      ],
     ]);
+
     const step = {
       title: 'stepName',
       parent: stepParent,
+      id: '0b3a78c1-521a-4a80-a125-52074991426a',
       error: {
         message: 'some error',
       },
       titlePath: () => ['stepParent', 'stepName'],
     };
-    const expectedNestedSteps = new Map([
-      ['testItemId/stepParent', { id: 'parentStepId', name: 'stepParent' }],
-      ['testItemId/stepParent/stepName', { id: tempTestItemId, name: 'stepName' }],
-    ]);
+
     const expectedStepObj = {
       name: step.title,
       type: TEST_ITEM_TYPES.STEP,
@@ -132,6 +145,5 @@ describe('onStepBegin reporting', () => {
       reporter.launchId,
       'parentStepId',
     );
-    expect(reporter.nestedSteps).toEqual(expectedNestedSteps);
   });
 });

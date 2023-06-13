@@ -21,6 +21,7 @@ import {
   FinishTestItemObjType,
   LogRQ,
   Attachment,
+  TestStepWithId,
 } from './reporting';
 import { ReportPortalConfig, AttachmentsConfig } from './configs';
 import { Attribute } from './common';
@@ -34,4 +35,5 @@ export {
   Attachment,
   Attribute,
   LogRQ,
+  TestStepWithId,
 };
