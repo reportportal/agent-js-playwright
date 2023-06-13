@@ -1,3 +1,5 @@
+
+## [5.1.1] - 2023-06-13
 ### Fixed
 - Nested steps and launch finishing when `includeTestSteps: true`. Addressed [#76](https://github.com/reportportal/agent-js-playwright/issues/76), [#97](https://github.com/reportportal/agent-js-playwright/issues/97).
 
