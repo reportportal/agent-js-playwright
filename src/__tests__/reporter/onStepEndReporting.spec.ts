@@ -32,7 +32,10 @@ describe('onStepBegin reporting', () => {
   reporter.testItems = new Map([['testItemId', { id: tempTestItemId, name: 'testTitle' }]]);
 
   reporter.nestedSteps = new Map([
-    ['testItemId/stepName', { id: tempTestItemId, name: 'stepName' }],
+    [
+      'testItemId/stepName-b91c7967-f32d-4cb7-843f-78a7b62e0055',
+      { id: tempTestItemId, name: 'stepName' },
+    ],
   ]);
 
   const testCase = {
@@ -51,6 +54,7 @@ describe('onStepBegin reporting', () => {
 
   const step = {
     title: 'stepName',
+    id: 'b91c7967-f32d-4cb7-843f-78a7b62e0055',
     error: {
       message: 'some error',
     },
