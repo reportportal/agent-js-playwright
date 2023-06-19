@@ -28,13 +28,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 18
-      - name: Clean install of node dependencies
-        run: npm ci
+      - name: Install of node dependencies
+        run: npm install
       - name: Build the source code
         run: npm run build
       - name: Run lint

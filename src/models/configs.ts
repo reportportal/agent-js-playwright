@@ -26,7 +26,7 @@ export interface RestClientConfig extends AxiosRequestConfig {
 }
 
 interface ClientConfig {
-  token: string;
+  apiKey: string;
   project: string;
   endpoint: string;
   launch: string;
