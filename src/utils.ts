@@ -15,7 +15,7 @@
  *
  */
 
-import { TestCase, TestStatus, TestResult } from '@playwright/test/reporter';
+import { TestCase, TestStatus, TestResult, TestStep } from '@playwright/test/reporter';
 import fs from 'fs';
 import path from 'path';
 // @ts-ignore
@@ -30,6 +30,7 @@ import {
   TEST_ANNOTATION_TYPES,
   TEST_OUTCOME_TYPES,
 } from './constants';
+import { createHash } from 'crypto';
 
 const fsPromises = fs.promises;
 
@@ -144,6 +145,17 @@ export const getAttachments = async (
 
 export const isErrorLog = (message: string): boolean => {
   return message.toLowerCase().includes('error');
+};
+
+export const createSHA256Hash = ({
+  category,
+  startTime,
+  title,
+  titlePath,
+}: Partial<TestStep>): string => {
+  const valueToHash = `${category}/${startTime.getTime()}/${titlePath().join('/')}/${title}`;
+
+  return createHash('sha256').update(valueToHash).digest('hex');
 };
 
 // https://playwright.dev/docs/api/class-testresult#test-result-status

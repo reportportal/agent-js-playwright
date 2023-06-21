@@ -15,6 +15,7 @@
  */
 
 import { RPReporter } from '../../reporter';
+import { createSHA256Hash } from '../../utils';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 
@@ -31,13 +32,6 @@ describe('onStepBegin reporting', () => {
 
   reporter.testItems = new Map([['testItemId', { id: tempTestItemId, name: 'testTitle' }]]);
 
-  reporter.nestedSteps = new Map([
-    [
-      'testItemId/stepName-b91c7967-f32d-4cb7-843f-78a7b62e0055',
-      { id: tempTestItemId, name: 'stepName' },
-    ],
-  ]);
-
   const testCase = {
     title: 'testTitle',
     id: 'testItemId',
@@ -53,13 +47,19 @@ describe('onStepBegin reporting', () => {
   };
 
   const step = {
+    category: 'pw:api',
+    startTime: new Date(2023, 5, 12, 12, 0, 0, 123),
+    duration: 22,
     title: 'stepName',
-    id: 'b91c7967-f32d-4cb7-843f-78a7b62e0055',
     error: {
       message: 'some error',
     },
     titlePath: () => ['stepName'],
   };
+
+  reporter.nestedSteps = new Map([
+    [`testItemId/stepName/${createSHA256Hash(step)}`, { id: tempTestItemId, name: 'stepName' }],
+  ]);
 
   // @ts-ignore
   reporter.onStepEnd(testCase, undefined, step);
