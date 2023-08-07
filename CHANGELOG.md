@@ -1,7 +1,7 @@
 
-## [5.1.2] - 2023-06-23
 ### Fixed
 - [#111](https://github.com/reportportal/agent-js-playwright/issues/111) Test is not finished when `expect().toPass()` exceed test timeout
+- ## [5.1.2] - 2023-06-23
 ### Changed
 - `token` configuration option was renamed to `apiKey` to maintain common convention.
 - `@reportportal/client-javascript` bumped to version `5.0.12`.
