@@ -18,6 +18,7 @@ import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 import { FinishTestItemObjType } from '../../models';
+import { STATUSES } from '../../constants';
 
 const rootSuite = 'rootSuite';
 const suiteName = 'suiteName';
@@ -144,5 +145,48 @@ describe('finish test reporting', () => {
 
     expect(reporter.client.finishTestItem).toHaveBeenCalledTimes(0);
     expect(reporter.testItems.size).toBe(0);
+  });
+
+  test('client.finishTestItem should finish all unfinished steps and delete them from the this.nestedSteps', async () => {
+    reporter.nestedSteps = new Map([[`${testCase.id}/testTitle`, { name: 'name', id: '1214r1' }]]);
+
+    // @ts-ignore
+    await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, {});
+
+    expect(reporter.nestedSteps.has(`${testCase.id}/testTitle`)).toBe(false);
+  });
+  test('client.finishTestItem should finish all unfinished steps and finish test steps with status INTERRUPTED if result.status === "timedOut"', async () => {
+    const result = {
+      status: 'timedOut',
+    };
+
+    reporter.nestedSteps = new Map([[`${testCase.id}/testTitle`, { name: 'name', id: '1214r1' }]]);
+
+    // @ts-ignore
+    await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
+
+    const finishStepObject: FinishTestItemObjType = {
+      endTime: reporter.client.helpers.now(),
+      status: STATUSES.INTERRUPTED,
+    };
+
+    expect(reporter.client.finishTestItem).toHaveBeenCalledWith('1214r1', finishStepObject);
+  });
+  test('client.finishTestItem should finish all unfinished steps and finish test steps with status FAILED if result.status === "failed"', async () => {
+    const result = {
+      status: 'failed',
+    };
+
+    reporter.nestedSteps = new Map([[`${testCase.id}/testTitle`, { name: 'name', id: '1214r1' }]]);
+
+    // @ts-ignore
+    await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
+
+    const finishStepObject: FinishTestItemObjType = {
+      endTime: reporter.client.helpers.now(),
+      status: STATUSES.FAILED,
+    };
+
+    expect(reporter.client.finishTestItem).toHaveBeenCalledWith('1214r1', finishStepObject);
   });
 });
