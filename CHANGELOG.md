@@ -1,5 +1,3 @@
-
-## [5.1.3] - 2023-09-07
 ### Fixed
 - [#111](https://github.com/reportportal/agent-js-playwright/issues/111) Test is not finished when `expect().toPass()` exceed test timeout
 ### Changed
