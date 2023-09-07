@@ -491,6 +491,22 @@ export class RPReporter implements Reporter {
       });
       testDescription = (description || '').concat(`\n\`\`\`error\n${stacktrace}\n\`\`\``);
     }
+
+    [...this.nestedSteps.entries()].forEach(([key, value]) => {
+      if (key.includes(test.id)) {
+        const { id: stepId } = value;
+        const itemObject = {
+          status: result.status === 'timedOut' ? STATUSES.INTERRUPTED : STATUSES.FAILED,
+          endTime: this.client.helpers.now(),
+        };
+
+        const { promise } = this.client.finishTestItem(stepId, itemObject);
+        this.addRequestToPromisesQueue(promise, 'Failed to finish nested step.');
+
+        this.nestedSteps.delete(key);
+      }
+    });
+
     const finishTestItemObj: FinishTestItemObjType = {
       endTime: this.client.helpers.now(),
       status,

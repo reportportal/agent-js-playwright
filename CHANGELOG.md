@@ -1,3 +1,7 @@
+### Fixed
+- [#111](https://github.com/reportportal/agent-js-playwright/issues/111) Test is not finished when `expect().toPass()` exceed test timeout
+### Changed
+- `@reportportal/client-javascript` bumped to version `5.0.13`. `launchUuidPrint` and `launchUuidPrintOutput` configuration options introduced.
 
 ## [5.1.2] - 2023-06-23
 ### Changed
