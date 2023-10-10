@@ -1,3 +1,5 @@
+### Added
+- Add ability to provide `attributes`,`status`,`description`,`testCaseId` for test using `testInfo.attach`
 
 ## [5.1.4] - 2023-10-05
 ## Changed

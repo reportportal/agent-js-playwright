@@ -27,6 +27,8 @@ import {
   getAttachments,
   isErrorLog,
   calculateRpStatus,
+  getAdditionalInfo,
+  getDescription,
 } from '../utils';
 import fs from 'fs';
 import path from 'path';
@@ -35,7 +37,10 @@ import {
   TestOutcome,
   BASIC_ATTACHMENT_CONTENT_TYPES,
   BASIC_ATTACHMENT_NAMES,
+  RPTestInfo,
 } from '../constants';
+import { TestCase } from '@playwright/test/reporter';
+import { TestAdditionalInfo } from '../models/reporting';
 
 describe('testing utils', () => {
   test('isFalse', () => {
@@ -416,6 +421,138 @@ describe('testing utils', () => {
     test('calculateRpStatus should return STATUSES.PASSED in case of "unexpected" outcome, "fail" annotation and "failed" status', () => {
       const status = calculateRpStatus('unexpected', 'failed', [{ type: 'fail' }]);
       expect(status).toBe(STATUSES.PASSED);
+    });
+  });
+
+  describe('getAdditionalInfo', () => {
+    test('Should collect only allowed fields', () => {
+      const testCase = {
+        results: [
+          {
+            attachments: [
+              {
+                name: RPTestInfo.attributes,
+                contentType: 'application/json',
+                body: Buffer.from(
+                  JSON.stringify([
+                    { key: 'key1', value: 'value1', system: true },
+                    { key: 'key2', value: 'value2', system: true },
+                  ]),
+                ),
+              },
+              {
+                name: RPTestInfo.description,
+                contentType: 'plain/text',
+                body: Buffer.from('Description'),
+              },
+              {
+                name: RPTestInfo.status,
+                contentType: 'plain/text',
+                body: Buffer.from('skipped'),
+              },
+              {
+                name: RPTestInfo.status,
+                contentType: 'plain/text',
+                body: Buffer.from('failed'),
+              },
+              {
+                name: RPTestInfo.testCaseId,
+                contentType: 'plain/text',
+                body: Buffer.from('testCaseId'),
+              },
+              {
+                name: 'notAllowedField',
+                contentType: 'plain/text',
+                body: Buffer.from('notAllowedValue'),
+              },
+            ],
+          },
+        ],
+      };
+
+      const expectedResult: TestAdditionalInfo = {
+        attributes: [
+          { key: 'key1', value: 'value1', system: true },
+          { key: 'key2', value: 'value2', system: true },
+        ],
+        description: 'Description',
+        status: 'failed',
+        testCaseId: 'testCaseId',
+      };
+
+      const additionalInfo = getAdditionalInfo(testCase as TestCase);
+
+      expect(additionalInfo).toEqual(expectedResult);
+    });
+
+    test('Should recover from error in case if JSON is not valid', () => {
+      const testCase = {
+        results: [
+          {
+            attachments: [
+              {
+                name: RPTestInfo.attributes,
+                contentType: 'application/json',
+                body: Buffer.from(
+                  `{ key: 'key1', value: 'value1', system: true },
+                  { key: 'key2', value: 'value2', system: true }`,
+                ),
+              },
+              {
+                name: RPTestInfo.description,
+                contentType: 'plain/text',
+                body: Buffer.from('Description'),
+              },
+              {
+                name: RPTestInfo.status,
+                contentType: 'plain/text',
+                body: Buffer.from('skipped'),
+              },
+            ],
+          },
+        ],
+      };
+
+      const expectedResult: TestAdditionalInfo = {
+        attributes: [],
+        description: 'Description',
+        status: 'skipped',
+        testCaseId: '',
+      };
+
+      const error = new Error('Unexpected token k in JSON at position 2');
+
+      console.error = jest.fn();
+
+      const additionalInfo = getAdditionalInfo(testCase as TestCase);
+
+      expect(console.error).toBeCalledTimes(1);
+      expect(console.error).toHaveBeenCalledWith(error.message);
+      expect(additionalInfo).toEqual(expectedResult);
+    });
+  });
+
+  describe('getDescription', () => {
+    test('It should return one description joined by \n', () => {
+      const description1 = 'description1';
+      const description2 = 'description2';
+
+      const expectedResult = 'description1\ndescription2';
+
+      const description = getDescription(description1, description2);
+
+      expect(expectedResult).toBe(description);
+    });
+
+    test('It should return one description joined by \n in case when empty string was provided', () => {
+      const description1 = 'description1';
+      const description2 = '';
+
+      const expectedResult = 'description1';
+
+      const description = getDescription(description1, description2);
+
+      expect(expectedResult).toBe(description);
     });
   });
 });

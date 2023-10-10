@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 EPAM Systems
+ *  Copyright 2023 EPAM Systems
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,16 +15,9 @@
  *
  */
 
-export { LAUNCH_MODES } from './launchModes';
-export { TEST_ITEM_TYPES } from './testItemTypes';
-export { STATUSES } from './statuses';
-export { LOG_LEVELS } from './logLevels';
-export { RPTestInfo } from './testInfo';
-export {
-  TestAnnotation,
-  TestOutcome,
-  TEST_ANNOTATION_TYPES,
-  TEST_OUTCOME_TYPES,
-  BASIC_ATTACHMENT_CONTENT_TYPES,
-  BASIC_ATTACHMENT_NAMES,
-} from './playwright';
+export const RPTestInfo = {
+  status: 'status',
+  attributes: 'attributes',
+  description: 'description',
+  testCaseId: 'testCaseId',
+} as const;

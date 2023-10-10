@@ -66,3 +66,17 @@ export interface LogRQ {
 export interface TestStepWithId extends TestStep {
   id: string;
 }
+
+export interface TestInfoAttachment {
+  name: string;
+  contentType?: string;
+  body?: string | Buffer;
+  path?: string;
+}
+
+export interface TestAdditionalInfo {
+  status?: string;
+  attributes?: Attribute[];
+  description?: string;
+  testCaseId?: string;
+}

@@ -29,7 +29,9 @@ import {
   BASIC_ATTACHMENT_CONTENT_TYPES,
   TEST_ANNOTATION_TYPES,
   TEST_OUTCOME_TYPES,
+  RPTestInfo,
 } from './constants';
+import { TestAdditionalInfo } from './models/reporting';
 
 const fsPromises = fs.promises;
 
@@ -123,13 +125,13 @@ export const getAttachments = async (
           fileContent = body;
         } else {
           if (!fs.existsSync(attachmentPath)) {
-            return;
+            return undefined;
           }
           fileContent = await fsPromises.readFile(attachmentPath);
         }
       } catch (e) {
         console.error(e);
-        return;
+        return undefined;
       }
 
       return {
@@ -175,3 +177,38 @@ export const calculateRpStatus = (
 
   return calculatedStatus;
 };
+
+export const getAdditionalInfo = (test: TestCase): TestAdditionalInfo => {
+  const initialValue: TestAdditionalInfo = {
+    attributes: [],
+    description: '',
+    testCaseId: '',
+    status: '',
+  };
+
+  return test.results.reduce<TestAdditionalInfo>(
+    (additionalInfo, { attachments = [] }) =>
+      Object.assign(
+        additionalInfo,
+        attachments.reduce<TestAdditionalInfo>((acc, { name, body }) => {
+          if (name in RPTestInfo) {
+            try {
+              const value = body.toString();
+
+              return Object.assign(acc, {
+                [name]: name === RPTestInfo.attributes ? JSON.parse(value) : value,
+              });
+            } catch (error: unknown) {
+              console.error((error as Error).message);
+            }
+          }
+
+          return acc;
+        }, initialValue),
+      ),
+    initialValue,
+  );
+};
+
+export const getDescription = (...descriptions: string[]): string =>
+  descriptions.filter(Boolean).join('\n');

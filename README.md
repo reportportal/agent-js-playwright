@@ -102,6 +102,69 @@ test('basic test', async ({ page }, testInfo) => {
 });
 ```
 
+Also, we can attach `attributes`,`status`,`description`,`testCaseId`
+
+`Description`
+```typescript
+import { test, expect } from '@playwright/test';
+import { RPTestInfo } from '@reportportal/agent-js-playwright'
+
+test('basic test', async ({ page }, testInfo) => {
+  await testInfo.attach(RPTestInfo.description, { body: 'Description', contentType: 'plain/text' });
+
+  expect(true).toBe(true);
+});
+```
+Description provided this way will be merged with description provided by `ReportingAPI`.
+
+`Attributes`
+```typescript
+import { test, expect } from '@playwright/test';
+import { RPTestInfo } from '@reportportal/agent-js-playwright'
+
+test('basic test', async ({ page }, testInfo) => {
+  await testInfo.attach(RPTestInfo.status, { body: JSON.stringify([
+    {
+      key: 'testKey',
+      value: 'testValue',
+    },
+    {
+      value: 'testValueTwo',
+    }
+    ]), 
+     contentType: 'application/json' });
+
+  expect(true).toBe(true);
+});
+```
+Attributes provided this way will be merged with Attributes provided by `ReportingAPI`.
+
+`Status`
+```typescript
+import { test, expect } from '@playwright/test';
+import { RPTestInfo } from '@reportportal/agent-js-playwright'
+
+test('basic test', async ({ page }, testInfo) => {
+  await testInfo.attach(RPTestInfo.status, { body: 'passed', contentType:'text/plain'})
+
+  expect(true).toBe(true);
+});
+```
+Status provided this way will be replaced by status provided by `ReportingAPI`. You can provide as many statuses as you want, but only the last will be applied.
+
+`testCaseId`
+```typescript
+import { test, expect } from '@playwright/test';
+import { RPTestInfo } from '@reportportal/agent-js-playwright'
+
+test('basic test', async ({ page }, testInfo) => {
+  await testInfo.attach(RPTestInfo.testCaseId, { body: 'testCaseId', contentType:'text/plain'})
+
+  expect(true).toBe(true);
+});
+```
+TestCaseId provided this way will be replaced by testCaseId provided by `ReportingAPI`.
+
 *Note:* attachment path can be provided instead of body.
 
 As an alternative to this approach the [`ReportingAPI`](#log) methods can be used.

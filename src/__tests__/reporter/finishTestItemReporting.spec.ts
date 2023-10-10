@@ -18,7 +18,7 @@ import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 import { FinishTestItemObjType } from '../../models';
-import { STATUSES } from '../../constants';
+import { RPTestInfo, STATUSES } from '../../constants';
 
 const rootSuite = 'rootSuite';
 const suiteName = 'suiteName';
@@ -27,6 +27,8 @@ describe('finish test reporting', () => {
   const testCase = {
     title: 'testTitle',
     id: 'testItemId',
+    //@ts-ignore
+    results: [{ attachments: [] }],
     parent: {
       title: rootSuite,
       project: () => ({ name: rootSuite }),
@@ -188,5 +190,94 @@ describe('finish test reporting', () => {
     };
 
     expect(reporter.client.finishTestItem).toHaveBeenCalledWith('1214r1', finishStepObject);
+  });
+
+  test('client.finishTestItem should call reporter.client.finishTestItem with correct values', async () => {
+    const result = { status: 'passed' };
+
+    reporter.testItems = new Map([
+      [
+        `${testCase.id}`,
+        {
+          id: 'testItemId',
+          name: 'name',
+          description: 'savedTestItemDescription',
+          status: STATUSES.PASSED,
+          attributes: [
+            { value: 'savedTestItemAttrValue' },
+            { key: 'savedTestItemAttrKey', value: 'savedTestItemAttrValue', system: false },
+          ],
+        },
+      ],
+    ]);
+
+    await reporter.onTestEnd(
+      {
+        ...testCase,
+        outcome: () => 'expected',
+        results: [
+          // @ts-ignore
+          {
+            attachments: [
+              {
+                name: RPTestInfo.attributes,
+                contentType: 'application/json',
+                body: Buffer.from(
+                  JSON.stringify([
+                    { key: 'key1', value: 'value1', system: false },
+                    { key: 'key2', value: 'value2', system: false },
+                  ]),
+                ),
+              },
+              {
+                name: RPTestInfo.description,
+                contentType: 'plain/text',
+                body: Buffer.from('Description'),
+              },
+              {
+                name: RPTestInfo.status,
+                contentType: 'plain/text',
+                body: Buffer.from('skipped'),
+              },
+              {
+                name: RPTestInfo.status,
+                contentType: 'plain/text',
+                body: Buffer.from('interrupted'),
+              },
+              {
+                name: RPTestInfo.testCaseId,
+                contentType: 'plain/text',
+                body: Buffer.from('testCaseId'),
+              },
+              {
+                name: 'notAllowedField',
+                contentType: 'plain/text',
+                body: Buffer.from('notAllowedValue'),
+              },
+            ],
+          },
+        ],
+      },
+      result,
+    );
+
+    const finishStepObject: FinishTestItemObjType = {
+      endTime: reporter.client.helpers.now(),
+      status: STATUSES.PASSED,
+      attributes: [
+        { key: 'key1', value: 'value1', system: false },
+        { key: 'key2', value: 'value2', system: false },
+        { value: 'savedTestItemAttrValue' },
+        { key: 'savedTestItemAttrKey', value: 'savedTestItemAttrValue', system: false },
+      ],
+      description: 'savedTestItemDescription\nDescription',
+      testCaseId: 'testCaseId',
+    };
+
+    expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(
+      1,
+      'testItemId',
+      finishStepObject,
+    );
   });
 });
