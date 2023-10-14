@@ -21,31 +21,106 @@ import { Attribute } from './models';
 import { STATUSES, LOG_LEVELS } from './constants';
 import { Attachment } from './models/reporting';
 
+const getDepreciationMessage = (methodName: string): string =>
+  `This method is deprecated. Use ${methodName} from @reportportal/agent-js-playwright/promises instead`;
+
 export const ReportingApi = {
-  addAttributes: (attrs: Attribute[], suite?: string): void =>
-    sendEventToReporter(EVENTS.ADD_ATTRIBUTES, attrs, suite),
-  setDescription: (description: string, suite?: string): void =>
-    sendEventToReporter(EVENTS.SET_DESCRIPTION, description, suite),
-  setTestCaseId: (testCaseId: string, suite?: string): void =>
-    sendEventToReporter(EVENTS.SET_TEST_CASE_ID, testCaseId, suite),
-  setStatus: (status: keyof typeof STATUSES, suite?: string): void =>
-    sendEventToReporter(EVENTS.SET_STATUS, status, suite),
-  setStatusPassed: (suite?: string): void =>
-    sendEventToReporter(EVENTS.SET_STATUS, STATUSES.PASSED, suite),
-  setStatusFailed: (suite?: string): void =>
-    sendEventToReporter(EVENTS.SET_STATUS, STATUSES.FAILED, suite),
-  setStatusSkipped: (suite?: string): void =>
-    sendEventToReporter(EVENTS.SET_STATUS, STATUSES.SKIPPED, suite),
-  setStatusStopped: (suite?: string): void =>
-    sendEventToReporter(EVENTS.SET_STATUS, STATUSES.STOPPED, suite),
-  setStatusInterrupted: (suite?: string): void =>
-    sendEventToReporter(EVENTS.SET_STATUS, STATUSES.INTERRUPTED, suite),
-  setStatusCancelled: (suite?: string): void =>
-    sendEventToReporter(EVENTS.SET_STATUS, STATUSES.CANCELLED, suite),
-  setStatusInfo: (suite?: string): void =>
-    sendEventToReporter(EVENTS.SET_STATUS, STATUSES.INFO, suite),
-  setStatusWarn: (suite?: string): void =>
-    sendEventToReporter(EVENTS.SET_STATUS, STATUSES.WARN, suite),
+  /**
+   * @deprecated Use `addAttributes` from `@reportportal/agent-js-playwright/promises` instead
+   */
+  addAttributes: (attrs: Attribute[], suite?: string): void => {
+    console.warn(getDepreciationMessage('addAttributes'));
+    sendEventToReporter(EVENTS.ADD_ATTRIBUTES, attrs, suite);
+  },
+
+  /**
+   * @deprecated Use `setDescription` from `@reportportal/agent-js-playwright/promises` instead
+   */
+  setDescription: (description: string, suite?: string): void => {
+    console.warn(getDepreciationMessage('setDescription'));
+    sendEventToReporter(EVENTS.SET_DESCRIPTION, description, suite);
+  },
+
+  /**
+   * @deprecated Use `setTestCaseId` from `@reportportal/agent-js-playwright/promises` instead
+   */
+  setTestCaseId: (testCaseId: string, suite?: string): void => {
+    console.warn(getDepreciationMessage('setTestCaseId'));
+    sendEventToReporter(EVENTS.SET_TEST_CASE_ID, testCaseId, suite);
+  },
+
+  /**
+   * @deprecated Use `setStatus` from `@reportportal/agent-js-playwright/promises` instead
+   */
+  setStatus: (status: keyof typeof STATUSES, suite?: string): void => {
+    console.warn(getDepreciationMessage('setStatus'));
+    sendEventToReporter(EVENTS.SET_STATUS, status, suite);
+  },
+
+  /**
+   * @deprecated Use `setStatusPassed` from `@reportportal/agent-js-playwright/promises` instead
+   */
+  setStatusPassed: (suite?: string): void => {
+    console.warn(getDepreciationMessage('setStatusPassed'));
+    sendEventToReporter(EVENTS.SET_STATUS, STATUSES.PASSED, suite);
+  },
+
+  /**
+   * @deprecated Use `setStatusFailed` from `@reportportal/agent-js-playwright/promises` instead
+   */
+  setStatusFailed: (suite?: string): void => {
+    console.warn(getDepreciationMessage('setStatusPassed'));
+    sendEventToReporter(EVENTS.SET_STATUS, STATUSES.FAILED, suite);
+  },
+
+  /**
+   * @deprecated Use `setStatusSkipped` from `@reportportal/agent-js-playwright/promises` instead
+   */
+  setStatusSkipped: (suite?: string): void => {
+    console.warn(getDepreciationMessage('setStatusSkipped'));
+    sendEventToReporter(EVENTS.SET_STATUS, STATUSES.SKIPPED, suite);
+  },
+
+  /**
+   * @deprecated Use `setStatusStopped` from `@reportportal/agent-js-playwright/promises` instead
+   */
+  setStatusStopped: (suite?: string): void => {
+    console.warn(getDepreciationMessage('setStatusStopped'));
+    sendEventToReporter(EVENTS.SET_STATUS, STATUSES.STOPPED, suite);
+  },
+
+  /**
+   * @deprecated Use `setStatusInterrupted` from `@reportportal/agent-js-playwright/promises` instead
+   */
+  setStatusInterrupted: (suite?: string): void => {
+    console.warn(getDepreciationMessage('setStatusInterrupted'));
+    sendEventToReporter(EVENTS.SET_STATUS, STATUSES.INTERRUPTED, suite);
+  },
+
+  /**
+   * @deprecated Use `setStatusCancelled` from `@reportportal/agent-js-playwright/promises` instead
+   */
+  setStatusCancelled: (suite?: string): void => {
+    console.warn(getDepreciationMessage('setStatusCancelled'));
+    sendEventToReporter(EVENTS.SET_STATUS, STATUSES.CANCELLED, suite);
+  },
+
+  /**
+   * @deprecated Use `setStatusInfo` from `@reportportal/agent-js-playwright/promises` instead
+   */
+  setStatusInfo: (suite?: string): void => {
+    console.warn(getDepreciationMessage('setStatusInfo'));
+    sendEventToReporter(EVENTS.SET_STATUS, STATUSES.INFO, suite);
+  },
+
+  /**
+   * @deprecated Use `setStatusWarn` from `@reportportal/agent-js-playwright/promises` instead
+   */
+  setStatusWarn: (suite?: string): void => {
+    console.warn(getDepreciationMessage('setStatusWarn'));
+    sendEventToReporter(EVENTS.SET_STATUS, STATUSES.WARN, suite);
+  },
+
   setLaunchStatus: (status: keyof typeof STATUSES): void =>
     sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, status),
   setLaunchStatusPassed: (): void => sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, STATUSES.PASSED),

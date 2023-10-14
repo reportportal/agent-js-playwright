@@ -209,6 +209,3 @@ export const getAdditionalInfo = (test: TestCase): TestAdditionalInfo => {
     initialValue,
   );
 };
-
-export const getDescription = (...descriptions: string[]): string =>
-  descriptions.filter(Boolean).join('\n');

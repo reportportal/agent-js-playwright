@@ -101,8 +101,30 @@ describe('finish test reporting', () => {
       description: 'description',
     };
 
-    // @ts-ignore
-    await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
+    await reporter.onTestEnd(
+      {
+        ...testCase,
+        outcome: () => 'expected',
+        results: [
+          // @ts-ignore
+          {
+            attachments: [
+              {
+                name: RPTestInfo.attributes,
+                body: Buffer.from(JSON.stringify([{ key: 'key', value: 'value' }])),
+                contentType: 'application/json',
+              },
+              {
+                name: RPTestInfo.description,
+                body: Buffer.from('description'),
+                contentType: 'text/plain',
+              },
+            ],
+          },
+        ],
+      },
+      result,
+    );
 
     expect(reporter.client.finishTestItem).toHaveBeenCalledTimes(3);
     expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(
@@ -126,7 +148,30 @@ describe('finish test reporting', () => {
       issue: { issueType: 'NOT_ISSUE' },
     };
     // @ts-ignore
-    await reporter.onTestEnd({ ...testCase, outcome: () => 'skipped' }, result);
+    await reporter.onTestEnd(
+      {
+        ...testCase,
+        outcome: () => 'skipped',
+        results: [
+          // @ts-ignore
+          {
+            attachments: [
+              {
+                name: RPTestInfo.attributes,
+                body: Buffer.from(JSON.stringify([{ key: 'key', value: 'value' }])),
+                contentType: 'application/json',
+              },
+              {
+                name: RPTestInfo.description,
+                body: Buffer.from('description'),
+                contentType: 'text/plain',
+              },
+            ],
+          },
+        ],
+      },
+      result,
+    );
 
     expect(reporter.client.finishTestItem).toHaveBeenCalledTimes(3);
     expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(
@@ -195,22 +240,6 @@ describe('finish test reporting', () => {
   test('client.finishTestItem should call reporter.client.finishTestItem with correct values', async () => {
     const result = { status: 'passed' };
 
-    reporter.testItems = new Map([
-      [
-        `${testCase.id}`,
-        {
-          id: 'testItemId',
-          name: 'name',
-          description: 'savedTestItemDescription',
-          status: STATUSES.PASSED,
-          attributes: [
-            { value: 'savedTestItemAttrValue' },
-            { key: 'savedTestItemAttrKey', value: 'savedTestItemAttrValue', system: false },
-          ],
-        },
-      ],
-    ]);
-
     await reporter.onTestEnd(
       {
         ...testCase,
@@ -263,20 +292,18 @@ describe('finish test reporting', () => {
 
     const finishStepObject: FinishTestItemObjType = {
       endTime: reporter.client.helpers.now(),
-      status: STATUSES.PASSED,
+      status: STATUSES.INTERRUPTED,
       attributes: [
         { key: 'key1', value: 'value1', system: false },
         { key: 'key2', value: 'value2', system: false },
-        { value: 'savedTestItemAttrValue' },
-        { key: 'savedTestItemAttrKey', value: 'savedTestItemAttrValue', system: false },
       ],
-      description: 'savedTestItemDescription\nDescription',
+      description: 'Description',
       testCaseId: 'testCaseId',
     };
 
     expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(
       1,
-      'testItemId',
+      'tempTestItemId',
       finishStepObject,
     );
   });

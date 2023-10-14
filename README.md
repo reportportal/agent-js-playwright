@@ -102,69 +102,6 @@ test('basic test', async ({ page }, testInfo) => {
 });
 ```
 
-Also, we can attach `attributes`,`status`,`description`,`testCaseId`
-
-`Description`
-```typescript
-import { test, expect } from '@playwright/test';
-import { RPTestInfo } from '@reportportal/agent-js-playwright'
-
-test('basic test', async ({ page }, testInfo) => {
-  await testInfo.attach(RPTestInfo.description, { body: 'Description', contentType: 'plain/text' });
-
-  expect(true).toBe(true);
-});
-```
-Description provided this way will be merged with description provided by `ReportingAPI`.
-
-`Attributes`
-```typescript
-import { test, expect } from '@playwright/test';
-import { RPTestInfo } from '@reportportal/agent-js-playwright'
-
-test('basic test', async ({ page }, testInfo) => {
-  await testInfo.attach(RPTestInfo.status, { body: JSON.stringify([
-    {
-      key: 'testKey',
-      value: 'testValue',
-    },
-    {
-      value: 'testValueTwo',
-    }
-    ]), 
-     contentType: 'application/json' });
-
-  expect(true).toBe(true);
-});
-```
-Attributes provided this way will be merged with Attributes provided by `ReportingAPI`.
-
-`Status`
-```typescript
-import { test, expect } from '@playwright/test';
-import { RPTestInfo } from '@reportportal/agent-js-playwright'
-
-test('basic test', async ({ page }, testInfo) => {
-  await testInfo.attach(RPTestInfo.status, { body: 'passed', contentType:'text/plain'})
-
-  expect(true).toBe(true);
-});
-```
-Status provided this way will be replaced by status provided by `ReportingAPI`. You can provide as many statuses as you want, but only the last will be applied.
-
-`testCaseId`
-```typescript
-import { test, expect } from '@playwright/test';
-import { RPTestInfo } from '@reportportal/agent-js-playwright'
-
-test('basic test', async ({ page }, testInfo) => {
-  await testInfo.attach(RPTestInfo.testCaseId, { body: 'testCaseId', contentType:'text/plain'})
-
-  expect(true).toBe(true);
-});
-```
-TestCaseId provided this way will be replaced by testCaseId provided by `ReportingAPI`.
-
 *Note:* attachment path can be provided instead of body.
 
 As an alternative to this approach the [`ReportingAPI`](#log) methods can be used.
@@ -193,9 +130,11 @@ As an alternative to this approach the [`ReportingAPI`](#log) methods can be use
 
 This reporter provides Reporting API to use it directly in tests to send some additional data to the report.
 
-To start using the `ReportingApi` in tests, just import it from `'@reportportal/agent-js-playwright'`:
+To start using the `ReportingApi` in tests, just import it from `'@reportportal/agent-js-playwright'` or `'@reportportal/agent-js-playwright/promises'`:
 ```javascript
 import { ReportingApi } from '@reportportal/agent-js-playwright';
+// or
+import { ReportingApi } from '@reportportal/agent-js-playwright/promises'
 ```
 
 #### Reporting API methods
@@ -225,6 +164,27 @@ test('should have the correct attributes', () => {
 });
 ```
 
+`ReportingApi.addAttributes(attributes: Array<Attribute>, suite?: string):Promise<void>;`<br/>
+**required**: `attributes`<br/>
+**optional**: `suite`<br/>
+Example:
+```javascript
+import { ReportingApi } from '@reportportal/agent-js-playwright/promises'
+
+test('should have the correct attributes', async () => {
+  await ReportingApi.addAttributes([
+    {
+      key: 'testKey',
+      value: 'testValue',
+    },
+    {
+      value: 'testValueTwo',
+    },
+  ]);
+  expect(true).toBe(true);
+});
+```
+
 ##### setTestCaseId
 Set test case id to the current test ([About test case id](https://reportportal.io/docs/Test-case-ID%3Ewhat-is-it-test-case-id)). Should be called inside of corresponding test.<br/>
 `ReportingApi.setTestCaseId(id: string, suite?: string);`<br/>
@@ -235,6 +195,19 @@ Example:
 ```javascript
 test('should have the correct testCaseId', () => {
   ReportingApi.setTestCaseId('itemTestCaseId');
+  expect(true).toBe(true);
+});
+```
+
+`ReportingApi.setTestCaseId(id: string, suite?: string):Promise<void>;`<br/>
+**required**: `id`<br/>
+**optional**: `suite`<br/>
+Example:
+```javascript
+import { ReportingApi } from '@reportportal/agent-js-playwright/promises'
+
+test('should have the correct testCaseId', async () => {
+  await ReportingApi.setTestCaseId('itemTestCaseId');
   expect(true).toBe(true);
 });
 ```
@@ -346,6 +319,19 @@ test('should have status FAILED', () => {
 });
 ```
 
+`ReportingApi.setStatus(status: string, suite?: string):Promise<void>;`<br/>
+**required**: `status`<br/>
+**optional**: `suite`<br/>
+```javascript
+import { ReportingApi } from '@reportportal/agent-js-playwright/promises'
+
+test('should have status FAILED', async () => {
+    await ReportingApi.setStatus('failed');
+    
+    expect(true).toBe(true);
+});
+```
+
 ##### setStatusFailed, setStatusPassed, setStatusSkipped, setStatusStopped, setStatusInterrupted, setStatusCancelled
 Assign corresponding status to the current test item. Should be called inside of corresponding test.<br/>
 `ReportingApi.setStatusFailed(suite?: string);`<br/>
@@ -364,6 +350,29 @@ test('should call ReportingApi to set statuses', () => {
     ReportingAPI.setStatusStopped();
     ReportingAPI.setStatusInterrupted();
     ReportingAPI.setStatusCancelled();
+});
+
+```
+`ReportingApi.setStatusFailed(suite?: string):Promise<void>;`<br/>
+`ReportingApi.setStatusPassed(suite?: string):Promise<void>;`<br/>
+`ReportingApi.setStatusSkipped(suite?: string):Promise<void>;`<br/>
+`ReportingApi.setStatusStopped(suite?: string):Promise<void>;`<br/>
+`ReportingApi.setStatusInterrupted(suite?: string):Promise<void>;`<br/>
+`ReportingApi.setStatusCancelled(suite?: string):Promise<void>;`<br/>
+**optional**: `suite`<br/>
+Example:
+```javascript
+import { ReportingApi } from '@reportportal/agent-js-playwright/promises'
+
+test('should call ReportingApi to set statuses', async () => {
+  await Promise.all[
+    ReportingAPI.setStatusFailed();
+    ReportingAPI.setStatusPassed(),
+    ReportingAPI.setStatusSkipped(),
+    ReportingAPI.setStatusStopped(),
+    ReportingAPI.setStatusInterrupted(),
+    ReportingAPI.setStatusCancelled()
+    ]
 });
 ```
 

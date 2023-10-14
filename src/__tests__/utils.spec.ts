@@ -28,7 +28,6 @@ import {
   isErrorLog,
   calculateRpStatus,
   getAdditionalInfo,
-  getDescription,
 } from '../utils';
 import fs from 'fs';
 import path from 'path';
@@ -529,30 +528,6 @@ describe('testing utils', () => {
       expect(console.error).toBeCalledTimes(1);
       expect(console.error).toHaveBeenCalledWith(error.message);
       expect(additionalInfo).toEqual(expectedResult);
-    });
-  });
-
-  describe('getDescription', () => {
-    test('It should return one description joined by \n', () => {
-      const description1 = 'description1';
-      const description2 = 'description2';
-
-      const expectedResult = 'description1\ndescription2';
-
-      const description = getDescription(description1, description2);
-
-      expect(expectedResult).toBe(description);
-    });
-
-    test('It should return one description joined by \n in case when empty string was provided', () => {
-      const description1 = 'description1';
-      const description2 = '';
-
-      const expectedResult = 'description1';
-
-      const description = getDescription(description1, description2);
-
-      expect(expectedResult).toBe(description);
     });
   });
 });
