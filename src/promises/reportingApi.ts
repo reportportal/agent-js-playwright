@@ -60,7 +60,7 @@ export const ReportingApi = {
       contentType: 'text/plain',
     });
   },
-  setStatus: (status: keyof typeof STATUSES, suite?: string): Promise<void> => {
+  setStatus: (status: STATUSES, suite?: string): Promise<void> => {
     if (suite) {
       sendEventToReporter(EVENTS.SET_STATUS, status, suite);
 
@@ -72,95 +72,20 @@ export const ReportingApi = {
       contentType: 'text/plain',
     });
   },
-  setStatusPassed: (suite?: string): Promise<void> => {
-    if (suite) {
-      sendEventToReporter(EVENTS.SET_STATUS, STATUSES.PASSED, suite);
-
-      return Promise.resolve();
-    }
-
-    return test.info().attach(RPTestInfo.status, {
-      body: STATUSES.PASSED,
-      contentType: 'text/plain',
-    });
-  },
-  setStatusFailed: (suite?: string): Promise<void> => {
-    if (suite) {
-      sendEventToReporter(EVENTS.SET_STATUS, STATUSES.FAILED, suite);
-
-      return Promise.resolve();
-    }
-
-    return test
-      .info()
-      .attach(RPTestInfo.status, { body: STATUSES.FAILED, contentType: 'text/plain' });
-  },
-  setStatusSkipped: (suite?: string): Promise<void> => {
-    if (suite) {
-      sendEventToReporter(EVENTS.SET_STATUS, STATUSES.SKIPPED, suite);
-
-      return Promise.resolve();
-    }
-
-    return test
-      .info()
-      .attach(RPTestInfo.status, { body: STATUSES.SKIPPED, contentType: 'text/plain' });
-  },
-  setStatusStopped: (suite?: string): Promise<void> => {
-    if (suite) {
-      sendEventToReporter(EVENTS.SET_STATUS, STATUSES.STOPPED, suite);
-
-      return Promise.resolve();
-    }
-
-    return test
-      .info()
-      .attach(RPTestInfo.status, { body: STATUSES.STOPPED, contentType: 'text/plain' });
-  },
-  setStatusInterrupted: (suite?: string): Promise<void> => {
-    if (suite) {
-      sendEventToReporter(EVENTS.SET_STATUS, STATUSES.INTERRUPTED, suite);
-
-      return Promise.resolve();
-    }
-
-    return test
-      .info()
-      .attach(RPTestInfo.status, { body: STATUSES.INTERRUPTED, contentType: 'text/plain' });
-  },
-  setStatusCancelled: (suite?: string): Promise<void> => {
-    if (suite) {
-      sendEventToReporter(EVENTS.SET_STATUS, STATUSES.CANCELLED, suite);
-
-      return Promise.resolve();
-    }
-
-    return test
-      .info()
-      .attach(RPTestInfo.status, { body: STATUSES.CANCELLED, contentType: 'text/plain' });
-  },
-  setStatusInfo: (suite?: string): Promise<void> => {
-    if (suite) {
-      sendEventToReporter(EVENTS.SET_STATUS, STATUSES.INFO, suite);
-
-      return Promise.resolve();
-    }
-
-    return test
-      .info()
-      .attach(RPTestInfo.status, { body: STATUSES.INFO, contentType: 'text/plain' });
-  },
-  setStatusWarn: (suite?: string): Promise<void> => {
-    if (suite) {
-      sendEventToReporter(EVENTS.SET_STATUS, STATUSES.WARN, suite);
-
-      return Promise.resolve();
-    }
-
-    return test
-      .info()
-      .attach(RPTestInfo.status, { body: STATUSES.WARN, contentType: 'text/plain' });
-  },
+  setStatusPassed: (suite?: string): Promise<void> =>
+    ReportingApi.setStatus(STATUSES.PASSED, suite),
+  setStatusFailed: (suite?: string): Promise<void> =>
+    ReportingApi.setStatus(STATUSES.FAILED, suite),
+  setStatusSkipped: (suite?: string): Promise<void> =>
+    ReportingApi.setStatus(STATUSES.SKIPPED, suite),
+  setStatusStopped: (suite?: string): Promise<void> =>
+    ReportingApi.setStatus(STATUSES.STOPPED, suite),
+  setStatusInterrupted: (suite?: string): Promise<void> =>
+    ReportingApi.setStatus(STATUSES.INTERRUPTED, suite),
+  setStatusCancelled: (suite?: string): Promise<void> =>
+    ReportingApi.setStatus(STATUSES.CANCELLED, suite),
+  setStatusInfo: (suite?: string): Promise<void> => ReportingApi.setStatus(STATUSES.INFO, suite),
+  setStatusWarn: (suite?: string): Promise<void> => ReportingApi.setStatus(STATUSES.WARN, suite),
 
   setLaunchStatus: (status: keyof typeof STATUSES): void =>
     sendEventToReporter(EVENTS.SET_LAUNCH_STATUS, status),

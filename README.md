@@ -130,7 +130,7 @@ As an alternative to this approach the [`ReportingAPI`](#log) methods can be use
 
 This reporter provides Reporting API to use it directly in tests to send some additional data to the report.
 
-To start using the `ReportingApi` in tests, just import it from `'@reportportal/agent-js-playwright'` or `'@reportportal/agent-js-playwright/promises'`:
+To start using the `ReportingApi` in tests, just import it from `'@reportportal/agent-js-playwright/promises'`:
 ```javascript
 import { ReportingApi } from '@reportportal/agent-js-playwright';
 // or

@@ -17,7 +17,7 @@
 
 import { ReportingApi } from '../../promises';
 import * as utils from '../../utils';
-import { LOG_LEVELS } from '../../constants';
+import { LOG_LEVELS, STATUSES } from '../../constants';
 
 const reportingApiStatusMethods = [
   { method: 'setStatusPassed', status: 'passed' },
@@ -110,9 +110,8 @@ describe('reportingApi', () => {
 
     test('ReportingApi.setStatus should call sendEventToReporter with provided status', () => {
       const suite = 'suite';
-      const status = 'PASSED';
       const spySendEventToReporter = jest.spyOn(utils, 'sendEventToReporter');
-      ReportingApi.setStatus(status, suite);
+      ReportingApi.setStatus(STATUSES.PASSED, suite);
 
       expect(spySendEventToReporter).toHaveBeenCalledTimes(1);
     });
