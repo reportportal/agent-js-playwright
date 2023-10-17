@@ -66,3 +66,10 @@ export interface LogRQ {
 export interface TestStepWithId extends TestStep {
   id: string;
 }
+
+export interface TestAdditionalInfo {
+  status?: string;
+  attributes?: Attribute[];
+  description?: string;
+  testCaseId?: string;
+}

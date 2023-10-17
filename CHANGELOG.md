@@ -1,3 +1,5 @@
+### Added
+- `ReportingApi` from `@reportportal/agent-js-playwright/promises` methods (***addAttributes, setDescription, setTestCaseId, setStatus***, and all methods for setting custom statuses for test or suite) now using ***testInfo.attach*** method to attach custom data to test case.
 
 ## [5.1.4] - 2023-10-05
 ## Changed

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 EPAM Systems
+ *  Copyright 2023 EPAM Systems
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,16 +15,18 @@
  *
  */
 
-export { LAUNCH_MODES } from './launchModes';
-export { TEST_ITEM_TYPES } from './testItemTypes';
-export { STATUSES } from './statuses';
-export { LOG_LEVELS } from './logLevels';
-export { RPTestInfo, RpEventsToAdditionalInfoMap } from './testInfo';
-export {
-  TestAnnotation,
-  TestOutcome,
-  TEST_ANNOTATION_TYPES,
-  TEST_OUTCOME_TYPES,
-  BASIC_ATTACHMENT_CONTENT_TYPES,
-  BASIC_ATTACHMENT_NAMES,
-} from './playwright';
+import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
+
+export enum RPTestInfo {
+  STATUS = 'status',
+  ATTRIBUTES = 'attributes',
+  DESCRIPTION = 'description',
+  TEST_CASE_ID = 'testCaseId',
+}
+
+export const RpEventsToAdditionalInfoMap = {
+  [EVENTS.ADD_ATTRIBUTES]: RPTestInfo.ATTRIBUTES,
+  [EVENTS.SET_DESCRIPTION]: RPTestInfo.DESCRIPTION,
+  [EVENTS.SET_TEST_CASE_ID]: RPTestInfo.TEST_CASE_ID,
+  [EVENTS.SET_STATUS]: RPTestInfo.STATUS,
+};
