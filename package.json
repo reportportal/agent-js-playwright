@@ -2,8 +2,29 @@
   "name": "@reportportal/agent-js-playwright",
   "version": "5.1.4",
   "description": "Agent to integrate Playwright with ReportPortal.",
-  "main": "build/index.js",
-  "types": "build/index.d.ts",
+  "exports": {
+    ".": {
+      "node": "./build/index.js",
+      "import": "./build/index.js",
+      "require": "./build/index.js",
+      "default": "./build/index.js"
+    },
+    "./promises": {
+      "node": "./build/promises/index.js",
+      "default": "./build/promises/index.js",
+      "require": "./build/promises/index.js",
+      "import": "./build/promises/index.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "promises": [
+        "./build/promises/index.d.ts"
+      ]
+    }
+  },
+  "types": "./build/index.d.ts",
+  "main": "./build/index.js",
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "rimraf ./build",

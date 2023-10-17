@@ -15,6 +15,7 @@
  *
  */
 
+import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 // @ts-ignore
 import { name as pjsonName, version as pjsonVersion } from '../../package.json';
 import {
@@ -27,6 +28,7 @@ import {
   getAttachments,
   isErrorLog,
   calculateRpStatus,
+  getAdditionalInfo,
 } from '../utils';
 import fs from 'fs';
 import path from 'path';
@@ -36,6 +38,8 @@ import {
   BASIC_ATTACHMENT_CONTENT_TYPES,
   BASIC_ATTACHMENT_NAMES,
 } from '../constants';
+import { TestCase } from '@playwright/test/reporter';
+import { TestAdditionalInfo } from '../models/reporting';
 
 describe('testing utils', () => {
   test('isFalse', () => {
@@ -416,6 +420,114 @@ describe('testing utils', () => {
     test('calculateRpStatus should return STATUSES.PASSED in case of "unexpected" outcome, "fail" annotation and "failed" status', () => {
       const status = calculateRpStatus('unexpected', 'failed', [{ type: 'fail' }]);
       expect(status).toBe(STATUSES.PASSED);
+    });
+  });
+
+  describe('getAdditionalInfo', () => {
+    test('Should collect only allowed fields', () => {
+      const testCase = {
+        results: [
+          {
+            attachments: [
+              {
+                name: EVENTS.ADD_ATTRIBUTES,
+                contentType: 'application/json',
+                body: Buffer.from(
+                  JSON.stringify([
+                    { key: 'key1', value: 'value1', system: true },
+                    { key: 'key2', value: 'value2', system: true },
+                  ]),
+                ),
+              },
+              {
+                name: EVENTS.SET_DESCRIPTION,
+                contentType: 'plain/text',
+                body: Buffer.from('Description'),
+              },
+              {
+                name: EVENTS.SET_STATUS,
+                contentType: 'plain/text',
+                body: Buffer.from('skipped'),
+              },
+              {
+                name: EVENTS.SET_STATUS,
+                contentType: 'plain/text',
+                body: Buffer.from('failed'),
+              },
+              {
+                name: EVENTS.SET_TEST_CASE_ID,
+                contentType: 'plain/text',
+                body: Buffer.from('testCaseId'),
+              },
+              {
+                name: 'notAllowedField',
+                contentType: 'plain/text',
+                body: Buffer.from('notAllowedValue'),
+              },
+            ],
+          },
+        ],
+      };
+
+      const expectedResult: TestAdditionalInfo = {
+        attributes: [
+          { key: 'key1', value: 'value1', system: true },
+          { key: 'key2', value: 'value2', system: true },
+        ],
+        description: 'Description',
+        status: 'failed',
+        testCaseId: 'testCaseId',
+      };
+
+      const additionalInfo = getAdditionalInfo(testCase as TestCase);
+
+      expect(additionalInfo).toEqual(expectedResult);
+    });
+
+    test('Should recover from error in case if JSON is not valid', () => {
+      const testCase = {
+        results: [
+          {
+            attachments: [
+              {
+                name: EVENTS.ADD_ATTRIBUTES,
+                contentType: 'application/json',
+                body: Buffer.from(
+                  `{ key: 'key1', value: 'value1', system: true },
+                  { key: 'key2', value: 'value2', system: true }`,
+                ),
+              },
+              {
+                name: EVENTS.SET_DESCRIPTION,
+                contentType: 'plain/text',
+                body: Buffer.from('Description'),
+              },
+              {
+                name: EVENTS.SET_STATUS,
+                contentType: 'plain/text',
+                body: Buffer.from('skipped'),
+              },
+            ],
+          },
+        ],
+      };
+
+      const expectedResult: TestAdditionalInfo = {
+        attributes: [],
+        description: 'Description',
+        status: 'skipped',
+        testCaseId: '',
+      };
+
+      const error = new Error('Unexpected token k in JSON at position 2');
+
+      console.error = jest.fn();
+
+      const additionalInfo = getAdditionalInfo(testCase as TestCase);
+
+      expect(console.error).toBeCalledTimes(1);
+      expect(console.error).toHaveBeenCalledWith(error.message);
+      expect(additionalInfo).toEqual(expectedResult);
     });
   });
 });

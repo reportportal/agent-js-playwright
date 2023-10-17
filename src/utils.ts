@@ -15,6 +15,7 @@
  *
  */
 
+import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 import { TestCase, TestStatus, TestResult } from '@playwright/test/reporter';
 import fs from 'fs';
 import path from 'path';
@@ -29,7 +30,9 @@ import {
   BASIC_ATTACHMENT_CONTENT_TYPES,
   TEST_ANNOTATION_TYPES,
   TEST_OUTCOME_TYPES,
+  RpEventsToAdditionalInfoMap,
 } from './constants';
+import { TestAdditionalInfo } from './models/reporting';
 
 const fsPromises = fs.promises;
 
@@ -123,13 +126,13 @@ export const getAttachments = async (
           fileContent = body;
         } else {
           if (!fs.existsSync(attachmentPath)) {
-            return;
+            return undefined;
           }
           fileContent = await fsPromises.readFile(attachmentPath);
         }
       } catch (e) {
         console.error(e);
-        return;
+        return undefined;
       }
 
       return {
@@ -174,4 +177,37 @@ export const calculateRpStatus = (
   }
 
   return calculatedStatus;
+};
+
+export const getAdditionalInfo = (test: TestCase): TestAdditionalInfo => {
+  const initialValue: TestAdditionalInfo = {
+    attributes: [],
+    description: '',
+    testCaseId: '',
+    status: '',
+  };
+
+  return test.results.reduce<TestAdditionalInfo>(
+    (additionalInfo, { attachments = [] }) =>
+      Object.assign(
+        additionalInfo,
+        attachments.reduce<TestAdditionalInfo>((acc, { name, body }) => {
+          if (name in RpEventsToAdditionalInfoMap) {
+            try {
+              const value = body.toString();
+
+              return Object.assign(acc, {
+                [RpEventsToAdditionalInfoMap[name]]:
+                  name === EVENTS.ADD_ATTRIBUTES ? JSON.parse(value) : value,
+              });
+            } catch (error: unknown) {
+              console.error((error as Error).message);
+            }
+          }
+
+          return acc;
+        }, initialValue),
+      ),
+    initialValue,
+  );
 };
