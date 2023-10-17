@@ -452,14 +452,15 @@ export class RPReporter implements Reporter {
       return Promise.resolve();
     }
 
-    const {
-      attributes,
-      description,
-      status: predefinedStatus,
-      testCaseId,
-    } = getAdditionalInfo(test);
+    const additionalInfo = getAdditionalInfo(test);
 
-    const { id: testItemId } = savedTestItem;
+    const {
+      id: testItemId,
+      attributes = additionalInfo.attributes,
+      description = additionalInfo.description,
+      testCaseId = additionalInfo.testCaseId,
+      status: predefinedStatus = additionalInfo.status,
+    } = savedTestItem;
     let withoutIssue;
     let testDescription = description;
 

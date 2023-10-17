@@ -132,8 +132,6 @@ This reporter provides Reporting API to use it directly in tests to send some ad
 
 To start using the `ReportingApi` in tests, just import it from `'@reportportal/agent-js-playwright/promises'`:
 ```javascript
-import { ReportingApi } from '@reportportal/agent-js-playwright';
-// or
 import { ReportingApi } from '@reportportal/agent-js-playwright/promises'
 ```
 
@@ -145,25 +143,6 @@ If you want to add a data to the suite, you must pass the suite name as the last
 
 ##### addAttributes
 Add attributes (tags) to the current test. Should be called inside of corresponding test.<br/>
-`ReportingApi.addAttributes(attributes: Array<Attribute>, suite?: string);`<br/>
-**required**: `attributes`<br/>
-**optional**: `suite`<br/>
-Example:
-```javascript
-test('should have the correct attributes', () => {
-  ReportingApi.addAttributes([
-    {
-      key: 'testKey',
-      value: 'testValue',
-    },
-    {
-      value: 'testValueTwo',
-    },
-  ]);
-  expect(true).toBe(true);
-});
-```
-
 `ReportingApi.addAttributes(attributes: Array<Attribute>, suite?: string):Promise<void>;`<br/>
 **required**: `attributes`<br/>
 **optional**: `suite`<br/>
@@ -187,21 +166,10 @@ test('should have the correct attributes', async () => {
 
 ##### setTestCaseId
 Set test case id to the current test ([About test case id](https://reportportal.io/docs/Test-case-ID%3Ewhat-is-it-test-case-id)). Should be called inside of corresponding test.<br/>
-`ReportingApi.setTestCaseId(id: string, suite?: string);`<br/>
-**required**: `id`<br/>
-**optional**: `suite`<br/>
-If `testCaseId` not specified, it will be generated automatically based on [codeRef](https://reportportal.io/docs/Test-case-ID%3Ewhat-does-happen-if-you-do-not-report-items-with-test-case-id-).<br/>
-Example:
-```javascript
-test('should have the correct testCaseId', () => {
-  ReportingApi.setTestCaseId('itemTestCaseId');
-  expect(true).toBe(true);
-});
-```
-
 `ReportingApi.setTestCaseId(id: string, suite?: string):Promise<void>;`<br/>
 **required**: `id`<br/>
 **optional**: `suite`<br/>
+If `testCaseId` not specified, it will be generated automatically based on [codeRef](https://reportportal.io/docs/Test-case-ID%3Ewhat-does-happen-if-you-do-not-report-items-with-test-case-id-).<br/>
 Example:
 ```javascript
 import { ReportingApi } from '@reportportal/agent-js-playwright/promises'
@@ -306,22 +274,11 @@ test('should contain logs with attachments', () => {
 
 ##### setStatus
 Assign corresponding status to the current test item. Should be called inside of corresponding test.<br/>
-`ReportingApi.setStatus(status: string, suite?: string);`<br/>
+`ReportingApi.setStatus(status: string, suite?: string):Promise<void>;`<br/>
 **required**: `status`<br/>
 **optional**: `suite`<br/>
 where `status` must be one of the following: *passed*, *failed*, *stopped*, *skipped*, *interrupted*, *cancelled*<br/>
 Example:
-```javascript
-test('should have status FAILED', () => {
-    ReportingApi.setStatus('failed');
-    
-    expect(true).toBe(true);
-});
-```
-
-`ReportingApi.setStatus(status: string, suite?: string):Promise<void>;`<br/>
-**required**: `status`<br/>
-**optional**: `suite`<br/>
 ```javascript
 import { ReportingApi } from '@reportportal/agent-js-playwright/promises'
 
@@ -334,25 +291,6 @@ test('should have status FAILED', async () => {
 
 ##### setStatusFailed, setStatusPassed, setStatusSkipped, setStatusStopped, setStatusInterrupted, setStatusCancelled
 Assign corresponding status to the current test item. Should be called inside of corresponding test.<br/>
-`ReportingApi.setStatusFailed(suite?: string);`<br/>
-`ReportingApi.setStatusPassed(suite?: string);`<br/>
-`ReportingApi.setStatusSkipped(suite?: string);`<br/>
-`ReportingApi.setStatusStopped(suite?: string);`<br/>
-`ReportingApi.setStatusInterrupted(suite?: string);`<br/>
-`ReportingApi.setStatusCancelled(suite?: string);`<br/>
-**optional**: `suite`<br/>
-Example:
-```javascript
-test('should call ReportingApi to set statuses', () => {
-    ReportingAPI.setStatusFailed();
-    ReportingAPI.setStatusPassed();
-    ReportingAPI.setStatusSkipped();
-    ReportingAPI.setStatusStopped();
-    ReportingAPI.setStatusInterrupted();
-    ReportingAPI.setStatusCancelled();
-});
-
-```
 `ReportingApi.setStatusFailed(suite?: string):Promise<void>;`<br/>
 `ReportingApi.setStatusPassed(suite?: string):Promise<void>;`<br/>
 `ReportingApi.setStatusSkipped(suite?: string):Promise<void>;`<br/>
@@ -366,12 +304,12 @@ import { ReportingApi } from '@reportportal/agent-js-playwright/promises'
 
 test('should call ReportingApi to set statuses', async () => {
   await Promise.all[
-    ReportingAPI.setStatusFailed();
+    ReportingAPI.setStatusFailed(),
     ReportingAPI.setStatusPassed(),
     ReportingAPI.setStatusSkipped(),
     ReportingAPI.setStatusStopped(),
     ReportingAPI.setStatusInterrupted(),
-    ReportingAPI.setStatusCancelled()
+    ReportingAPI.setStatusCancelled(),
     ]
 });
 ```

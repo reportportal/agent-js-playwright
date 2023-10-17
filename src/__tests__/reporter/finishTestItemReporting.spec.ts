@@ -14,11 +14,12 @@
  *  limitations under the License.
  */
 
+import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 import { FinishTestItemObjType } from '../../models';
-import { RPTestInfo, STATUSES } from '../../constants';
+import { STATUSES } from '../../constants';
 
 const rootSuite = 'rootSuite';
 const suiteName = 'suiteName';
@@ -110,12 +111,12 @@ describe('finish test reporting', () => {
           {
             attachments: [
               {
-                name: RPTestInfo.attributes,
+                name: EVENTS.ADD_ATTRIBUTES,
                 body: Buffer.from(JSON.stringify([{ key: 'key', value: 'value' }])),
                 contentType: 'application/json',
               },
               {
-                name: RPTestInfo.description,
+                name: EVENTS.SET_DESCRIPTION,
                 body: Buffer.from('description'),
                 contentType: 'text/plain',
               },
@@ -157,12 +158,12 @@ describe('finish test reporting', () => {
           {
             attachments: [
               {
-                name: RPTestInfo.attributes,
+                name: EVENTS.ADD_ATTRIBUTES,
                 body: Buffer.from(JSON.stringify([{ key: 'key', value: 'value' }])),
                 contentType: 'application/json',
               },
               {
-                name: RPTestInfo.description,
+                name: EVENTS.SET_DESCRIPTION,
                 body: Buffer.from('description'),
                 contentType: 'text/plain',
               },
@@ -249,7 +250,7 @@ describe('finish test reporting', () => {
           {
             attachments: [
               {
-                name: RPTestInfo.attributes,
+                name: EVENTS.ADD_ATTRIBUTES,
                 contentType: 'application/json',
                 body: Buffer.from(
                   JSON.stringify([
@@ -259,22 +260,22 @@ describe('finish test reporting', () => {
                 ),
               },
               {
-                name: RPTestInfo.description,
+                name: EVENTS.SET_DESCRIPTION,
                 contentType: 'plain/text',
                 body: Buffer.from('Description'),
               },
               {
-                name: RPTestInfo.status,
+                name: EVENTS.SET_STATUS,
                 contentType: 'plain/text',
                 body: Buffer.from('skipped'),
               },
               {
-                name: RPTestInfo.status,
+                name: EVENTS.SET_STATUS,
                 contentType: 'plain/text',
                 body: Buffer.from('interrupted'),
               },
               {
-                name: RPTestInfo.testCaseId,
+                name: EVENTS.SET_TEST_CASE_ID,
                 contentType: 'plain/text',
                 body: Buffer.from('testCaseId'),
               },
@@ -293,11 +294,8 @@ describe('finish test reporting', () => {
     const finishStepObject: FinishTestItemObjType = {
       endTime: reporter.client.helpers.now(),
       status: STATUSES.INTERRUPTED,
-      attributes: [
-        { key: 'key1', value: 'value1', system: false },
-        { key: 'key2', value: 'value2', system: false },
-      ],
-      description: 'Description',
+      attributes: [{ key: 'key', value: 'value' }],
+      description: 'description',
       testCaseId: 'testCaseId',
     };
 

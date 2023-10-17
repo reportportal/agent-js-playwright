@@ -15,6 +15,7 @@
  *
  */
 
+import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 import { TestCase, TestStatus, TestResult } from '@playwright/test/reporter';
 import fs from 'fs';
 import path from 'path';
@@ -29,7 +30,7 @@ import {
   BASIC_ATTACHMENT_CONTENT_TYPES,
   TEST_ANNOTATION_TYPES,
   TEST_OUTCOME_TYPES,
-  RPTestInfo,
+  RpEventsToAdditionalInfoMap,
 } from './constants';
 import { TestAdditionalInfo } from './models/reporting';
 
@@ -191,12 +192,13 @@ export const getAdditionalInfo = (test: TestCase): TestAdditionalInfo => {
       Object.assign(
         additionalInfo,
         attachments.reduce<TestAdditionalInfo>((acc, { name, body }) => {
-          if (name in RPTestInfo) {
+          if (name in RpEventsToAdditionalInfoMap) {
             try {
               const value = body.toString();
 
               return Object.assign(acc, {
-                [name]: name === RPTestInfo.attributes ? JSON.parse(value) : value,
+                [RpEventsToAdditionalInfoMap[name]]:
+                  name === EVENTS.ADD_ATTRIBUTES ? JSON.parse(value) : value,
               });
             } catch (error: unknown) {
               console.error((error as Error).message);

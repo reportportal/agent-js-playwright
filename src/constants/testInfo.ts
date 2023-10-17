@@ -15,9 +15,18 @@
  *
  */
 
-export const RPTestInfo = {
-  status: 'status',
-  attributes: 'attributes',
-  description: 'description',
-  testCaseId: 'testCaseId',
-} as const;
+import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
+
+export enum RPTestInfo {
+  STATUS = 'status',
+  ATTRIBUTES = 'attributes',
+  DESCRIPTION = 'description',
+  TEST_CASE_ID = 'testCaseId',
+}
+
+export const RpEventsToAdditionalInfoMap = {
+  [EVENTS.ADD_ATTRIBUTES]: RPTestInfo.ATTRIBUTES,
+  [EVENTS.SET_DESCRIPTION]: RPTestInfo.DESCRIPTION,
+  [EVENTS.SET_TEST_CASE_ID]: RPTestInfo.TEST_CASE_ID,
+  [EVENTS.SET_STATUS]: RPTestInfo.STATUS,
+};

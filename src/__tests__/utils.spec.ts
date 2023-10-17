@@ -15,6 +15,7 @@
  *
  */
 
+import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 // @ts-ignore
 import { name as pjsonName, version as pjsonVersion } from '../../package.json';
 import {
@@ -36,7 +37,6 @@ import {
   TestOutcome,
   BASIC_ATTACHMENT_CONTENT_TYPES,
   BASIC_ATTACHMENT_NAMES,
-  RPTestInfo,
 } from '../constants';
 import { TestCase } from '@playwright/test/reporter';
 import { TestAdditionalInfo } from '../models/reporting';
@@ -430,7 +430,7 @@ describe('testing utils', () => {
           {
             attachments: [
               {
-                name: RPTestInfo.attributes,
+                name: EVENTS.ADD_ATTRIBUTES,
                 contentType: 'application/json',
                 body: Buffer.from(
                   JSON.stringify([
@@ -440,22 +440,22 @@ describe('testing utils', () => {
                 ),
               },
               {
-                name: RPTestInfo.description,
+                name: EVENTS.SET_DESCRIPTION,
                 contentType: 'plain/text',
                 body: Buffer.from('Description'),
               },
               {
-                name: RPTestInfo.status,
+                name: EVENTS.SET_STATUS,
                 contentType: 'plain/text',
                 body: Buffer.from('skipped'),
               },
               {
-                name: RPTestInfo.status,
+                name: EVENTS.SET_STATUS,
                 contentType: 'plain/text',
                 body: Buffer.from('failed'),
               },
               {
-                name: RPTestInfo.testCaseId,
+                name: EVENTS.SET_TEST_CASE_ID,
                 contentType: 'plain/text',
                 body: Buffer.from('testCaseId'),
               },
@@ -490,7 +490,7 @@ describe('testing utils', () => {
           {
             attachments: [
               {
-                name: RPTestInfo.attributes,
+                name: EVENTS.ADD_ATTRIBUTES,
                 contentType: 'application/json',
                 body: Buffer.from(
                   `{ key: 'key1', value: 'value1', system: true },
@@ -498,12 +498,12 @@ describe('testing utils', () => {
                 ),
               },
               {
-                name: RPTestInfo.description,
+                name: EVENTS.SET_DESCRIPTION,
                 contentType: 'plain/text',
                 body: Buffer.from('Description'),
               },
               {
-                name: RPTestInfo.status,
+                name: EVENTS.SET_STATUS,
                 contentType: 'plain/text',
                 body: Buffer.from('skipped'),
               },

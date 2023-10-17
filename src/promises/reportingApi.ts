@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 EPAM Systems
+ *  Copyright 2023 EPAM Systems
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 import { sendEventToReporter } from '../utils';
 import { Attribute } from '../models';
-import { STATUSES, LOG_LEVELS, RPTestInfo } from '../constants';
+import { STATUSES, LOG_LEVELS } from '../constants';
 import { Attachment } from '../models/reporting';
 import { test } from '@playwright/test';
 
@@ -30,7 +30,7 @@ export const ReportingApi = {
       return Promise.resolve();
     }
 
-    return test.info().attach(RPTestInfo.attributes, {
+    return test.info().attach(EVENTS.ADD_ATTRIBUTES, {
       body: JSON.stringify(attrs),
       contentType: 'application/json',
     });
@@ -43,7 +43,7 @@ export const ReportingApi = {
       return Promise.resolve();
     }
 
-    return test.info().attach(RPTestInfo.description, {
+    return test.info().attach(EVENTS.SET_DESCRIPTION, {
       body: description,
       contentType: 'text/plain',
     });
@@ -55,7 +55,7 @@ export const ReportingApi = {
       return Promise.resolve();
     }
 
-    return test.info().attach(RPTestInfo.testCaseId, {
+    return test.info().attach(EVENTS.SET_TEST_CASE_ID, {
       body: testCaseId,
       contentType: 'text/plain',
     });
@@ -67,7 +67,7 @@ export const ReportingApi = {
       return Promise.resolve();
     }
 
-    return test.info().attach(RPTestInfo.status, {
+    return test.info().attach(EVENTS.SET_STATUS, {
       body: status,
       contentType: 'text/plain',
     });
