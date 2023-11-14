@@ -49,7 +49,7 @@ export interface ReportPortalConfig extends ClientConfig, AttachmentsConfig {
   rerun?: boolean;
   rerunOf?: string;
   mode?: LAUNCH_MODES;
-  reportLastErrorLog?: boolean;
+  extendTestDescriptionWithLastError?: boolean;
 
   skippedIssue?: boolean;
   includeTestSteps?: boolean;

@@ -24,5 +24,5 @@ export const mockConfig: ReportPortalConfig = {
   launch: 'LaunchName',
   description: 'Launch description',
   attributes: [],
-  reportLastErrorLog: true,
+  extendTestDescriptionWithLastError: true,
 };
