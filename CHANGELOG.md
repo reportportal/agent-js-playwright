@@ -1,3 +1,5 @@
+### Added
+- `extendTestDescriptionWithLastError` option to the RP config to have the ability to attach the last error log
 
 ## [5.1.4] - 2023-10-05
 ## Changed

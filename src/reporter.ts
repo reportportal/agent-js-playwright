@@ -90,6 +90,7 @@ export class RPReporter implements Reporter {
     this.config = {
       uploadTrace: true,
       uploadVideo: true,
+      extendTestDescriptionWithLastError: true,
       ...config,
       launchId: process.env.RP_LAUNCH_ID || config.launchId,
     };
@@ -483,7 +484,7 @@ export class RPReporter implements Reporter {
       });
     }
 
-    if (result.error) {
+    if (result.error && this.config.extendTestDescriptionWithLastError) {
       const stacktrace = stripAnsi(result.error.stack || result.error.message);
       this.sendLog(testItemId, {
         level: LOG_LEVELS.ERROR,
