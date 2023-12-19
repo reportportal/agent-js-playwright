@@ -76,7 +76,6 @@ describe('finish suites on finish all of their children', () => {
           name: rootSuite,
           testInvocationsLeft: 1,
           descendants: ['testItemId'],
-          isSerialMode: false,
         },
       ],
       [
@@ -86,7 +85,6 @@ describe('finish suites on finish all of their children', () => {
           name: suiteName,
           testInvocationsLeft: 1,
           descendants: ['testItemId'],
-          isSerialMode: false,
         },
       ],
     ]);
