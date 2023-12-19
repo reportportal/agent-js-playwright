@@ -1,3 +1,5 @@
+
+## [5.1.5] - 2023-12-19
 ### Added
 - `extendTestDescriptionWithLastError` option to the RP config to be able to toggle the last error log attaching to the test description.
 ### Fixed
