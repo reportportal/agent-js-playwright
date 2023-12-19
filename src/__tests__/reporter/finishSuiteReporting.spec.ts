@@ -23,6 +23,7 @@ const rootSuite = 'rootSuite';
 const suiteName = 'example.js';
 
 // TODO: add tests for skipped status and different workerIndex values
+// TODO: add tests for serial mode
 describe('finish suites on finish all of their children', () => {
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
@@ -73,8 +74,9 @@ describe('finish suites on finish all of their children', () => {
         {
           id: 'rootsuiteId',
           name: rootSuite,
-          testCount: 1,
+          testInvocationsLeft: 1,
           descendants: ['testItemId'],
+          isSerialMode: false,
         },
       ],
       [
@@ -82,8 +84,9 @@ describe('finish suites on finish all of their children', () => {
         {
           id: 'parentSuiteId',
           name: suiteName,
-          testCount: 1,
+          testInvocationsLeft: 1,
           descendants: ['testItemId'],
+          isSerialMode: false,
         },
       ],
     ]);
