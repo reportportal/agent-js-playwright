@@ -62,7 +62,6 @@ interface Suite extends TestItem {
   logs?: LogRQ[];
   testInvocationsLeft?: number;
   descendants?: string[];
-  isSerialMode?: boolean;
   executedTestCount?: number;
 }
 
@@ -346,7 +345,6 @@ export class RPReporter implements Reporter {
       this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
 
       // @ts-ignore access to private property _parallelMode
-      const isSerialMode = currentSuite._parallelMode === 'serial';
       const allSuiteTests = currentSuite.allTests();
       const descendants = allSuiteTests.map((testCase) => testCase.id);
       const testCount = allSuiteTests.length;
@@ -363,7 +361,6 @@ export class RPReporter implements Reporter {
         name: currentSuiteTitle,
         testInvocationsLeft,
         descendants,
-        isSerialMode,
         ...(status && { status }),
         ...(logs && { logs }), // TODO: may be send it on suite start
       });
@@ -622,14 +619,17 @@ export class RPReporter implements Reporter {
       decreaseIndex = decreaseIndex + possibleInvocationsLeft;
     }
 
+    // @ts-ignore access to private property _parallelMode
+    const isSerialMode = test.parent._parallelMode === 'serial'; // is test run with "serial" mode
+
     this.suites.forEach((value, key) => {
-      const { descendants, testInvocationsLeft, isSerialMode, executedTestCount } = value;
+      const { descendants, testInvocationsLeft, executedTestCount } = value;
 
       if (descendants.length && descendants.includes(test.id)) {
         // if test will not be retried anymore, we consider it as finally executed
         const newExecutedTestCount = executedTestCount + (nonRetriedResult ? 1 : 0);
         /* In case one test from serial group will fail, all tests from this group will be retried,
-        so we need to increase _testInvocationsLeft_ by already finished test amount, see https://playwright.dev/docs/test-retries#serial-mode
+        so we need to increase _testInvocationsLeft_ of all its ancestors by already finished test amount, see https://playwright.dev/docs/test-retries#serial-mode
         */
         const serialModeIncrement = isSerialMode ? executedTestCount : 0;
         const newTestInvocationsLeft = testInvocationsLeft - decreaseIndex + serialModeIncrement;
