@@ -1,3 +1,5 @@
+
+## [5.1.6] - 2023-12-19
 ### Fixed
 - Serial mode execution. Fix invocations calculation for indirect test parents.
 
