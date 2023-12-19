@@ -1,6 +1,9 @@
 ### Added
-- `extendTestDescriptionWithLastError` option to the RP config to have the ability to attach the last error log
-- `ReportingApi` from `@reportportal/agent-js-playwright/promises` methods (***addAttributes, setDescription, setTestCaseId, setStatus***, and all methods for setting custom statuses for test or suite) now using ***testInfo.attach*** method to attach custom data to test case.
+- `extendTestDescriptionWithLastError` option to the RP config to be able to toggle the last error log attaching to the test description.
+### Fixed
+- Test results inconsistency while using [serial mode](https://playwright.dev/docs/test-retries#serial-mode).
+### Changed
+- `@reportportal/client-javascript` bumped to version `5.0.15`. Logging link to the launch on its finish now available by default.
 
 ## [5.1.4] - 2023-10-05
 ## Changed
@@ -8,7 +11,7 @@
 
 ## [5.1.3] - 2023-09-07
 ### Fixed
-- [#111](https://github.com/reportportal/agent-js-playwright/issues/111) Test is not finished when `expect().toPass()` exceed test timeout
+- [#111](https://github.com/reportportal/agent-js-playwright/issues/111) Test is not finished when `expect().toPass()` exceed test timeout.
 ### Changed
 - `@reportportal/client-javascript` bumped to version `5.0.13`. `launchUuidPrint` and `launchUuidPrintOutput` configuration options introduced.
 
