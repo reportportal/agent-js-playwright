@@ -60,8 +60,10 @@ export interface TestItem {
 
 interface Suite extends TestItem {
   logs?: LogRQ[];
-  testCount?: number;
+  testInvocationsLeft?: number;
   descendants?: string[];
+  isSerialMode?: boolean;
+  executedTestCount?: number;
 }
 
 interface Annotation {
@@ -253,7 +255,9 @@ export class RPReporter implements Reporter {
   }
 
   finishSuites(): void {
-    const suitesToFinish = Array.from(this.suites).filter(([, { testCount }]) => testCount < 1);
+    const suitesToFinish = Array.from(this.suites).filter(
+      ([, { testInvocationsLeft }]) => testInvocationsLeft < 1,
+    );
 
     suitesToFinish.forEach(([key, { id, status, logs }]) => {
       if (logs) {
@@ -341,21 +345,25 @@ export class RPReporter implements Reporter {
       const suiteObj = this.client.startTestItem(startSuiteObj, this.launchId, parentId);
       this.addRequestToPromisesQueue(suiteObj.promise, 'Failed to start suite.');
 
+      // @ts-ignore access to private property _parallelMode
+      const isSerialMode = currentSuite._parallelMode === 'serial';
       const allSuiteTests = currentSuite.allTests();
       const descendants = allSuiteTests.map((testCase) => testCase.id);
-      let testCount = allSuiteTests.length;
+      const testCount = allSuiteTests.length;
+      let testInvocationsLeft = testCount;
 
       // TODO: cover with tests
       if (test.retries) {
-        const possibleInvocations = test.retries + 1;
-        testCount = testCount * possibleInvocations;
+        const possibleTestInvocations = test.retries + 1;
+        testInvocationsLeft = testCount * possibleTestInvocations;
       }
 
       this.suites.set(fullSuiteName, {
         id: suiteObj.tempId,
         name: currentSuiteTitle,
-        testCount,
+        testInvocationsLeft,
         descendants,
+        isSerialMode,
         ...(status && { status }),
         ...(logs && { logs }), // TODO: may be send it on suite start
       });
@@ -561,19 +569,23 @@ export class RPReporter implements Reporter {
     this.addRequestToPromisesQueue(promise, 'Failed to finish test.');
     this.testItems.delete(test.id);
 
-    this.updateAncestorsTestCount(test, result);
+    this.updateAncestorsTestInvocations(test, result);
 
     const fullParentName = getCodeRef(test, test.parent.title);
     const parentSuite = this.suites.get(fullParentName);
 
     // if all children of the test parent have already finished, then finish all empty ancestors
-    if (parentSuite && 'testCount' in parentSuite && parentSuite.testCount < 1) {
+    if (
+      parentSuite &&
+      'testInvocationsLeft' in parentSuite &&
+      parentSuite.testInvocationsLeft < 1
+    ) {
       this.finishSuites();
     }
   }
 
   // TODO: cover with tests
-  updateAncestorsTestCount(test: TestCase, result: TestResult): void {
+  updateAncestorsTestInvocations(test: TestCase, result: TestResult): void {
     // Decrease by 1 by default as only one test case finished
     let decreaseIndex = 1;
     const isTestFinishedFromHookOrStaticAnnotation = result.workerIndex === -1;
@@ -611,14 +623,20 @@ export class RPReporter implements Reporter {
     }
 
     this.suites.forEach((value, key) => {
-      const { descendants, testCount } = value;
+      const { descendants, testInvocationsLeft, isSerialMode, executedTestCount } = value;
 
       if (descendants.length && descendants.includes(test.id)) {
-        const newTestCount = testCount - decreaseIndex;
+        // if test will not be retried anymore, we consider it as finally executed
+        const newExecutedTestCount = executedTestCount + (nonRetriedResult ? 1 : 0);
+        /* In case one test from serial group will fail, all tests from this group will be retried,
+        so we need to increase _testInvocationsLeft_ by already finished test amount, see https://playwright.dev/docs/test-retries#serial-mode
+        */
+        const serialModeIncrement = isSerialMode ? executedTestCount : 0;
+        const newTestInvocationsLeft = testInvocationsLeft - decreaseIndex + serialModeIncrement;
         this.suites.set(key, {
           ...value,
-          testCount: newTestCount,
-          descendants: newTestCount < 1 ? descendants.filter((id) => id !== test.id) : descendants,
+          executedTestCount: newExecutedTestCount,
+          testInvocationsLeft: newTestInvocationsLeft,
         });
       }
     });
@@ -630,7 +648,7 @@ export class RPReporter implements Reporter {
       this.suites.forEach((value, key) => {
         this.suites.set(key, {
           ...value,
-          testCount: 0,
+          testInvocationsLeft: 0,
           descendants: [],
         });
       });

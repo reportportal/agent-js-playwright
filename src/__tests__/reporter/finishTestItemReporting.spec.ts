@@ -69,8 +69,9 @@ describe('finish test reporting', () => {
         {
           id: 'rootsuiteId',
           name: rootSuite,
-          testCount: 1,
+          testInvocationsLeft: 1,
           descendants: ['testItemId'],
+          isSerialMode: false,
         },
       ],
       [
@@ -78,8 +79,9 @@ describe('finish test reporting', () => {
         {
           id: 'suiteId',
           name: suiteName,
-          testCount: 1,
+          testInvocationsLeft: 1,
           descendants: ['testItemId'],
+          isSerialMode: false,
         },
       ],
     ]);

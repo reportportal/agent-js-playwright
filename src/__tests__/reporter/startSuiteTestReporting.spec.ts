@@ -82,7 +82,8 @@ describe('start reporting suite/test', () => {
         {
           id: 'tempTestItemId',
           name: rootSuite,
-          testCount: 1,
+          testInvocationsLeft: 1,
+          isSerialMode: false,
           descendants: ['testItemId'],
         },
       ],
@@ -92,7 +93,8 @@ describe('start reporting suite/test', () => {
           id: 'tempTestItemId',
           name: suiteName,
           descendants: ['testItemId'],
-          testCount: 1,
+          testInvocationsLeft: 1,
+          isSerialMode: false,
         },
       ],
     ]);
