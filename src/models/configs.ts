@@ -43,6 +43,7 @@ export interface AttachmentsConfig {
 }
 
 export interface ReportPortalConfig extends ClientConfig, AttachmentsConfig {
+  // common options
   launchId?: string;
   attributes?: Array<Attribute>;
   description?: string;
@@ -50,7 +51,9 @@ export interface ReportPortalConfig extends ClientConfig, AttachmentsConfig {
   rerunOf?: string;
   mode?: LAUNCH_MODES;
 
+  // agent specific options
   skippedIssue?: boolean;
   includeTestSteps?: boolean;
   includePlaywrightProjectNameToCodeReference?: boolean;
+  extendTestDescriptionWithLastError?: boolean;
 }
