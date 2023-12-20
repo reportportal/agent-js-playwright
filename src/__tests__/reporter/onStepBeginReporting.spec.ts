@@ -18,6 +18,7 @@ import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
 import { TEST_ITEM_TYPES } from '../../constants';
+import { createSHA256Hash } from '../../utils';
 
 const playwrightProjectName = 'projectName';
 const suiteName = 'suiteName';
@@ -69,14 +70,16 @@ describe('onStepBegin reporting', () => {
 
   test('client.startTestItem should be called with test item id as a parent id', () => {
     const step = {
+      category: 'pw:api',
+      startTime: new Date(2023, 5, 12, 12, 0, 0, 0),
+      duration: 21,
       title: 'stepName',
-      id: 'fb3d9c5c-e7f9-488d-b9cd-47f1618d9f69',
       error: {
         message: 'some error',
       },
       titlePath: () => ['stepName'],
     };
-    const expectedFullStepName = `testItemId/stepName-fb3d9c5c-e7f9-488d-b9cd-47f1618d9f69`;
+    const expectedFullStepName = `testItemId/stepName/${createSHA256Hash(step)}`;
     const expectedNestedSteps = new Map([
       [expectedFullStepName, { id: tempTestItemId, name: 'stepName' }],
     ]);
@@ -96,34 +99,31 @@ describe('onStepBegin reporting', () => {
       tempTestItemId,
     );
 
-    reporter.nestedSteps = new Map([
-      [
-        'testItemId/stepName-fb3d9c5c-e7f9-488d-b9cd-47f1618d9f69',
-        { id: tempTestItemId, name: 'stepName' },
-      ],
-    ]);
-
     expect(reporter.nestedSteps).toEqual(expectedNestedSteps);
   });
 
   test('client.startTestItem should be called with test step parent id', () => {
     const stepParent = {
-      id: 'f96293c4-bc29-42a6-b60f-e0840ffa0648',
+      category: 'pw:api',
+      startTime: new Date(2023, 5, 12, 12, 0, 0, 0),
       title: 'stepParent',
+      duration: 21,
       titlePath: () => ['stepParent'],
     };
 
     reporter.nestedSteps = new Map([
       [
-        'testItemId/stepParent-f96293c4-bc29-42a6-b60f-e0840ffa0648',
+        `testItemId/stepParent/${createSHA256Hash(stepParent)}`,
         { id: 'parentStepId', name: 'stepParent' },
       ],
     ]);
 
     const step = {
+      category: 'pw:api',
+      startTime: new Date(2023, 5, 12, 12, 0, 0, 123),
+      duration: 22,
       title: 'stepName',
       parent: stepParent,
-      id: '0b3a78c1-521a-4a80-a125-52074991426a',
       error: {
         message: 'some error',
       },

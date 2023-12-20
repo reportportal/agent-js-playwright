@@ -17,7 +17,13 @@
 
 import RPClient from '@reportportal/client-javascript';
 import stripAnsi from 'strip-ansi';
-import { Reporter, Suite as PWSuite, TestCase, TestResult } from '@playwright/test/reporter';
+import {
+  Reporter,
+  Suite as PWSuite,
+  TestCase,
+  TestResult,
+  TestStep,
+} from '@playwright/test/reporter';
 import {
   Attribute,
   FinishTestItemObjType,
@@ -25,7 +31,6 @@ import {
   ReportPortalConfig,
   StartLaunchObjType,
   StartTestObjType,
-  TestStepWithId,
 } from './models';
 import {
   LAUNCH_MODES,
@@ -37,6 +42,7 @@ import {
 } from './constants';
 import {
   calculateRpStatus,
+  createSHA256Hash,
   getAgentInfo,
   getAttachments,
   getCodeRef,
@@ -46,7 +52,6 @@ import {
   promiseErrorHandler,
 } from './utils';
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
-import { randomUUID } from 'crypto';
 
 export interface TestItem {
   id: string;
@@ -391,7 +396,7 @@ export class RPReporter implements Reporter {
     }
   }
 
-  onStepBegin(test: TestCase, result: TestResult, step: TestStepWithId): void {
+  onStepBegin(test: TestCase, result: TestResult, step: TestStep): void {
     if (this.isLaunchFinishSend) {
       return;
     }
@@ -401,9 +406,7 @@ export class RPReporter implements Reporter {
     let parent;
     if (step.parent) {
       const stepParentName = getCodeRef(step.parent, step.parent.title);
-      const fullStepParentName = `${test.id}/${stepParentName}-${
-        (step.parent as TestStepWithId).id
-      }`;
+      const fullStepParentName = `${test.id}/${stepParentName}/${createSHA256Hash(step.parent)}`;
       parent = this.nestedSteps.get(fullStepParentName);
     } else {
       parent = this.testItems.get(test.id);
@@ -416,13 +419,10 @@ export class RPReporter implements Reporter {
       hasStats: false,
       startTime: this.client.helpers.now(),
     };
-
-    Object.defineProperty(step, 'id', {
-      value: randomUUID(),
-    });
+    const hash = createSHA256Hash(step);
 
     const stepName = getCodeRef(step, step.title);
-    const fullStepName = `${test.id}/${stepName}-${step.id}`;
+    const fullStepName = `${test.id}/${stepName}/${hash}`;
     const { tempId, promise } = this.client.startTestItem(stepStartObj, this.launchId, parent.id);
 
     this.addRequestToPromisesQueue(promise, 'Failed to start nested step.');
@@ -433,13 +433,14 @@ export class RPReporter implements Reporter {
     });
   }
 
-  onStepEnd(test: TestCase, result: TestResult, step: TestStepWithId): void {
+  onStepEnd(test: TestCase, result: TestResult, step: TestStep): void {
     const { includeTestSteps } = this.config;
     if (!includeTestSteps) return;
 
     const stepName = getCodeRef(step, step.title);
-    const fullStepName = `${test.id}/${stepName}-${step.id}`;
+    const fullStepName = `${test.id}/${stepName}/${createSHA256Hash(step)}`;
     const nestedStep = this.nestedSteps.get(fullStepName);
+
     if (!nestedStep) return;
 
     const stepFinishObj = {
@@ -450,6 +451,7 @@ export class RPReporter implements Reporter {
     const { promise } = this.client.finishTestItem(nestedStep.id, stepFinishObj);
 
     this.addRequestToPromisesQueue(promise, 'Failed to finish nested step.');
+
     this.nestedSteps.delete(fullStepName);
   }
 

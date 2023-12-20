@@ -17,7 +17,6 @@
 
 import { Attribute, Issue } from './common';
 import { TEST_ITEM_TYPES, LOG_LEVELS, LAUNCH_MODES } from '../constants';
-import { TestStep } from '@playwright/test/reporter';
 
 export interface StartLaunchObjType {
   startTime?: Date | number;
@@ -61,8 +60,4 @@ export interface LogRQ {
   message?: string;
   time?: number;
   file?: Attachment;
-}
-
-export interface TestStepWithId extends TestStep {
-  id: string;
 }
