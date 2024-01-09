@@ -417,9 +417,11 @@ export class RPReporter implements Reporter {
       startTime: this.client.helpers.now(),
     };
 
-    Object.defineProperty(step, 'id', {
-      value: randomUUID(),
-    });
+    if (!step.hasOwnProperty('id')) {
+      Object.defineProperty(step, 'id', {
+        value: randomUUID(),
+      });
+    }
 
     const stepName = getCodeRef(step, step.title);
     const fullStepName = `${test.id}/${stepName}-${step.id}`;
