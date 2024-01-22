@@ -75,7 +75,7 @@ describe('start reporting suite/test', () => {
     jest.clearAllMocks();
   });
 
-  test('client.startTestItem should be called with corresponding params to report suites and test item', () => {
+  test('@smoke client.startTestItem should be called with corresponding params to report suites and test item', () => {
     const expectedSuites = new Map([
       [
         rootSuite,
@@ -149,7 +149,7 @@ describe('start reporting suite/test', () => {
     expect(reporter.testItems).toEqual(expectedTestItems);
   });
 
-  test('client.startTestItem should not be called in case of launch finish request have been send', () => {
+  test('@smoke client.startTestItem should not be called in case of launch finish request have been send', () => {
     reporter.isLaunchFinishSend = true;
     // @ts-ignore
     reporter.onTestBegin(testCase);

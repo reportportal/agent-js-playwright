@@ -38,7 +38,7 @@ describe('retries reporting', () => {
 
   const spyStartTestItem = jest.spyOn(reporter.client, 'startTestItem');
 
-  test('client.startTestItem should be called with retry=true params', () => {
+  test('@smoke client.startTestItem should be called with retry=true params', () => {
     const parentId = 'tempTestItemId';
     const expectedTestObj: StartTestObjType = {
       startTime: reporter.client.helpers.now(),

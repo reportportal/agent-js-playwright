@@ -37,12 +37,12 @@ describe('start launch', () => {
 
     beforeAll(() => reporter.onBegin());
 
-    test('client.startLaunch should be called with corresponding params', () => {
+    test('@smoke client.startLaunch should be called with corresponding params', () => {
       expect(reporter.client.startLaunch).toHaveBeenCalledTimes(1);
       expect(reporter.client.startLaunch).toHaveBeenCalledWith(startLaunchObj);
     });
 
-    test('reporter.launchId should be set', () => {
+    test('@smoke reporter.launchId should be set', () => {
       expect(reporter.launchId).toEqual('tempLaunchId');
     });
   });
@@ -64,12 +64,12 @@ describe('start launch', () => {
 
     beforeAll(() => reporter.onBegin());
 
-    test('client.startLaunch should be called with corresponding params', () => {
+    test('@smoke client.startLaunch should be called with corresponding params', () => {
       expect(reporter.client.startLaunch).toHaveBeenCalledTimes(1);
       expect(reporter.client.startLaunch).toHaveBeenCalledWith(startLaunchObj);
     });
 
-    test('reporter.launchId should be set', () => {
+    test('@smoke reporter.launchId should be set', () => {
       expect(reporter.launchId).toEqual('tempLaunchId');
     });
   });
@@ -92,12 +92,12 @@ describe('start launch', () => {
 
     beforeAll(() => reporter.onBegin());
 
-    test('client.startLaunch should be called with corresponding params', () => {
+    test('@smoke client.startLaunch should be called with corresponding params', () => {
       expect(reporter.client.startLaunch).toHaveBeenCalledTimes(1);
       expect(reporter.client.startLaunch).toHaveBeenCalledWith(startLaunchObj);
     });
 
-    test('reporter.launchId should be set', () => {
+    test('@smoke reporter.launchId should be set', () => {
       expect(reporter.launchId).toEqual('tempLaunchId');
     });
   });
@@ -125,12 +125,12 @@ describe('start launch', () => {
       delete process.env.RP_LAUNCH_ID;
     });
 
-    test('client.startLaunch should be called with corresponding params', () => {
+    test('@smoke client.startLaunch should be called with corresponding params', () => {
       expect(reporter.client.startLaunch).toHaveBeenCalledTimes(1);
       expect(reporter.client.startLaunch).toHaveBeenCalledWith(startLaunchObj);
     });
 
-    test('reporter.launchId should be set', () => {
+    test('@smoke reporter.launchId should be set', () => {
       expect(reporter.launchId).toEqual('tempLaunchId');
     });
   });
@@ -144,7 +144,7 @@ describe('finish launch', () => {
 
     beforeAll(() => reporter.onEnd());
 
-    test('launch should be finished', () => {
+    test('@smoke launch should be finished', () => {
       expect(reporter.client.finishLaunch).toHaveBeenCalledTimes(1);
       expect(reporter.client.finishLaunch).toHaveBeenCalledWith('tempLaunchId', {
         endTime: mockedDate,
@@ -164,7 +164,7 @@ describe('finish launch', () => {
 
     beforeAll(() => reporter.onEnd());
 
-    test('launch finish request should not be sent', () => {
+    test('@smoke launch finish request should not be sent', () => {
       expect(reporter.client.finishLaunch).toHaveBeenCalledTimes(0);
       expect(reporter.isLaunchFinishSend).toBe(true);
     });
@@ -186,7 +186,7 @@ describe('finish launch', () => {
       delete process.env.RP_LAUNCH_ID;
     });
 
-    test('launch finish request should not be sent', () => {
+    test('@smoke launch finish request should not be sent', () => {
       expect(reporter.client.finishLaunch).toHaveBeenCalledTimes(0);
       expect(reporter.isLaunchFinishSend).toBe(true);
     });

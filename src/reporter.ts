@@ -94,6 +94,8 @@ export class RPReporter implements Reporter {
       extendTestDescriptionWithLastError: true,
       ...config,
       launchId: process.env.RP_LAUNCH_ID || config.launchId,
+      // TODO: consider the "grep" and "grep-invert" options
+      
     };
     this.suites = new Map();
     this.suitesInfo = new Map();
@@ -375,8 +377,9 @@ export class RPReporter implements Reporter {
         !includePlaywrightProjectNameToCodeReference && playwrightProjectName,
       );
       const { id: parentId } = parentSuiteObj;
+      const name = test.title.replace(/^@\w+\s/, '');
       const startTestItem: StartTestObjType = {
-        name: test.title,
+        name, 
         startTime: this.client.helpers.now(),
         type: TEST_ITEM_TYPES.STEP,
         codeRef,
