@@ -384,13 +384,14 @@ export class RPReporter implements Reporter {
         !includePlaywrightProjectNameToCodeReference && playwrightProjectName,
       );
       const { id: parentId } = parentSuiteObj;
-      const name = test.title.replace(/@\w+\s*/g, '');
+
       const startTestItem: StartTestObjType = {
-        name,
+        name: this.#extractTagsFromTitle(test.title),
         startTime: this.client.helpers.now(),
         type: TEST_ITEM_TYPES.STEP,
         codeRef,
         retry: test.results?.length > 1,
+        attributes: this.#getAttributesFromTitle(test.title),
       };
       const stepObj = this.client.startTestItem(startTestItem, this.launchId, parentId);
       this.addRequestToPromisesQueue(stepObj.promise, 'Failed to start test.');
@@ -644,5 +645,13 @@ export class RPReporter implements Reporter {
 
   printsToStdio(): boolean {
     return false;
+  }
+
+  #extractTagsFromTitle(title: string): string {
+    return title.match(/@\w+\s*/g)?.join('') || '';
+  }
+
+  #getAttributesFromTitle(title: string): Attribute[] {
+    return title.match(/@\w+\s*/g)?.map((tag) => ({ key: 'tag', value: tag.trim() })) || [];
   }
 }
