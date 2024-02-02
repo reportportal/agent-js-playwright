@@ -94,8 +94,6 @@ export class RPReporter implements Reporter {
       extendTestDescriptionWithLastError: true,
       ...config,
       launchId: process.env.RP_LAUNCH_ID || config.launchId,
-      // TODO: consider the "grep" and "grep-invert" options
-      
     };
     this.suites = new Map();
     this.suitesInfo = new Map();
@@ -284,6 +282,15 @@ export class RPReporter implements Reporter {
       mode: mode || LAUNCH_MODES.DEFAULT,
       id: launchId,
     };
+
+    // Extract grep and grepInvert from config and add as launch attributes
+    if (this.config.grep) {
+      startLaunchObj.attributes.push({ key: 'grep', value: this.config.grep });
+    }
+    if (this.config.grepInvert) {
+      startLaunchObj.attributes.push({ key: 'grepInvert', value: this.config.grepInvert });
+    }
+
     const { tempId, promise } = this.client.startLaunch(startLaunchObj);
     this.addRequestToPromisesQueue(promise, 'Failed to start launch.');
     this.launchId = tempId;
@@ -377,9 +384,9 @@ export class RPReporter implements Reporter {
         !includePlaywrightProjectNameToCodeReference && playwrightProjectName,
       );
       const { id: parentId } = parentSuiteObj;
-      const name = test.title.replace(/^@\w+\s/, '');
+      const name = test.title.replace(/@\w+\s*/g, '');
       const startTestItem: StartTestObjType = {
-        name, 
+        name,
         startTime: this.client.helpers.now(),
         type: TEST_ITEM_TYPES.STEP,
         codeRef,

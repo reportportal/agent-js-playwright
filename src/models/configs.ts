@@ -56,4 +56,6 @@ export interface ReportPortalConfig extends ClientConfig, AttachmentsConfig {
   includeTestSteps?: boolean;
   includePlaywrightProjectNameToCodeReference?: boolean;
   extendTestDescriptionWithLastError?: boolean;
+  grep?: string;
+  grepInvert?: string;
 }

@@ -37,7 +37,7 @@ describe('attributes reporting', () => {
     titlePath: () => ['', suiteName, 'testTitle'],
   };
 
-  test('@smoke reporter.testItems should be updated with attributes', () => {
+  test('reporter.testItems should be updated with attributes', () => {
     reporter.testItems = new Map([['testItemId', { id: 'tempTestItemId', name: 'testTitle' }]]);
     // @ts-ignore
     reporter.addAttributes(attributes, testCase);
@@ -47,7 +47,7 @@ describe('attributes reporting', () => {
     expect(reporter.testItems).toEqual(expectedTestItems);
   });
 
-  test('@smoke reporter.suitesInfo should be with attributes', () => {
+  test('reporter.suitesInfo should be with attributes', () => {
     // @ts-ignore
     reporter.addAttributes(attributes, testCase, suiteName);
     const expectedSuitesInfo = new Map([
