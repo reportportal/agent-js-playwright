@@ -17,7 +17,13 @@
 
 import RPClient from '@reportportal/client-javascript';
 import stripAnsi from 'strip-ansi';
-import { Reporter, Suite as PWSuite, TestCase, TestResult } from '@playwright/test/reporter';
+import {
+  Reporter,
+  Suite as PWSuite,
+  TestCase,
+  TestResult,
+  FullConfig,
+} from '@playwright/test/reporter';
 import {
   Attribute,
   FinishTestItemObjType,
@@ -266,7 +272,7 @@ export class RPReporter implements Reporter {
     });
   }
 
-  onBegin(): void {
+  onBegin(config?: FullConfig): void {
     const { launch, description, attributes, skippedIssue, rerun, rerunOf, mode, launchId } =
       this.config;
     const systemAttributes: Attribute[] = getSystemAttributes(skippedIssue);
@@ -284,11 +290,12 @@ export class RPReporter implements Reporter {
     };
 
     // Extract grep and grepInvert from config and add as launch attributes
-    if (this.config.grep) {
-      startLaunchObj.attributes.push({ key: 'grep', value: this.config.grep });
+    if (config?.grep) {
+      startLaunchObj.attributes.push({ key: 'grep', value: config.grep.toString() });
     }
-    if (this.config.grepInvert) {
-      startLaunchObj.attributes.push({ key: 'grepInvert', value: this.config.grepInvert });
+
+    if (config?.grepInvert) {
+      startLaunchObj.attributes.push({ key: 'grepInvert', value: config.grepInvert.toString() });
     }
 
     const { tempId, promise } = this.client.startLaunch(startLaunchObj);

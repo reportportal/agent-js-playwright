@@ -18,32 +18,3 @@ test('get started link', async ({ page }) => {
   // Expects page to have a heading with the name of Installation.
   await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
 });
-
-test('has one tag at the end @single', async ({ page }) => {
-  ReportingApi.addAttributes([
-    {
-      value: 'single',
-    },
-  ]);
-
-  await page.goto('https://playwright.dev/');
-  await expect(page).toHaveTitle(/Playwright/);
-});
-
-test('@single has one tag at the beginning', async ({ page }) => {
-  ReportingApi.addAttributes([
-    {
-      value: 'single',
-    },
-  ]);
-
-  await page.goto('https://playwright.dev/');
-  await expect(page).toHaveTitle(/Playwright/);
-});
-
-test('has no tag', async ({ page }) => {
-  ReportingApi.addAttributes([]);
-
-  await page.goto('https://playwright.dev/');
-  await expect(page).toHaveTitle(/Playwright/);
-});

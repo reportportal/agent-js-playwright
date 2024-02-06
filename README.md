@@ -35,8 +35,6 @@ const RPconfig = {
     },
   ],
   description: 'Your launch description',
-  grep: 'fast', // to run only tests with 'fast' tag in the title
-  grepInvert: 'fast', // to exclude tests with 'fast' tag in the title
 };
 
 const config: PlaywrightTestConfig = {

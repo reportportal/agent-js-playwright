@@ -20,6 +20,7 @@ import { RPClientMock } from '../mocks/RPClientMock';
 import { StartTestObjType } from '../../models';
 import { TEST_ITEM_TYPES } from '../../constants';
 import path from 'path';
+import { TestCase } from '@playwright/test/reporter';
 
 const rootSuite = 'tests/example.js';
 const suiteName = 'suiteName';
@@ -157,5 +158,37 @@ describe('start reporting suite/test', () => {
     expect(spyStartTestItem).toHaveBeenCalledTimes(0);
     expect(reporter.suites).toEqual(new Map());
     expect(reporter.testItems).toEqual(new Map());
+  });
+
+  test('@smoke has one tag at the beginning', () => {
+    const testId = 'testItemId';
+    const testTitle = 'testTitle';
+    const attributes = [{ value: 'smoke' }];
+    const simpleTestCase = <TestCase>{
+      id: testId,
+      title: testTitle,
+      titlePath: () => [rootSuite, suiteName, testTitle],
+    };
+
+    reporter.onTestBegin(simpleTestCase);
+    expect(reporter.testItems).toEqual(
+      new Map([[testId, { id: 'tempTestItemId', name: testTitle, attributes }]]),
+    );
+  });
+
+  test('has one tag at the end @manual', () => {
+    const testId = 'testItemId';
+    const testTitle = 'testTitle';
+    const attributes = [{ value: 'manual' }];
+    const simpleTestCase = <TestCase>{
+      id: testId,
+      title: testTitle,
+      titlePath: () => [rootSuite, suiteName, testTitle],
+    };
+
+    reporter.onTestBegin(simpleTestCase);
+    expect(reporter.testItems).toEqual(
+      new Map([[testId, { id: 'tempTestItemId', name: testTitle, attributes }]]),
+    );
   });
 });
