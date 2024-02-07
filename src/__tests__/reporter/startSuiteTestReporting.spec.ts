@@ -160,35 +160,31 @@ describe('start reporting suite/test', () => {
     expect(reporter.testItems).toEqual(new Map());
   });
 
-  test('@smoke has one tag at the beginning', () => {
-    const testId = 'testItemId';
-    const testTitle = 'testTitle';
+  test('@smoke client.startTestItem should be called with one tag at the beginning', () => {
     const attributes = [{ value: 'smoke' }];
     const simpleTestCase = <TestCase>{
-      id: testId,
-      title: testTitle,
-      titlePath: () => [rootSuite, suiteName, testTitle],
+      id: 'testItemId',
+      title: 'testTitle',
+      titlePath: () => [rootSuite, suiteName, 'testTitle'],
     };
 
     reporter.onTestBegin(simpleTestCase);
     expect(reporter.testItems).toEqual(
-      new Map([[testId, { id: 'tempTestItemId', name: testTitle, attributes }]]),
+      new Map([[simpleTestCase.id, { id: 'tempTestItemId', name: 'testTitle', attributes }]]),
     );
   });
 
-  test('has one tag at the end @manual', () => {
-    const testId = 'testItemId';
-    const testTitle = 'testTitle';
+  test('client.startTestItem should be called with one tag at the end @manual', () => {
     const attributes = [{ value: 'manual' }];
     const simpleTestCase = <TestCase>{
-      id: testId,
-      title: testTitle,
-      titlePath: () => [rootSuite, suiteName, testTitle],
+      id: 'testItemId',
+      title: 'testTitle',
+      titlePath: () => [rootSuite, suiteName, 'testTitle'],
     };
 
     reporter.onTestBegin(simpleTestCase);
     expect(reporter.testItems).toEqual(
-      new Map([[testId, { id: 'tempTestItemId', name: testTitle, attributes }]]),
+      new Map([[simpleTestCase.id, { id: 'tempTestItemId', name: 'testTitle', attributes }]]),
     );
   });
 });

@@ -655,7 +655,12 @@ export class RPReporter implements Reporter {
   }
 
   #extractTagsFromTitle(title: string): string {
-    return title.match(/@\w+\s*/g)?.join('') || '';
+    return (
+      title
+        .match(/@\w+\s*/g)
+        ?.join('')
+        .trim() || ''
+    );
   }
 
   #getAttributesFromTitle(title: string): Attribute[] {
