@@ -13,7 +13,7 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@reportportal/client-javascript": "^5.0.15",
+    "@reportportal/client-javascript": "^5.1.2",
     "strip-ansi": "6.0.1"
   },
   "files": [
@@ -25,6 +25,7 @@
     "@types/node": "^18.14.2",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
+    "axios": "^0.27.2",
     "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-airbnb-typescript": "^14.0.2",
@@ -32,7 +33,6 @@
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.4.1",
-    "axios": "^0.27.2",
     "jest": "^27.5.1",
     "prettier": "^2.8.4",
     "rimraf": "^3.0.2",
