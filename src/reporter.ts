@@ -241,7 +241,7 @@ export class RPReporter implements Reporter {
       },
       file,
     );
-    promiseErrorHandler(promise, 'Failed to send log');
+    this.addRequestToPromisesQueue(promise, 'Failed to send log');
   }
 
   finishSuites(): void {
