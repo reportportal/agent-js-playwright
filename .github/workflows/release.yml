@@ -127,8 +127,10 @@ jobs:
           git checkout develop
           git merge master -Xtheirs --allow-unrelated-histories
           echo "${{ steps.bumpSnapshotVersion.outputs.next-version }}-SNAPSHOT" > ${{ env.versionFileName }}
+          echo "patch" > ${{ env.versionFragmentFileName }}
           git status
           git add ${{ env.versionFileName }}
+          git add ${{ env.versionFragmentFileName }}
           git commit -m "${{ needs.calculate-version.outputs.releaseVersion }} -> ${{ steps.bumpSnapshotVersion.outputs.next-version }}-SNAPSHOT"
           git push origin develop
 
