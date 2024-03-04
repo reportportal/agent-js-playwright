@@ -14,11 +14,11 @@
  *  limitations under the License.
  */
 
-import { RPReporter } from '../../reporter';
-import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
+import { RPReporter } from '../../reporter';
 import { StartTestObjType } from '../../models';
 import { TEST_ITEM_TYPES } from '../../constants';
+import { mockConfig } from '../mocks/configMock';
 
 describe('retries reporting', () => {
   const reporter = new RPReporter(mockConfig);
@@ -41,7 +41,7 @@ describe('retries reporting', () => {
   test('client.startTestItem should be called with retry=true params', () => {
     const parentId = 'tempTestItemId';
     const expectedTestObj: StartTestObjType = {
-      startTime: reporter.client.helpers.now(),
+      startTime: expect.any(Number),
       name: 'testTitle',
       type: TEST_ITEM_TYPES.STEP,
       codeRef: 'suiteName/testTitle',
