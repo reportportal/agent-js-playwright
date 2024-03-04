@@ -15,15 +15,6 @@
  *
  */
 
-import RPClient from '@reportportal/client-javascript';
-import stripAnsi from 'strip-ansi';
-import {
-  Reporter,
-  Suite as PWSuite,
-  TestCase,
-  TestResult,
-  FullConfig,
-} from '@playwright/test/reporter';
 import {
   Attribute,
   FinishTestItemObjType,
@@ -34,11 +25,18 @@ import {
   TestStepWithId,
 } from './models';
 import {
+  FullConfig,
+  Suite as PWSuite,
+  Reporter,
+  TestCase,
+  TestResult,
+} from '@playwright/test/reporter';
+import {
   LAUNCH_MODES,
   LOG_LEVELS,
   STATUSES,
-  TEST_ITEM_TYPES,
   TEST_ANNOTATION_TYPES,
+  TEST_ITEM_TYPES,
   TEST_OUTCOME_TYPES,
 } from './constants';
 import {
@@ -51,8 +49,11 @@ import {
   isFalse,
   promiseErrorHandler,
 } from './utils';
+
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
+import RPClient from '@reportportal/client-javascript';
 import { randomUUID } from 'crypto';
+import stripAnsi from 'strip-ansi';
 
 export interface TestItem {
   id: string;
@@ -664,6 +665,16 @@ export class RPReporter implements Reporter {
   }
 
   #getAttributesFromTitle(title: string): Attribute[] {
-    return title.match(/@\w+\s*/g)?.map((tag) => ({ key: 'tag', value: tag.trim() })) || [];
+    const attributes = title.match(/@(\w+)(?::(\w+))?/g)?.map((tag) => {
+      const cleanedTag = tag.slice(1);
+      const parts = cleanedTag.split(':');
+
+      return {
+        key: parts.length === 2 ? parts[0] : '',
+        value: parts.length === 2 ? parts[1] : parts[0],
+      };
+    });
+
+    return attributes || [];
   }
 }
