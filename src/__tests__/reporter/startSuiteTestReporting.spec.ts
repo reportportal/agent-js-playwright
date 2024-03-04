@@ -18,7 +18,6 @@ import { RPClientMock } from '../mocks/RPClientMock';
 import { RPReporter } from '../../reporter';
 import { StartTestObjType } from '../../models';
 import { TEST_ITEM_TYPES } from '../../constants';
-import { TestCase } from '@playwright/test/reporter';
 import { mockConfig } from '../mocks/configMock';
 import path from 'path';
 
