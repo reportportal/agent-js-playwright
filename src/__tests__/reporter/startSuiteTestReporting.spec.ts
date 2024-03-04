@@ -14,13 +14,13 @@
  *  limitations under the License.
  */
 
-import { RPReporter } from '../../reporter';
-import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
+import { RPReporter } from '../../reporter';
 import { StartTestObjType } from '../../models';
 import { TEST_ITEM_TYPES } from '../../constants';
-import path from 'path';
 import { TestCase } from '@playwright/test/reporter';
+import { mockConfig } from '../mocks/configMock';
+import path from 'path';
 
 const rootSuite = 'tests/example.js';
 const suiteName = 'suiteName';
@@ -160,31 +160,47 @@ describe('start reporting suite/test', () => {
     expect(reporter.testItems).toEqual(new Map());
   });
 
-  test('@smoke client.startTestItem should be called with one tag at the beginning', () => {
-    const attributes = [{ value: 'smoke' }];
-    const simpleTestCase = <TestCase>{
-      id: 'testItemId',
-      title: 'testTitle',
-      titlePath: () => [rootSuite, suiteName, 'testTitle'],
+  test('@tag client.startTestItem should be called with one tag at the beginning', () => {
+    const expectedTestObj = {
+      startTime: reporter.client.helpers.now(),
+      name: 'testTitle',
+      type: TEST_ITEM_TYPES.STEP,
+      codeRef: `${rootSuite}/${suiteName}/testTitle`,
+      retry: false,
+      attributes: [{ value: 'tag' }],
     };
+    const parentId = 'tempTestItemId';
 
-    reporter.onTestBegin(simpleTestCase);
-    expect(reporter.testItems).toEqual(
-      new Map([[simpleTestCase.id, { id: 'tempTestItemId', name: 'testTitle', attributes }]]),
+    // @ts-ignore
+    reporter.onTestBegin(expectedTestObj);
+
+    expect(spyStartTestItem).toHaveBeenNthCalledWith(
+      1,
+      expectedTestObj,
+      reporter.launchId,
+      parentId,
     );
   });
 
-  test('client.startTestItem should be called with one tag at the end @manual', () => {
-    const attributes = [{ value: 'manual' }];
-    const simpleTestCase = <TestCase>{
-      id: 'testItemId',
-      title: 'testTitle',
-      titlePath: () => [rootSuite, suiteName, 'testTitle'],
+  test('client.startTestItem should be called with one tag at the end @tag', () => {
+    const expectedTestObj = {
+      startTime: reporter.client.helpers.now(),
+      name: 'testTitle',
+      type: TEST_ITEM_TYPES.STEP,
+      codeRef: `${rootSuite}/${suiteName}/testTitle`,
+      retry: false,
+      attributes: [{ value: 'tag' }],
     };
+    const parentId = 'tempTestItemId';
 
-    reporter.onTestBegin(simpleTestCase);
-    expect(reporter.testItems).toEqual(
-      new Map([[simpleTestCase.id, { id: 'tempTestItemId', name: 'testTitle', attributes }]]),
+    // @ts-ignore
+    reporter.onTestBegin(expectedTestObj);
+
+    expect(spyStartTestItem).toHaveBeenNthCalledWith(
+      1,
+      expectedTestObj,
+      reporter.launchId,
+      parentId,
     );
   });
 });
