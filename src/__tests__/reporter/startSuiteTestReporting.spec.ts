@@ -27,6 +27,48 @@ const suiteName = 'suiteName';
 describe('start reporting suite/test', () => {
   let reporter: RPReporter;
   let spyStartTestItem: jest.SpyInstance;
+  const expectedTestObj: StartTestObjType = {
+    name: 'testTitle',
+    type: TEST_ITEM_TYPES.STEP,
+    codeRef: 'tests/example.js/suiteName/testTitle',
+    retry: false,
+  };
+
+  const expectedParentSuiteObj: StartTestObjType = {
+    name: suiteName,
+    type: TEST_ITEM_TYPES.TEST,
+    codeRef: 'tests/example.js/suiteName',
+  };
+
+  const expectedRootParentSuiteObj: StartTestObjType = {
+    name: rootSuite,
+    type: TEST_ITEM_TYPES.SUITE,
+    codeRef: 'tests/example.js',
+  };
+
+  const expectedSuites = new Map([
+    [
+      rootSuite,
+      {
+        id: 'tempTestItemId',
+        name: rootSuite,
+        testInvocationsLeft: 1,
+        descendants: ['testItemId'],
+      },
+    ],
+    [
+      `${rootSuite}/${suiteName}`,
+      {
+        id: 'tempTestItemId',
+        name: suiteName,
+        descendants: ['testItemId'],
+        testInvocationsLeft: 1,
+      },
+    ],
+  ]);
+
+  const expectedTestItems = new Map([['testItemId', { id: 'tempTestItemId', name: 'testTitle' }]]);
+  const parentId = 'tempTestItemId';
 
   const testCase = {
     title: 'testTitle',
@@ -69,6 +111,10 @@ describe('start reporting suite/test', () => {
     reporter.launchId = 'tempLaunchId';
 
     spyStartTestItem = jest.spyOn(reporter.client, 'startTestItem');
+
+    expectedTestObj.startTime = reporter.client.helpers.now();
+    expectedParentSuiteObj.startTime = reporter.client.helpers.now();
+    expectedRootParentSuiteObj.startTime = reporter.client.helpers.now();
   });
 
   afterEach(() => {
@@ -76,50 +122,6 @@ describe('start reporting suite/test', () => {
   });
 
   test('client.startTestItem should be called with corresponding params to report suites and test item', () => {
-    const expectedSuites = new Map([
-      [
-        rootSuite,
-        {
-          id: 'tempTestItemId',
-          name: rootSuite,
-          testInvocationsLeft: 1,
-          descendants: ['testItemId'],
-        },
-      ],
-      [
-        `${rootSuite}/${suiteName}`,
-        {
-          id: 'tempTestItemId',
-          name: suiteName,
-          descendants: ['testItemId'],
-          testInvocationsLeft: 1,
-        },
-      ],
-    ]);
-    const expectedTestItems = new Map([
-      ['testItemId', { id: 'tempTestItemId', name: 'testTitle' }],
-    ]);
-    const expectedRootParentSuiteObj: StartTestObjType = {
-      startTime: reporter.client.helpers.now(),
-      name: rootSuite,
-      type: TEST_ITEM_TYPES.SUITE,
-      codeRef: 'tests/example.js',
-    };
-    const expectedParentSuiteObj: StartTestObjType = {
-      startTime: reporter.client.helpers.now(),
-      name: suiteName,
-      type: TEST_ITEM_TYPES.TEST,
-      codeRef: 'tests/example.js/suiteName',
-    };
-    const expectedTestObj: StartTestObjType = {
-      startTime: reporter.client.helpers.now(),
-      name: 'testTitle',
-      type: TEST_ITEM_TYPES.STEP,
-      codeRef: 'tests/example.js/suiteName/testTitle',
-      retry: false,
-    };
-    const parentId = 'tempTestItemId';
-
     // @ts-ignore
     reporter.onTestBegin(testCase);
 
@@ -160,46 +162,62 @@ describe('start reporting suite/test', () => {
   });
 
   test('@tag client.startTestItem should be called with one tag at the beginning', () => {
-    const expectedTestObj = {
-      startTime: reporter.client.helpers.now(),
-      name: 'testTitle',
-      type: TEST_ITEM_TYPES.STEP,
-      codeRef: `${rootSuite}/${suiteName}/testTitle`,
-      retry: false,
-      attributes: [{ value: 'tag' }],
-    };
-    const parentId = 'tempTestItemId';
-
     // @ts-ignore
-    reporter.onTestBegin(expectedTestObj);
+    reporter.onTestBegin({ ...testCase, title: `@tag ${testCase.title}` });
 
+    // the first call for the root suite start
     expect(spyStartTestItem).toHaveBeenNthCalledWith(
       1,
-      expectedTestObj,
+      expectedRootParentSuiteObj,
+      reporter.launchId,
+      undefined,
+    );
+    // the first call for the item parent suite start
+    expect(spyStartTestItem).toHaveBeenNthCalledWith(
+      2,
+      expectedParentSuiteObj,
       reporter.launchId,
       parentId,
     );
+    // the third call for the test item start
+    expect(reporter.client.startTestItem).toHaveBeenNthCalledWith(
+      3,
+      { ...expectedTestObj, attributes: [{ value: 'tag' }] },
+      reporter.launchId,
+      parentId,
+    );
+    expect(spyStartTestItem).toHaveBeenCalledTimes(3);
+    expect(reporter.suites).toEqual(expectedSuites);
+    expect(reporter.testItems).toEqual(expectedTestItems);
   });
 
   test('client.startTestItem should be called with one tag at the end @tag', () => {
-    const expectedTestObj = {
-      startTime: reporter.client.helpers.now(),
-      name: 'testTitle',
-      type: TEST_ITEM_TYPES.STEP,
-      codeRef: `${rootSuite}/${suiteName}/testTitle`,
-      retry: false,
-      attributes: [{ value: 'tag' }],
-    };
-    const parentId = 'tempTestItemId';
-
     // @ts-ignore
-    reporter.onTestBegin(expectedTestObj);
+    reporter.onTestBegin({ ...testCase, title: `${testCase.title} @tag` });
 
+    // the first call for the root suite start
     expect(spyStartTestItem).toHaveBeenNthCalledWith(
       1,
-      expectedTestObj,
+      expectedRootParentSuiteObj,
+      reporter.launchId,
+      undefined,
+    );
+    // the first call for the item parent suite start
+    expect(spyStartTestItem).toHaveBeenNthCalledWith(
+      2,
+      expectedParentSuiteObj,
       reporter.launchId,
       parentId,
     );
+    // the third call for the test item start
+    expect(reporter.client.startTestItem).toHaveBeenNthCalledWith(
+      3,
+      { ...expectedTestObj, attributes: [{ value: 'tag' }] },
+      reporter.launchId,
+      parentId,
+    );
+    expect(spyStartTestItem).toHaveBeenCalledTimes(3);
+    expect(reporter.suites).toEqual(expectedSuites);
+    expect(reporter.testItems).toEqual(expectedTestItems);
   });
 });

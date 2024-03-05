@@ -377,6 +377,12 @@ export class RPReporter implements Reporter {
     if (this.isLaunchFinishSend) {
       return;
     }
+
+    const taggedTestTitle = test.title;
+    const untaggedTestTitle = this.#extractTagsFromTitle(test.title);
+
+    test.title = untaggedTestTitle;
+
     const playwrightProjectName = this.createSuites(test);
 
     const fullSuiteName = getCodeRef(test, test.parent.title);
@@ -390,16 +396,20 @@ export class RPReporter implements Reporter {
         test.title,
         !includePlaywrightProjectNameToCodeReference && playwrightProjectName,
       );
+
       const { id: parentId } = parentSuiteObj;
 
       const startTestItem: StartTestObjType = {
-        name: this.#extractTagsFromTitle(test.title),
+        name: untaggedTestTitle,
         startTime: this.client.helpers.now(),
         type: TEST_ITEM_TYPES.STEP,
         codeRef,
         retry: test.results?.length > 1,
-        attributes: this.#getAttributesFromTitle(test.title),
       };
+
+      const attributes = this.#getAttributesFromTitle(taggedTestTitle);
+      if (attributes.length) startTestItem.attributes = attributes;
+
       const stepObj = this.client.startTestItem(startTestItem, this.launchId, parentId);
       this.addRequestToPromisesQueue(stepObj.promise, 'Failed to start test.');
       this.testItems.set(test.id, {
@@ -655,23 +665,18 @@ export class RPReporter implements Reporter {
   }
 
   #extractTagsFromTitle(title: string): string {
-    return (
-      title
-        .match(/@\w+\s*/g)
-        ?.join('')
-        .trim() || ''
-    );
+    const tagRegex = /^@\w+\s*|\s*@\w+$/g;
+    const titleWithoutTags = title.replace(tagRegex, '');
+    const trimmedTitle = titleWithoutTags.trim();
+
+    return trimmedTitle;
   }
 
   #getAttributesFromTitle(title: string): Attribute[] {
     const attributes = title.match(/@(\w+)(?::(\w+))?/g)?.map((tag) => {
-      const cleanedTag = tag.slice(1);
-      const parts = cleanedTag.split(':');
+      const [key, value] = tag.slice(1).split(':');
 
-      return {
-        key: parts.length === 2 ? parts[0] : '',
-        value: parts.length === 2 ? parts[1] : parts[0],
-      };
+      return value ? { key, value } : { value: key };
     });
 
     return attributes || [];
