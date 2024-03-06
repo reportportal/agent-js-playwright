@@ -176,7 +176,7 @@ You can now add test attributes in test titles using `@tag` notation. This provi
 Example:
 
 ```javascript
-test('should have a tag at the beginning of the test title', () => {
+test('@tag should have a tag at the beginning of the test title', () => {
   ReportingApi.addAttributes([{ key: 'title', value: 'tag' }]);
 
   expect(true).toBe(true);
