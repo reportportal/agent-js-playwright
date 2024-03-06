@@ -161,7 +161,7 @@ describe('start reporting suite/test', () => {
     expect(reporter.testItems).toEqual(new Map());
   });
 
-  test('@tag client.startTestItem should be called with one tag at the beginning', () => {
+  test('client.startTestItem should be called with corresponding params while one tag provided at the beginning of the test case title', () => {
     // @ts-ignore
     reporter.onTestBegin({ ...testCase, title: `@tag ${testCase.title}` });
 
