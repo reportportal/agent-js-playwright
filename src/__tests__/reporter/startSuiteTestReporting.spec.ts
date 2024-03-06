@@ -191,7 +191,7 @@ describe('start reporting suite/test', () => {
     expect(reporter.testItems).toEqual(expectedTestItems);
   });
 
-  test('client.startTestItem should be called with one tag at the end @tag', () => {
+  test('client.startTestItem should be called with corresponding params while one tag provided at the end of the test case title', () => {
     // @ts-ignore
     reporter.onTestBegin({ ...testCase, title: `${testCase.title} @tag` });
 
