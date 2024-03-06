@@ -177,7 +177,6 @@ Example:
 
 ```javascript
 test('@tag should have a tag at the beginning of the test title', () => {
-  ReportingApi.addAttributes([{ key: 'title', value: 'tag' }]);
 
   expect(true).toBe(true);
 });
