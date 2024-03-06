@@ -66,8 +66,6 @@ The full list of available options presented below.
 | includeTestSteps                            | Optional   | false     | Allows you to see the test steps at the log level.                                                                                                                                                                                                                                                                                                                                       |
 | includePlaywrightProjectNameToCodeReference | Optional   | false     | Includes Playwright project name to code reference. See [`testCaseId and codeRef calculation`](#setTestCaseId). It may be useful when you want to see the different history for the same test cases within different playwright projects.                                                                                                                                                |
 | extendTestDescriptionWithLastError          | Optional   | true      | If set to `true` the latest error log will be attached to the test case description.                                                                                                                                                                                                                                                                                                     |
-| grep                                        | Optional   | Not set   | To run all the test cases contains a specific tag i.e. "@fast"                                                                                                                                                                                                                                                                                                                        |
-| grepInvert                                  | Optional   | Not set   | To run all the test cases not contains a specific tag i.e. "@fast"                                                                                                                                                                                                                                                                                                                    |
 | uploadVideo                                 | Optional   | true      | Whether to attach the Playwright's [video](https://playwright.dev/docs/api/class-testoptions#test-options-video) to the test case.                                                                                                                                                                                                                                                       |
 | uploadTrace                                 | Optional   | true      | Whether to attach the Playwright's [trace](https://playwright.dev/docs/api/class-testoptions#test-options-trace) to the test case.                                                                                                                                                                                                                                                       |
 | token                                       | Deprecated | Not set   | Use `apiKey` instead.                                                                                                                                                                                                                                                                                                                                                                    |
@@ -169,6 +167,18 @@ test('should have the correct attributes', () => {
       value: 'testValueTwo',
     },
   ]);
+  expect(true).toBe(true);
+});
+```
+
+You can now add test attributes in test titles using `@tag` notation. This provides a succinct way to include metadata in test reports. Any `@tag` in a jest test title will be used as an attribute in ReportPortal, but won't appear in the final test title on ReportPortal.
+
+Example:
+
+```javascript
+test('should have a tag at the beginning of the test title', () => {
+  ReportingApi.addAttributes([{ key: 'title', value: 'tag' }]);
+
   expect(true).toBe(true);
 });
 ```
