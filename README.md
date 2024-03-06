@@ -171,7 +171,7 @@ test('should have the correct attributes', () => {
 });
 ```
 
-You can now add test attributes in test titles using `@tag` notation. This provides a succinct way to include metadata in test reports. Any `@tag` in a jest test title will be used as an attribute in ReportPortal, but won't appear in the final test title on ReportPortal.
+You can now add test attributes in test titles using `@tag` notation. This provides a succinct way to include metadata in test reports. Any `@tag` in a playwright test title will be used as an attribute in ReportPortal, but won't appear in the final test title on ReportPortal.
 
 Example:
 
