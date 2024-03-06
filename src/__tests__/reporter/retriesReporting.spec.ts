@@ -41,7 +41,7 @@ describe('retries reporting', () => {
   test('client.startTestItem should be called with retry=true params', () => {
     const parentId = 'tempTestItemId';
     const expectedTestObj: StartTestObjType = {
-      startTime: expect.any(Number),
+      startTime: reporter.client.helpers.now(),
       name: 'testTitle',
       type: TEST_ITEM_TYPES.STEP,
       codeRef: 'suiteName/testTitle',
