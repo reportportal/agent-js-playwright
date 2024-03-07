@@ -94,13 +94,9 @@ It is also required to specify playwright project names in `playwright.config.ts
 
 ### Advanced Test Filtering with grep Options
 
-To enhance control over which test cases are executed, the `@reportportal/agent-js-playwright` integration supports the `grep` and `grepInvert` options. These options provide a flexible way to include or exclude specific tests based on tags, enabling targeted test runs.
+The `@reportportal/agent-js-playwright` integration recognizes `grep` and `grepInvert` from Playwright for test filtering. These options, when used, are automatically attached as launch attributes in ReportPortal for targeted test execution.
 
-- `grep`: Use this option to run only the tests that contain a specific tag. For example, setting `grep` to "@fast" will execute tests tagged with "@fast", allowing for a focused test run on a subset of tests. This is particularly useful for categorizing tests based on criteria like execution speed, features, or stability.
-
-- `grepInvert`: Conversely, the `grepInvert` option runs all tests that do **not** contain a specific tag. If you want to exclude tests tagged with "@fast" from your test run, you can use `grepInvert` with the value "@fast". This option is valuable for filtering out tests that might not be relevant to a particular testing context, such as excluding long-running tests from a quick check.
-
-These options can be specified in the Playwright configuration file, enhancing test execution flexibility by focusing on tests relevant to specific criteria or excluding tests that do not meet the current testing needs.
+Refer to Playwright documentation for  [`grep`](https://playwright.dev/docs/api/class-testconfig#test-config-grep) and [`grepInvert`](https://playwright.dev/docs/api/class-testconfig#test-config-grep-invert) to learn about their usage.
 
 ```markdown
 **Example usage in `playwright.config.ts`:**
@@ -114,6 +110,7 @@ const config: PlaywrightTestConfig = {
 };
 export default config;
 ```
+````
 
 ### Attachments
 
@@ -200,7 +197,6 @@ Example:
 
 ```javascript
 test('@tag should have a tag at the beginning of the test title', () => {
-
   expect(true).toBe(true);
 });
 ```
