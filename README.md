@@ -98,7 +98,7 @@ The `@reportportal/agent-js-playwright` integration recognizes `grep` and `grepI
 
 Refer to Playwright documentation for  [`grep`](https://playwright.dev/docs/api/class-testconfig#test-config-grep) and [`grepInvert`](https://playwright.dev/docs/api/class-testconfig#test-config-grep-invert) to learn about their usage.
 
-```markdown
+```
 **Example usage in `playwright.config.ts`:**
 
 ```javascript
