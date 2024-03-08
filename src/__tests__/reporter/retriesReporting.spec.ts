@@ -14,11 +14,11 @@
  *  limitations under the License.
  */
 
-import { RPReporter } from '../../reporter';
-import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
+import { RPReporter } from '../../reporter';
 import { StartTestObjType } from '../../models';
 import { TEST_ITEM_TYPES } from '../../constants';
+import { mockConfig } from '../mocks/configMock';
 
 describe('retries reporting', () => {
   const reporter = new RPReporter(mockConfig);
