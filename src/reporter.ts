@@ -17,7 +17,13 @@
 
 import RPClient from '@reportportal/client-javascript';
 import stripAnsi from 'strip-ansi';
-import { Reporter, Suite as PWSuite, TestCase, TestResult } from '@playwright/test/reporter';
+import {
+  Reporter,
+  Suite as PWSuite,
+  TestCase,
+  TestResult,
+  FullConfig,
+} from '@playwright/test/reporter';
 import {
   Attribute,
   FinishTestItemObjType,
@@ -266,7 +272,7 @@ export class RPReporter implements Reporter {
     });
   }
 
-  onBegin(): void {
+  onBegin(config?: FullConfig): void {
     const { launch, description, attributes, skippedIssue, rerun, rerunOf, mode, launchId } =
       this.config;
     const systemAttributes: Attribute[] = getSystemAttributes(skippedIssue);
@@ -282,6 +288,16 @@ export class RPReporter implements Reporter {
       mode: mode || LAUNCH_MODES.DEFAULT,
       id: launchId,
     };
+
+    // Extract grep and grepInvert from config and add as launch attributes
+    if (config?.grep) {
+      startLaunchObj.attributes.push({ key: 'grep', value: config.grep.toString() });
+    }
+
+    if (config?.grepInvert) {
+      startLaunchObj.attributes.push({ key: 'grepInvert', value: config.grepInvert.toString() });
+    }
+
     const { tempId, promise } = this.client.startLaunch(startLaunchObj);
     this.addRequestToPromisesQueue(promise, 'Failed to start launch.');
     this.launchId = tempId;
@@ -361,6 +377,12 @@ export class RPReporter implements Reporter {
     if (this.isLaunchFinishSend) {
       return;
     }
+
+    const taggedTestTitle = test.title;
+    const untaggedTestTitle = this.#extractTagsFromTitle(test.title);
+
+    test.title = untaggedTestTitle;
+
     const playwrightProjectName = this.createSuites(test);
 
     const fullSuiteName = getCodeRef(test, test.parent.title);
@@ -374,14 +396,20 @@ export class RPReporter implements Reporter {
         test.title,
         !includePlaywrightProjectNameToCodeReference && playwrightProjectName,
       );
+
       const { id: parentId } = parentSuiteObj;
+
       const startTestItem: StartTestObjType = {
-        name: test.title,
+        name: untaggedTestTitle,
         startTime: this.client.helpers.now(),
         type: TEST_ITEM_TYPES.STEP,
         codeRef,
         retry: test.results?.length > 1,
       };
+
+      const attributes = this.#getAttributesFromTitle(taggedTestTitle);
+      if (attributes.length) startTestItem.attributes = attributes;
+
       const stepObj = this.client.startTestItem(startTestItem, this.launchId, parentId);
       this.addRequestToPromisesQueue(stepObj.promise, 'Failed to start test.');
       this.testItems.set(test.id, {
@@ -634,5 +662,23 @@ export class RPReporter implements Reporter {
 
   printsToStdio(): boolean {
     return false;
+  }
+
+  #extractTagsFromTitle(title: string): string {
+    const tagRegex = /^@\w+\s*|\s*@\w+$/g;
+    const titleWithoutTags = title.replace(tagRegex, '');
+    const trimmedTitle = titleWithoutTags.trim();
+
+    return trimmedTitle;
+  }
+
+  #getAttributesFromTitle(title: string): Attribute[] {
+    const attributes = title.match(/@(\w+)(?::(\w+))?/g)?.map((tag) => {
+      const [key, value] = tag.slice(1).split(':');
+
+      return value ? { key, value } : { value: key };
+    });
+
+    return attributes || [];
   }
 }

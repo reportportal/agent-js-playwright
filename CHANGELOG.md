@@ -1,3 +1,5 @@
+### Added
+- The Playwright's tags are parsed to the RP's attributes and attached to the tests.
 
 ## [5.1.7] - 2024-02-21
 ### Changed
