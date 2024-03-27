@@ -27,6 +27,7 @@ import {
   isFalse,
   getAttachments,
   isErrorLog,
+  fileExists,
   calculateRpStatus,
   getAdditionalInfo,
 } from '../utils';
@@ -57,6 +58,23 @@ describe('testing utils', () => {
     test('isErrorLog without "error" word should return false', () => {
       const messageWithoutError = 'Some text';
       expect(isErrorLog(messageWithoutError)).toBe(false);
+    });
+  });
+
+  describe('fileExists', () => {
+    test('should return true', async () => {
+      jest.spyOn(fs.promises, 'stat').mockImplementationOnce(() => Promise.resolve({} as fs.Stats));
+
+      const existingFilePath = 'existing-file-path';
+      const isFileExist = await fileExists(existingFilePath);
+
+      expect(isFileExist).toBe(true);
+    });
+    test('should return false', async () => {
+      const notExistingFilePath = 'not-existing-file-path';
+      const isFileExist = await fileExists(notExistingFilePath);
+
+      expect(isFileExist).toBe(false);
     });
   });
 
@@ -246,7 +264,7 @@ describe('testing utils', () => {
       const file1Data = Buffer.from([1, 2, 3, 4, 5, 6, 7, 8]);
       const file2Data = Buffer.from([1, 2, 3, 4, 5, 6, 7]);
 
-      jest.spyOn(fs, 'existsSync').mockImplementationOnce((): boolean => true);
+      jest.spyOn(fs.promises, 'stat').mockImplementationOnce(() => Promise.resolve({} as fs.Stats));
 
       jest.spyOn(fs.promises, 'readFile').mockImplementationOnce(async () => file1Data);
 
