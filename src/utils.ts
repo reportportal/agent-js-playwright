@@ -92,6 +92,20 @@ export const sendEventToReporter = (type: string, data: any, suite?: string): vo
   process.stdout.write(JSON.stringify({ type, data, suite }));
 };
 
+export const fileExists = async (filePath: string) => {
+  try {
+    await fsPromises.stat(filePath);
+    return true;
+  } catch (error) {
+    // ENOENT code - File does not exist
+    if (error.code === 'ENOENT') {
+      return false;
+    } else {
+      throw error;
+    }
+  }
+};
+
 export const getAttachments = async (
   attachments: TestResult['attachments'],
   { uploadTrace, uploadVideo }: AttachmentsConfig = { uploadTrace: true, uploadVideo: true },
@@ -142,19 +156,6 @@ export const getAttachments = async (
 
   return (await Promise.all(readFilePromises)).filter(Boolean);
 };
-
-export const fileExists = async (path: string) => {
-  try {
-    await fsPromises.stat(path);
-    return true;
-  } catch (error) {
-    if (error.code === 'ENOENT') { // File does not exist
-      return false;
-    } else {
-      throw error;
-    }
-  }
-}
 
 export const isErrorLog = (message: string): boolean => {
   return message.toLowerCase().includes('error');
