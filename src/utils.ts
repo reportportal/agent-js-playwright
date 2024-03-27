@@ -122,7 +122,8 @@ export const getAttachments = async (
         if (body) {
           fileContent = body;
         } else {
-          if (!fs.existsSync(attachmentPath)) {
+          const isFileExist = await fileExists(attachmentPath);
+          if (!isFileExist) {
             return;
           }
           fileContent = await fsPromises.readFile(attachmentPath);
@@ -141,6 +142,19 @@ export const getAttachments = async (
 
   return (await Promise.all(readFilePromises)).filter(Boolean);
 };
+
+export const fileExists = async (path: string) => {
+  try {
+    await fsPromises.stat(path);
+    return true;
+  } catch (error) {
+    if (error.code === 'ENOENT') { // File does not exist
+      return false;
+    } else {
+      throw error;
+    }
+  }
+}
 
 export const isErrorLog = (message: string): boolean => {
   return message.toLowerCase().includes('error');
