@@ -1,7 +1,11 @@
+### Changed
+- `@reportportal/client-javascript` bumped to version `5.1.3`, new `launchUuidPrintOutput` types introduced: 'FILE', 'ENVIRONMENT'.
 
 ## [5.1.7] - 2024-02-21
-## Changed
+### Changed
 - `@reportportal/client-javascript` bumped to version `5.1.2`.
+### Fixed
+- Setting step id in case of existing one, thanks to [noacohen1](https://github.com/noacohen1).
 
 ## [5.1.6] - 2023-12-19
 ### Fixed
@@ -16,7 +20,7 @@
 - `@reportportal/client-javascript` bumped to version `5.0.15`. Logging link to the launch on its finish now available by default.
 
 ## [5.1.4] - 2023-10-05
-## Changed
+### Changed
 - `@reportportal/client-javascript` bumped to version `5.0.14`.
 
 ## [5.1.3] - 2023-09-07
