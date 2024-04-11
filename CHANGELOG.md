@@ -1,5 +1,5 @@
 ### Changed
-- `@reportportal/client-javascript` bumped to version `5.1.3`.
+- `@reportportal/client-javascript` bumped to version `5.1.3`, new `launchUuidPrintOutput` types introduced: 'FILE', 'ENVIRONMENT'.
 
 ## [5.1.7] - 2024-02-21
 ### Changed
