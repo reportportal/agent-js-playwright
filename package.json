@@ -13,7 +13,7 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@reportportal/client-javascript": "^5.1.3",
+    "@reportportal/client-javascript": "~5.1.4",
     "strip-ansi": "6.0.1"
   },
   "files": [
