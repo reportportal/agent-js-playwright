@@ -17,7 +17,7 @@ npm install --save-dev @reportportal/agent-js-playwright
   import { PlaywrightTestConfig } from '@playwright/test';
 
   const RPconfig = {
-    apiKey: '00000000-0000-0000-0000-000000000000',
+    apiKey: '<API_KEY>',
     endpoint: 'https://your.reportportal.server/api/v1',
     project: 'Your reportportal project name',
     launch: 'Your launch name',
