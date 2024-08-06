@@ -18,7 +18,7 @@
 import RPClient from '@reportportal/client-javascript';
 import clientHelpers from '@reportportal/client-javascript/lib/helpers';
 import stripAnsi from 'strip-ansi';
-import { Reporter, Suite as PWSuite, TestCase, TestResult } from '@playwright/test/reporter';
+import { Reporter, Suite as PWSuite, TestCase, TestResult, FullResult } from '@playwright/test/reporter';
 import {
   Attribute,
   FinishTestItemObjType,
@@ -611,8 +611,7 @@ export class RPReporter implements Reporter {
     });
   }
 
-  async onEnd(): Promise<void> {
-    // Force finish unfinished suites in case of interruptions
+  async onEnd(result: FullResult) {
     if (this.suites.size > 0) {
       this.suites.forEach((value, key) => {
         this.suites.set(key, {
@@ -625,8 +624,9 @@ export class RPReporter implements Reporter {
     }
 
     if (!this.config.launchId) {
+      const endTime = new Date(result.startTime.getTime() + result.duration).valueOf
       const { promise } = this.client.finishLaunch(this.launchId, {
-        endTime: clientHelpers.now(),
+        endTime: endTime,
         ...(this.customLaunchStatus && { status: this.customLaunchStatus }),
       });
       this.addRequestToPromisesQueue(promise, 'Failed to finish launch.');
