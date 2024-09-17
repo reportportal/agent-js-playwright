@@ -483,6 +483,7 @@ export class RPReporter implements Reporter {
         uploadTrace,
       });
 
+      // TODO: use bulk log request
       attachmentsFiles.forEach((file) => {
         this.sendLog(testItemId, {
           message: `Attachment ${file.name} with type ${file.type}`,
