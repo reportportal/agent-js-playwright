@@ -14,9 +14,10 @@
  *  limitations under the License.
  */
 
+import helpers from '@reportportal/client-javascript/lib/helpers';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
-import { RPClientMock } from '../mocks/RPClientMock';
+import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
 import path from 'path';
 
 const rootSuite = 'rootSuite';
@@ -25,6 +26,7 @@ const suiteName = 'example.js';
 // TODO: add tests for skipped status and different workerIndex values
 // TODO: add tests for serial mode
 describe('finish suites on finish all of their children', () => {
+  jest.spyOn(helpers, 'now').mockReturnValue(mockedDate);
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
   reporter.launchId = 'tempLaunchId';
@@ -102,14 +104,14 @@ describe('finish suites on finish all of their children', () => {
     reporter.onTestEnd(testCase, testResult);
 
     expect(spyFinishTestItem).toHaveBeenNthCalledWith(1, 'tempTestItemId', {
-      endTime: reporter.client.helpers.now(),
+      endTime: mockedDate,
       status: 'passed',
     });
     expect(spyFinishTestItem).toHaveBeenNthCalledWith(2, 'rootsuiteId', {
-      endTime: reporter.client.helpers.now(),
+      endTime: mockedDate,
     });
     expect(spyFinishTestItem).toHaveBeenNthCalledWith(3, 'parentSuiteId', {
-      endTime: reporter.client.helpers.now(),
+      endTime: mockedDate,
     });
     expect(reporter.suites).toEqual(new Map());
   });
@@ -118,10 +120,10 @@ describe('finish suites on finish all of their children', () => {
     reporter.onEnd();
 
     expect(spyFinishTestItem).toHaveBeenNthCalledWith(1, 'rootsuiteId', {
-      endTime: reporter.client.helpers.now(),
+      endTime: mockedDate,
     });
     expect(spyFinishTestItem).toHaveBeenNthCalledWith(2, 'parentSuiteId', {
-      endTime: reporter.client.helpers.now(),
+      endTime: mockedDate,
     });
     expect(reporter.suites).toEqual(new Map());
   });

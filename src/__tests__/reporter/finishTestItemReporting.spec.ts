@@ -14,9 +14,10 @@
  *  limitations under the License.
  */
 
+import helpers from '@reportportal/client-javascript/lib/helpers';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
-import { RPClientMock } from '../mocks/RPClientMock';
+import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
 import { FinishTestItemObjType } from '../../models';
 import { STATUSES } from '../../constants';
 
@@ -24,6 +25,7 @@ const rootSuite = 'rootSuite';
 const suiteName = 'suiteName';
 
 describe('finish test reporting', () => {
+  jest.spyOn(helpers, 'now').mockReturnValue(mockedDate);
   const testCase = {
     title: 'testTitle',
     id: 'testItemId',
@@ -93,7 +95,7 @@ describe('finish test reporting', () => {
       status: 'passed',
     };
     const finishTestItemObj: FinishTestItemObjType = {
-      endTime: reporter.client.helpers.now(),
+      endTime: mockedDate,
       status: result.status,
       attributes: [{ key: 'key', value: 'value' }],
       description: 'description',
@@ -117,7 +119,7 @@ describe('finish test reporting', () => {
       status: 'skipped',
     };
     const finishTestItemObj: FinishTestItemObjType = {
-      endTime: reporter.client.helpers.now(),
+      endTime: mockedDate,
       status: result.status,
       attributes: [{ key: 'key', value: 'value' }],
       description: 'description',
@@ -166,7 +168,7 @@ describe('finish test reporting', () => {
     await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
 
     const finishStepObject: FinishTestItemObjType = {
-      endTime: reporter.client.helpers.now(),
+      endTime: mockedDate,
       status: STATUSES.INTERRUPTED,
     };
 
@@ -183,7 +185,7 @@ describe('finish test reporting', () => {
     await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
 
     const finishStepObject: FinishTestItemObjType = {
-      endTime: reporter.client.helpers.now(),
+      endTime: mockedDate,
       status: STATUSES.FAILED,
     };
 

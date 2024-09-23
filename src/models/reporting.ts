@@ -20,7 +20,7 @@ import { TEST_ITEM_TYPES, LOG_LEVELS, LAUNCH_MODES } from '../constants';
 import { TestStep } from '@playwright/test/reporter';
 
 export interface StartLaunchObjType {
-  startTime?: Date | number;
+  startTime?: string | number;
   attributes?: Array<Attribute>;
   description?: string;
   name?: string;
@@ -35,14 +35,14 @@ export interface StartTestObjType {
   type: TEST_ITEM_TYPES;
   attributes?: Array<Attribute>;
   description?: string;
-  startTime?: Date | number;
+  startTime?: string | number;
   codeRef?: string;
   testCaseId?: string;
   retry?: boolean;
 }
 
 export interface FinishTestItemObjType {
-  endTime?: Date | number;
+  endTime?: string | number;
   status?: string;
   attributes?: Attribute[];
   description?: string;
@@ -59,7 +59,7 @@ export interface Attachment {
 export interface LogRQ {
   level?: LOG_LEVELS;
   message?: string;
-  time?: number;
+  time?: string | number;
   file?: Attachment;
 }
 

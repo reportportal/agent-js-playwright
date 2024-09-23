@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 EPAM Systems
+ *  Copyright 2024 EPAM Systems
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,6 +15,6 @@
  *
  */
 
-declare module '@reportportal/client-javascript/lib/constants/events' {
-  export const EVENTS: Interfaces.ObjUniversal;
+declare module '@reportportal/client-javascript/lib/helpers' {
+  export function now(): string;
 }

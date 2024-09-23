@@ -14,9 +14,10 @@
  *  limitations under the License.
  */
 
+import helpers from '@reportportal/client-javascript/lib/helpers';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
-import { RPClientMock } from '../mocks/RPClientMock';
+import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
 import { TEST_ITEM_TYPES } from '../../constants';
 
 const playwrightProjectName = 'projectName';
@@ -24,6 +25,7 @@ const suiteName = 'suiteName';
 const tempTestItemId = 'tempTestItemId';
 
 describe('onStepBegin reporting', () => {
+  jest.spyOn(helpers, 'now').mockReturnValue(mockedDate);
   let reporter: RPReporter;
 
   beforeEach(() => {
@@ -84,7 +86,7 @@ describe('onStepBegin reporting', () => {
       name: step.title,
       type: TEST_ITEM_TYPES.STEP,
       hasStats: false,
-      startTime: reporter.client.helpers.now(),
+      startTime: mockedDate,
     };
 
     // @ts-ignore
@@ -134,7 +136,7 @@ describe('onStepBegin reporting', () => {
       name: step.title,
       type: TEST_ITEM_TYPES.STEP,
       hasStats: false,
-      startTime: reporter.client.helpers.now(),
+      startTime: mockedDate,
     };
 
     // @ts-ignore

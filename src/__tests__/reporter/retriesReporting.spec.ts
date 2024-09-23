@@ -14,13 +14,15 @@
  *  limitations under the License.
  */
 
+import helpers from '@reportportal/client-javascript/lib/helpers';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
-import { RPClientMock } from '../mocks/RPClientMock';
+import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
 import { StartTestObjType } from '../../models';
 import { TEST_ITEM_TYPES } from '../../constants';
 
 describe('retries reporting', () => {
+  jest.spyOn(helpers, 'now').mockReturnValue(mockedDate);
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
 
@@ -41,7 +43,7 @@ describe('retries reporting', () => {
   test('client.startTestItem should be called with retry=true params', () => {
     const parentId = 'tempTestItemId';
     const expectedTestObj: StartTestObjType = {
-      startTime: reporter.client.helpers.now(),
+      startTime: mockedDate,
       name: 'testTitle',
       type: TEST_ITEM_TYPES.STEP,
       codeRef: 'suiteName/testTitle',

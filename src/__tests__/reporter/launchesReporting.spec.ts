@@ -15,6 +15,7 @@
  *
  */
 
+import helpers from '@reportportal/client-javascript/lib/helpers';
 import { RPReporter } from '../../reporter';
 import { StartLaunchObjType } from '../../models';
 import { getSystemAttributes } from '../../utils';
@@ -24,6 +25,8 @@ import { mockConfig } from '../mocks/configMock';
 import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
 
 describe('start launch', () => {
+  jest.spyOn(helpers, 'now').mockReturnValue(mockedDate);
+
   describe('DEFAULT mode', () => {
     const reporter = new RPReporter(mockConfig);
     reporter.client = new RPClientMock(mockConfig);

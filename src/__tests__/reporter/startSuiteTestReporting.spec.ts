@@ -14,9 +14,10 @@
  *  limitations under the License.
  */
 
+import helpers from '@reportportal/client-javascript/lib/helpers';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
-import { RPClientMock } from '../mocks/RPClientMock';
+import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
 import { StartTestObjType } from '../../models';
 import { TEST_ITEM_TYPES } from '../../constants';
 import path from 'path';
@@ -25,6 +26,7 @@ const rootSuite = 'tests/example.js';
 const suiteName = 'suiteName';
 
 describe('start reporting suite/test', () => {
+  jest.spyOn(helpers, 'now').mockReturnValue(mockedDate);
   let reporter: RPReporter;
   let spyStartTestItem: jest.SpyInstance;
 
@@ -100,19 +102,19 @@ describe('start reporting suite/test', () => {
       ['testItemId', { id: 'tempTestItemId', name: 'testTitle' }],
     ]);
     const expectedRootParentSuiteObj: StartTestObjType = {
-      startTime: reporter.client.helpers.now(),
+      startTime: mockedDate,
       name: rootSuite,
       type: TEST_ITEM_TYPES.SUITE,
       codeRef: 'tests/example.js',
     };
     const expectedParentSuiteObj: StartTestObjType = {
-      startTime: reporter.client.helpers.now(),
+      startTime: mockedDate,
       name: suiteName,
       type: TEST_ITEM_TYPES.TEST,
       codeRef: 'tests/example.js/suiteName',
     };
     const expectedTestObj: StartTestObjType = {
-      startTime: reporter.client.helpers.now(),
+      startTime: mockedDate,
       name: 'testTitle',
       type: TEST_ITEM_TYPES.STEP,
       codeRef: 'tests/example.js/suiteName/testTitle',
