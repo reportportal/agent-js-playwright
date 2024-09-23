@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 EPAM Systems
+ *  Copyright 2024 EPAM Systems
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -25,6 +25,5 @@ declare module '@reportportal/client-javascript' {
     public finishTestItem(itemId: string, itemObj: any): any;
     public sendLog(itemId: string, itemObj: any, fileObj?: any): any;
     public checkConnect(): any;
-    public helpers: any;
   }
 }
