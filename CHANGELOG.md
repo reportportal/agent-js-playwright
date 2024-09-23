@@ -1,3 +1,5 @@
+
+## [5.1.11] - 2024-09-23
 ### Changed
 - The agent now supports reporting the time for launches, test items and logs with microsecond precision in the ISO string format.
 For logs, microsecond precision is available on the UI from ReportPortal version 24.2.
