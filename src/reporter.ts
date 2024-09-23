@@ -16,6 +16,7 @@
  */
 
 import RPClient from '@reportportal/client-javascript';
+import clientHelpers from '@reportportal/client-javascript/lib/helpers';
 import stripAnsi from 'strip-ansi';
 import { Reporter, Suite as PWSuite, TestCase, TestResult } from '@playwright/test/reporter';
 import {
@@ -246,7 +247,7 @@ export class RPReporter implements Reporter {
       {
         message,
         level,
-        time: this.client.helpers.now(),
+        time: clientHelpers.now(),
       },
       file,
     );
@@ -266,7 +267,7 @@ export class RPReporter implements Reporter {
       }
 
       const finishSuiteObj: FinishTestItemObjType = {
-        endTime: this.client.helpers.now(),
+        endTime: clientHelpers.now(),
         ...(status && { status }),
       };
       const { promise } = this.client.finishTestItem(id, finishSuiteObj);
@@ -282,7 +283,7 @@ export class RPReporter implements Reporter {
 
     const startLaunchObj: StartLaunchObjType = {
       name: launch,
-      startTime: this.client.helpers.now(),
+      startTime: clientHelpers.now(),
       description,
       attributes:
         attributes && attributes.length ? attributes.concat(systemAttributes) : systemAttributes,
@@ -332,7 +333,7 @@ export class RPReporter implements Reporter {
 
       const startSuiteObj: StartTestObjType = {
         name: currentSuiteTitle,
-        startTime: this.client.helpers.now(),
+        startTime: clientHelpers.now(),
         type: testItemType,
         codeRef,
         ...(attributes && { attributes }),
@@ -389,7 +390,7 @@ export class RPReporter implements Reporter {
       const { id: parentId } = parentSuiteObj;
       const startTestItem: StartTestObjType = {
         name: test.title,
-        startTime: this.client.helpers.now(),
+        startTime: clientHelpers.now(),
         type: TEST_ITEM_TYPES.STEP,
         codeRef,
         retry: test.results?.length > 1,
@@ -426,7 +427,7 @@ export class RPReporter implements Reporter {
       name: step.title,
       type: TEST_ITEM_TYPES.STEP,
       hasStats: false,
-      startTime: this.client.helpers.now(),
+      startTime: clientHelpers.now(),
     };
 
     if (!step.hasOwnProperty('id')) {
@@ -458,7 +459,7 @@ export class RPReporter implements Reporter {
 
     const stepFinishObj = {
       status: step.error ? STATUSES.FAILED : STATUSES.PASSED,
-      endTime: this.client.helpers.now(),
+      endTime: clientHelpers.now(),
     };
 
     const { promise } = this.client.finishTestItem(nestedStep.id, stepFinishObj);
@@ -546,7 +547,7 @@ export class RPReporter implements Reporter {
         const { id: stepId } = value;
         const itemObject = {
           status: result.status === 'timedOut' ? STATUSES.INTERRUPTED : STATUSES.FAILED,
-          endTime: this.client.helpers.now(),
+          endTime: clientHelpers.now(),
         };
 
         const { promise } = this.client.finishTestItem(stepId, itemObject);
@@ -557,7 +558,7 @@ export class RPReporter implements Reporter {
     });
 
     const finishTestItemObj: FinishTestItemObjType = {
-      endTime: this.client.helpers.now(),
+      endTime: clientHelpers.now(),
       status,
       ...(withoutIssue && { issue: { issueType: 'NOT_ISSUE' } }),
       ...(attributes.length !== 0 && { attributes }),
@@ -660,7 +661,7 @@ export class RPReporter implements Reporter {
 
     if (!this.config.launchId) {
       const { promise } = this.client.finishLaunch(this.launchId, {
-        endTime: this.client.helpers.now(),
+        endTime: clientHelpers.now(),
         ...(this.customLaunchStatus && { status: this.customLaunchStatus }),
       });
       this.addRequestToPromisesQueue(promise, 'Failed to finish launch.');

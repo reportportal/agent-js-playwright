@@ -14,9 +14,10 @@
  *  limitations under the License.
  */
 
+import helpers from '@reportportal/client-javascript/lib/helpers';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
-import { RPClientMock } from '../mocks/RPClientMock';
+import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
 import { LOG_LEVELS } from '../../constants';
 
 const playwrightProjectName = 'projectName';
@@ -24,6 +25,8 @@ const tempTestItemId = 'tempTestItemId';
 const suiteName = 'suiteName';
 
 describe('logs reporting', () => {
+  jest.spyOn(helpers, 'now').mockReturnValue(mockedDate);
+
   const reporter = new RPReporter(mockConfig);
   reporter.client = new RPClientMock(mockConfig);
 
@@ -47,7 +50,7 @@ describe('logs reporting', () => {
         tempId: 'testItemId',
       };
       const expectedSendLogObj = {
-        time: reporter.client.helpers.now(),
+        time: mockedDate,
         level: LOG_LEVELS.INFO,
         message: 'info log',
       };
@@ -62,7 +65,7 @@ describe('logs reporting', () => {
       const spySendLog = jest.spyOn(reporter.client, 'sendLog');
 
       const expectedSendLogObj = {
-        time: reporter.client.helpers.now(),
+        time: mockedDate,
         level: LOG_LEVELS.INFO,
         message: 'info log',
       };
