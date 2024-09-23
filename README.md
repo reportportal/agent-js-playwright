@@ -82,6 +82,11 @@ The following options can be overridden using ENVIRONMENT variables:
 }
 ```
 
+## Asynchronous API
+
+The client supports an asynchronous reporting (via the ReportPortal asynchronous API).
+If you want the client to report through the asynchronous API, change `v1` to `v2` in the `endpoint` address.
+
 ## Reporting
 
 When organizing tests, specify titles for `test.describe` blocks, as this is necessary to build the correct structure of reports.
