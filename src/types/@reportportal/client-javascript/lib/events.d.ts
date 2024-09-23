@@ -15,27 +15,6 @@
  *
  */
 
-declare namespace Interfaces {
-  interface Attribute {
-    value: string;
-    key?: string;
-    system?: boolean;
-  }
-
-  interface Attachment {
-    name: string;
-    type: string;
-    content: string | Buffer;
-  }
-
-  interface LogRQ {
-    level?: string;
-    message?: string;
-    time?: string | number;
-    file?: Attachment;
-  }
-
-  interface ObjUniversal {
-    [name: string]: string;
-  }
+declare module '@reportportal/client-javascript/lib/constants/events' {
+  export const EVENTS: Interfaces.ObjUniversal;
 }

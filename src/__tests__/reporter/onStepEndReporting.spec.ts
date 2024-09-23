@@ -14,18 +14,23 @@
  *  limitations under the License.
  */
 
+import helpers from '@reportportal/client-javascript/lib/helpers';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
-import { RPClientMock } from '../mocks/RPClientMock';
+import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
 
 const playwrightProjectName = 'projectName';
 const suiteName = 'suiteName';
 const tempTestItemId = 'tempTestItemId';
 
 describe('onStepBegin reporting', () => {
-  mockConfig.includeTestSteps = true;
-  const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
+  jest.spyOn(helpers, 'now').mockReturnValue(mockedDate);
+  const config = {
+    ...mockConfig,
+    includeTestSteps: true,
+  };
+  const reporter = new RPReporter(config);
+  reporter.client = new RPClientMock(config);
 
   reporter.launchId = 'launchId';
 
@@ -66,7 +71,7 @@ describe('onStepBegin reporting', () => {
 
   test('client.finishTestItem should be called with corresponding params', () => {
     const expectedStepObj = {
-      endTime: reporter.client.helpers.now(),
+      endTime: mockedDate,
       status: 'failed',
     };
 
