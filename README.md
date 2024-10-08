@@ -358,6 +358,8 @@ To integrate with Sauce Labs just add attributes for the test case:
 }]
 ```
 
+Example available in [examples repo](https://github.com/reportportal/examples-js/tree/main/example-playwright#run-in-saucelabs).
+
 ## Issues troubleshooting
 
 ### Launches stuck in progress on RP side
