@@ -371,7 +371,7 @@ There are several options to achieve this.
 
 **Note:** The [`@reportportal/client-javascript`](https://github.com/reportportal/client-javascript) SDK used here as a reference, but of course the same actions can be performed by sending requests to the ReportPortal API directly.
 
-### Use `launchId` option
+### Using the `launchId` config option
 
 The agent supports the `launchId` parameter to specify the ID of the already started launch.
 This way, you can start the launch using `@reportportal/client-javascript` before the test run and then specify its ID in the config or via environment variable.
@@ -447,7 +447,7 @@ const finishLaunch = async () => {
 await finishLaunch();
 ```
 
-### Use `rerunOf` option
+### Using the `rerunOf` config option
 
 The agent supports the `rerun` and `rerunOf` options.
 In case only `rerun` set, the ReportPortal will attach the launch results to the latest existing launch with the same name.
@@ -500,7 +500,7 @@ const rpConfig = {
 
 That's it. With such configuration the single launch will be used for the all tests from shards.
 
-### Merge launches as a post step based on build id
+### Merging launches based on the build ID
 
 This approach offers a way to merge several launches reported from different shards into one launch after the entire test execution completed and launches are finished.
 * With this option the Auto-analysis, Pattern-analysis and Quality Gates will be triggered for each sharded launch individually.
@@ -527,9 +527,9 @@ const rpConfig = {
 };
 ```
 
-2. Collect the launch ids and call the merge operation.
+2. Collect the launch IDs and call the merge operation.
 
-The ReportPortal API can be used to filter the required launches by the provided attribute to collect their ids.
+The ReportPortal API can be used to filter the required launches by the provided attribute to collect their IDs.
 
 ```javascript
 /*
