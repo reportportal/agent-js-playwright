@@ -360,6 +360,229 @@ To integrate with Sauce Labs just add attributes for the test case:
 
 Example available in [examples repo](https://github.com/reportportal/examples-js/tree/main/example-playwright#run-in-saucelabs).
 
+## Usage with sharded tests
+
+Playwright supports [test sharding](https://playwright.dev/docs/test-sharding) on multiple machines.
+It has its own CLI for merging reports from [multiple shards](https://playwright.dev/docs/test-sharding#merging-reports-from-multiple-shards).
+But the mentioned CLI tool `merge-reports` is designed to merge local reports represented by files in the file system, so it is not suitable for external reporting systems like ReportPortal, as it requires at least network communication through the right endpoints.
+
+Thus, in order to have a single launch in ReportPortal for sharded tests, additional customization is required.
+There are several options to achieve this.
+
+**Note:** The [`@reportportal/client-javascript`](https://github.com/reportportal/client-javascript) SDK used here as a reference, but of course the same actions can be performed by sending requests to the ReportPortal API directly.
+
+### Using the `launchId` config option
+
+The agent supports the `launchId` parameter to specify the ID of the already started launch.
+This way, you can start the launch using `@reportportal/client-javascript` before the test run and then specify its ID in the config or via environment variable.
+
+1. Trigger a launch before all tests.
+
+The `@reportportal/client-javascript` `startLaunch` method can be used.
+
+```javascript
+/*
+* startLaunch.js
+* */
+const rpClient = require('@reportportal/client-javascript');
+
+const rpConfig = {
+    // ...
+};
+
+async function startLaunch() {
+  const client = new rpClient(rpConfig);
+   // see https://github.com/reportportal/client-javascript?tab=readme-ov-file#startlaunch for the details
+  const response = await client.startLaunch({
+    name: rpConfig.launch,
+    attributes: rpConfig.attributes,
+    // etc.
+  }).promise;
+
+  return response.id;
+}
+
+const launchId = await startLaunch();
+```
+Received `launchId` can be exported e.g. as an environment variable to your CI job.
+
+2. Specify the launch ID for each job.
+This step depends on your CI provider and the available ways to path some values to the Node.js process.
+The launch ID can be set directly to the [reporter config](https://github.com/reportportal/agent-js-playwright#:~:text=Useful%20for%20debugging.-,launchId,-Optional).
+```javascript
+/*
+* playwright.config.js
+* */
+const rpConfig = {
+  // ...
+  launchId: 'receivedLaunchId'
+};
+```
+or just set as `RP_LAUNCH_ID` environment variable.
+
+With launch ID provided, the agent will attach all test results to that launch.
+So it won't be finished by the agent and should be finished separately.
+
+3. As a run post-step (when all tests finished), launch also needs to be finished separately.
+
+The `@reportportal/client-javascript` `finishLaunch` method can be used.
+
+```javascript
+/*
+* finishLaunch.js
+* */
+const RPClient = require('@reportportal/client-javascript');
+
+const rpConfig = {
+    // ...
+};
+
+const finishLaunch = async () => {
+  const client = new RPClient(rpConfig);
+  const launchTempId = client.startLaunch({ id: process.env.RP_LAUNCH_ID }).tempId;
+  // see https://github.com/reportportal/client-javascript?tab=readme-ov-file#finishlaunch for the details
+  await client.finishLaunch(launchTempId, {}).promise;
+};
+
+await finishLaunch();
+```
+
+### Using the `rerunOf` config option
+
+The agent supports the `rerun` and `rerunOf` options.
+In case only `rerun` set, the ReportPortal will attach the launch results to the latest existing launch with the same name.
+In case also the `rerunOf` option set, which is the ID of any existing launch, the results will be aggregated within that launch.
+
+The first step here while using the `rerunOf` option is the same as in previous approach.
+
+1. Trigger a launch before all tests.
+
+The `@reportportal/client-javascript` `startLaunch` method can be used.
+
+```javascript
+/*
+* startLaunch.js
+* */
+const rpClient = require('@reportportal/client-javascript');
+
+const rpConfig = {
+    // ...
+};
+
+async function startLaunch() {
+  const client = new rpClient(rpConfig);
+  const response = await client.startLaunch({
+    name: rpConfig.launch,
+    attributes: rpConfig.attributes,
+    // etc. see https://github.com/reportportal/client-javascript?tab=readme-ov-file#startlaunch for the details
+  }).promise;
+
+  return response.id;
+}
+
+const launchId = await startLaunch();
+```
+Received launch ID can be exported e.g. as an environment variable to your CI job.
+
+2. Specify the launch ID as a `rerunOf` for each job.
+This step depends on your CI provider and the available ways to path some values to the Node.js process.
+The `rerunOf` should be set directly to the [reporter config](https://github.com/reportportal/agent-js-playwright#:~:text=Enable%20rerun-,rerunOf,-Optional).
+```javascript
+/*
+* playwright.config.js
+* */
+const rpConfig = {
+  // ...
+  rerun: true,
+  rerunOf: process.env.RP_RERUN_OF,
+};
+```
+
+That's it. With such configuration the single launch will be used for the all tests from shards.
+
+### Merging launches based on the build ID
+
+This approach offers a way to merge several launches reported from different shards into one launch after the entire test execution completed and launches are finished.
+* With this option the Auto-analysis, Pattern-analysis and Quality Gates will be triggered for each sharded launch individually.
+* The launch numbering will be changed as each sharded launch will have its own number.
+* The merged launch will be treated as a new launch with its own number.
+
+This approach is equal to merging launches via [ReportPortal UI](https://reportportal.io/docs/work-with-reports/OperationsUnderLaunches/#merge-launches).
+
+1. Specify a unique CI build ID as a launch attribute, which will be the same for different jobs in the same run (this could be a commit hash or something else).
+This step depends on your CI provider and the available ways to path some values to the Node.js process.
+```javascript
+/*
+* playwright.config.js
+* */
+const rpConfig = {
+  // ...
+  attributes: [
+    {
+      key: 'CI_BUILD_ID',
+      // e.g.
+      value: process.env.GITHUB_COMMIT_SHA,
+    }
+  ],
+};
+```
+
+2. Collect the launch IDs and call the merge operation.
+
+The ReportPortal API can be used to filter the required launches by the provided attribute to collect their IDs.
+
+```javascript
+/*
+* mergeRpLaunches.js
+* */
+const rpClient = require('@reportportal/client-javascript');
+
+const rpConfig = {
+  // ...
+};
+
+const client = new rpClient(rpConfig);
+
+async function mergeLaunches() {
+  const ciBuildId = process.env.CI_BUILD_ID;
+  if (!ciBuildId) {
+    console.error('To merge multiple launches, CI_BUILD_ID must not be empty');
+    return;
+  }
+  try {
+    // 1. Send request to get all launches with the same CI_BUILD_ID attribute value
+    const params = new URLSearchParams({
+      'filter.has.attributeValue': ciBuildId,
+    });
+    const launchSearchUrl = `launch?${params.toString()}`;
+    const response = client.restClient.retrieveSyncAPI(launchSearchUrl);
+    // 2. Filter them to find launches that are in progress
+    const launchesInProgress = response.content.filter((launch) => launch.status === 'IN_PROGRESS');
+    // 3. If exists, just return. The steps can be repeated in some interval if needed
+    if (launchesInProgress.length) {
+      return;
+    }
+    // 4. If not, merge all found launches with the same CI_BUILD_ID attribute value
+    const launchIds = response.content.map((launch) => launch.id);
+    const request = client.getMergeLaunchesRequest(launchIds);
+    request.description = config.description;
+    request.extendSuitesDescription = false;
+    const mergeURL = 'launch/merge';
+    await client.restClient.create(mergeURL, request);
+  } catch (err) {
+    console.error('Fail to merge launches', err);
+  }
+}
+
+mergeLaunches();
+```
+
+Using a merge operation for huge launches can increase the load on ReportPortal's API.
+See the details and other parameters available for merge operation in [ReportPortal API docs](https://reportportal.io/docs/api/service-api/merge-launches-using-post-1/).
+
+**Note:** Since the options described require additional effort, the ReportPortal team intends to create a CLI for them to make them easier to use, but with no ETA.
+Progress can be tracked in this [issue](https://github.com/reportportal/client-javascript/issues/218).
+
 ## Issues troubleshooting
 
 ### Launches stuck in progress on RP side
