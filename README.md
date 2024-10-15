@@ -367,7 +367,11 @@ It has its own CLI for merging reports from [multiple shards](https://playwright
 But the mentioned CLI tool `merge-reports` is designed to merge local reports represented by files in the file system, so it is not suitable for external reporting systems like ReportPortal, as it requires at least network communication through the right endpoints.
 
 Thus, in order to have a single launch in ReportPortal for sharded tests, additional customization is required.
-There are several options to achieve this.
+There are several options to achieve this:
+
+* [Using the `launchId` config option](#using-the-launchid-config-option)
+* [Using the `rerunOf` config option](#using-the-rerunof-config-option)
+* [Merging launches based on the build ID](#merging-launches-based-on-the-build-id)
 
 **Note:** The [`@reportportal/client-javascript`](https://github.com/reportportal/client-javascript) SDK used here as a reference, but of course the same actions can be performed by sending requests to the ReportPortal API directly.
 
