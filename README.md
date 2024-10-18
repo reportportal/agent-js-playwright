@@ -457,6 +457,8 @@ The agent supports the `rerun` and `rerunOf` options.
 In case only `rerun` set, the ReportPortal will attach the launch results to the latest existing launch with the same name.
 In case also the `rerunOf` option set, which is the ID of any existing launch, the results will be aggregated within that launch.
 
+**Note:** New executions of test cases that were previously executed within an existing launch (which ID is used as `rerunOf`) will be considered retries.
+
 The first step here while using the `rerunOf` option is the same as in previous approach.
 
 1. Trigger a launch before all tests.
