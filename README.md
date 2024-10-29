@@ -87,7 +87,7 @@ The following options can be overridden using ENVIRONMENT variables:
 The client supports an asynchronous reporting (via the ReportPortal asynchronous API).
 If you want the client to report through the asynchronous API, change `v1` to `v2` in the `endpoint` address.
 
-*Note:* It is highly recommended to use the `v2` endpoint for reporting, especially for extensive test suites.
+**Note:** It is highly recommended to use the `v2` endpoint for reporting, especially for extensive test suites.
 
 ## Reporting
 
@@ -111,11 +111,11 @@ test('basic test', async ({ page }, testInfo) => {
 });
 ```
 
-*Note:* attachment path can be provided instead of body.
+**Note:** attachment path can be provided instead of body.
 
 As an alternative to this approach the [`ReportingAPI`](#log) methods can be used.
 
-*Note:* [`ReportingAPI`](#log) methods will send attachments to ReportPortal right after their call, unlike attachments provided via `testInfo.attach` that will be reported only on the test item finish.
+**Note:** [`ReportingAPI`](#log) methods will send attachments to ReportPortal right after their call, unlike attachments provided via `testInfo.attach` that will be reported only on the test item finish.
 
 ### Logging
 
