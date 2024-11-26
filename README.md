@@ -135,6 +135,30 @@ console's `error`, `warn` reports as error log if message contains "error" menti
 
 As an alternative to this approach the [`ReportingAPI`](#log) methods can be used.
 
+### Nested steps
+
+ReportPortal supports reportings of native [Playwright steps](https://playwright.dev/docs/api/class-test#test-step) as nested steps.
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('test', async ({ page }) => {
+  await test.step('Log in', async () => {
+    // ...
+  });
+
+  await test.step('Outer step', async () => {
+    // ...
+    // You can nest steps inside each other.
+    await test.step('Inner step', async () => {
+      // ...
+    });
+  });
+});
+```
+
+To turn on this feature, just set the `includeTestSteps` config options to `true`.
+
 ### Reporting API
 
 This reporter provides Reporting API to use it directly in tests to send some additional data to the report.
