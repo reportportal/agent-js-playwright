@@ -587,7 +587,7 @@ async function mergeLaunches() {
       'filter.has.attributeValue': ciBuildId,
     });
     const launchSearchUrl = `launch?${params.toString()}`;
-    const response = client.restClient.retrieveSyncAPI(launchSearchUrl);
+    const response = await client.restClient.retrieveSyncAPI(launchSearchUrl);
     // 2. Filter them to find launches that are in progress
     const launchesInProgress = response.content.filter((launch) => launch.status === 'IN_PROGRESS');
     // 3. If exists, just return. The steps can be repeated in some interval if needed
@@ -597,7 +597,7 @@ async function mergeLaunches() {
     // 4. If not, merge all found launches with the same CI_BUILD_ID attribute value
     const launchIds = response.content.map((launch) => launch.id);
     const request = client.getMergeLaunchesRequest(launchIds);
-    request.description = config.description;
+    request.description = rpConfig.description;
     request.extendSuitesDescription = false;
     const mergeURL = 'launch/merge';
     await client.restClient.create(mergeURL, request);
