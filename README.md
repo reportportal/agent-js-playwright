@@ -395,71 +395,15 @@ But the mentioned CLI tool `merge-reports` is designed to merge local reports re
 Thus, in order to have a single launch in ReportPortal for sharded tests, additional customization is required.
 There are several options to achieve this:
 
-* [Using the `rerunOf` config option](#using-the-rerunof-config-option)
 * [Using the `launchId` config option](#using-the-launchid-config-option)
 * [Merging launches based on the build ID](#merging-launches-based-on-the-build-id)
 
 **Note:** The [`@reportportal/client-javascript`](https://github.com/reportportal/client-javascript) SDK used here as a reference, but of course the same actions can be performed by sending requests to the ReportPortal API directly.
 
-### Using the `rerunOf` config option
-
-The agent supports the `rerun` and `rerunOf` options.
-In case only `rerun` set, the ReportPortal will attach the launch results to the latest existing launch with the same name.
-In case also the `rerunOf` option set, which is the ID of any existing launch, the results will be aggregated within that launch.
-
-**Note:** New executions of test cases that were previously executed within an existing launch (which ID is used as `rerunOf`) will be considered retries.
-
-1. Trigger a launch before all tests.
-
-The `@reportportal/client-javascript` `startLaunch` method can be used.
-
-```javascript
-/*
-* startLaunch.js
-* */
-const rpClient = require('@reportportal/client-javascript');
-
-const rpConfig = {
-    // ...
-};
-
-async function startLaunch() {
-  const client = new rpClient(rpConfig);
-  const response = await client.startLaunch({
-    name: rpConfig.launch,
-    attributes: rpConfig.attributes,
-    // etc. see https://github.com/reportportal/client-javascript?tab=readme-ov-file#startlaunch for the details
-  }).promise;
-
-  return response.id;
-}
-
-const launchId = await startLaunch();
-```
-Received launch ID can be exported e.g. as an environment variable to your CI job.
-
-2. Specify the launch ID as a `rerunOf` for each job.
-   This step depends on your CI provider and the available ways to path some values to the Node.js process.
-   The `rerunOf` should be set directly to the [reporter config](https://github.com/reportportal/agent-js-playwright#:~:text=Enable%20rerun-,rerunOf,-Optional).
-```javascript
-/*
-* playwright.config.js
-* */
-const rpConfig = {
-  // ...
-  rerun: true,
-  rerunOf: process.env.RP_RERUN_OF,
-};
-```
-
-That's it. With such configuration the single launch will be used for the all tests from shards.
-
 ### Using the `launchId` config option
 
 The agent supports the `launchId` parameter to specify the ID of the already started launch.
 This way, you can start the launch using `@reportportal/client-javascript` before the test run and then specify its ID in the config or via environment variable.
-
-The first step here while using the `launchId` option is the same as for using the `rerunOf`.
 
 1. Trigger a launch before all tests.
 
