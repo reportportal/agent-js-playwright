@@ -402,6 +402,8 @@ There are several options to achieve this:
 
 ### Using the `launchId` config option
 
+The complete example of `launchId` usage with shards can be found for [playwirght example](https://github.com/reportportal/examples-js/tree/main/example-playwright) with [GitHub Actions pipeline](https://github.com/reportportal/examples-js/blob/main/.github/workflows/CI-pipeline.yml).
+
 The agent supports the `launchId` parameter to specify the ID of the already started launch.
 This way, you can start the launch using `@reportportal/client-javascript` before the test run and then specify its ID in the config or via environment variable.
 
