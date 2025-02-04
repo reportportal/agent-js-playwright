@@ -10,6 +10,10 @@ Install the agent in your project:
 npm install --save-dev @reportportal/agent-js-playwright
 ```
 
+## Example
+
+Look through the [example-playwright](https://github.com/reportportal/examples-js/tree/main/example-playwright) to check out the integration in action.
+
 ## Configuration
 
 **1.** Create `playwright.config.ts` or `*.config.js` file with reportportal configuration:
