@@ -4,15 +4,15 @@ Agent to integrate Playwright with ReportPortal.
 * More about [Playwright](https://playwright.dev/)
 * More about [ReportPortal](http://reportportal.io/)
 
+## Example
+
+Look through the [example-playwright](https://github.com/reportportal/examples-js/tree/main/example-playwright) to check out the integration in action.
+
 ## Installation
 Install the agent in your project:
 ```cmd
 npm install --save-dev @reportportal/agent-js-playwright
 ```
-
-## Example
-
-Look through the [example-playwright](https://github.com/reportportal/examples-js/tree/main/example-playwright) to check out the integration in action.
 
 ## Configuration
 
