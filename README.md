@@ -18,36 +18,36 @@ npm install --save-dev @reportportal/agent-js-playwright
 
 **1.** Create `playwright.config.ts` or `*.config.js` file with reportportal configuration:
 ```typescript
-  import { PlaywrightTestConfig } from '@playwright/test';
+import { PlaywrightTestConfig } from '@playwright/test';
 
-  const RPconfig = {
-    apiKey: '<API_KEY>',
-    endpoint: 'https://your.reportportal.server/api/v1',
-    project: 'Your reportportal project name',
-    launch: 'Your launch name',
-    attributes: [
-      {
-        key: 'key',
-        value: 'value',
-      },
-      {
-        value: 'value',
-      },
-    ],
-    description: 'Your launch description',
-  };
+const RPconfig = {
+  apiKey: '<API_KEY>',
+  endpoint: 'https://your.reportportal.server/api/v1',
+  project: 'Your reportportal project name',
+  launch: 'Your launch name',
+  attributes: [
+    {
+      key: 'key',
+      value: 'value',
+    },
+    {
+      value: 'value',
+    },
+  ],
+  description: 'Your launch description',
+};
 
-  const config: PlaywrightTestConfig = {
-    reporter: [['@reportportal/agent-js-playwright', RPconfig]],
-    testDir: './tests',
-  };
-  export default config;
+const config: PlaywrightTestConfig = {
+  reporter: [['@reportportal/agent-js-playwright', RPconfig]],
+  testDir: './tests',
+};
+export default config;
 ```
 
 The full list of available options presented below.
 
 | Option                                      | Necessity  | Default   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-|---------------------------------------------|------------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|----------------------------------------|------------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | apiKey                                      | Required   |           | User's reportportal token from which you want to send requests. It can be found on the profile page of this user.                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | endpoint                                    | Required   |           | URL of your server. For example 'https://server:8080/api/v1'.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | launch                                      | Required   |           | Name of launch at creation.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
@@ -575,15 +575,15 @@ In this case as a workaround we suggest to use `.skip()` and `.fixme()` annotati
 
 use 
 ```javascript
-  test('example fail', async ({}) => {
-    test.fixme();
-    expect(1).toBeGreaterThan(2);
-  });
+test('example fail', async ({}) => {
+  test.fixme();
+  expect(1).toBeGreaterThan(2);
+});
 ```
 
 instead of 
 ```javascript
-  test.fixme('example fail', async ({}) => {
-    expect(1).toBeGreaterThan(2);
-  });
+test.fixme('example fail', async ({}) => {
+  expect(1).toBeGreaterThan(2);
+});
 ```
