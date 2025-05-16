@@ -560,7 +560,7 @@ mergeLaunches();
 ```
 
 Using a merge operation for huge launches can increase the load on ReportPortal's API.
-See the details and other parameters available for merge operation in [ReportPortal API docs](https://reportportal.io/docs/api/service-api/merge-launches-using-post-1/).
+See the details and other parameters available for merge operation in [ReportPortal API docs](https://developers.reportportal.io/api-docs/service-api/merge-launches-1).
 
 **Note:** Since the options described require additional effort, the ReportPortal team intends to create a CLI for them to make them easier to use, but with no ETA.
 Progress can be tracked in this [issue](https://github.com/reportportal/client-javascript/issues/218).
