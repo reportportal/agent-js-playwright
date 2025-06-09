@@ -33,6 +33,8 @@ import {
   RpEventsToAdditionalInfoMap,
 } from './constants';
 import { TestAdditionalInfo } from './models/reporting';
+import { test } from '@playwright/test';
+import { sharedSuitesAnnotations } from './reporter';
 
 const fsPromises = fs.promises;
 
@@ -92,7 +94,18 @@ export const getCodeRef = (
 };
 
 export const sendEventToReporter = (type: string, data: any, suite?: string): void => {
-  process.stdout.write(JSON.stringify({ type, data, suite }));
+  const annotation = {
+    type: type,
+    description: JSON.stringify(data),
+  };
+  if (suite) {
+    if (!sharedSuitesAnnotations.get(suite)) {
+      sharedSuitesAnnotations.set(suite, []);
+    }
+    sharedSuitesAnnotations.get(suite).push(annotation);
+  } else {
+    test.info().annotations.push(annotation);
+  }
 };
 
 export const getAttachments = async (
@@ -179,7 +192,7 @@ export const calculateRpStatus = (
   return calculatedStatus;
 };
 
-export const getAdditionalInfo = (test: TestCase): TestAdditionalInfo => {
+export const getAdditionalInfo = (passedTest: TestCase): TestAdditionalInfo => {
   const initialValue: TestAdditionalInfo = {
     attributes: [],
     description: '',
@@ -187,7 +200,7 @@ export const getAdditionalInfo = (test: TestCase): TestAdditionalInfo => {
     status: '',
   };
 
-  return test.results.reduce<TestAdditionalInfo>(
+  return passedTest.results.reduce<TestAdditionalInfo>(
     (additionalInfo, { attachments = [] }) =>
       Object.assign(
         additionalInfo,

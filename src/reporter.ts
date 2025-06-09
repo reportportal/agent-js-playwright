@@ -64,6 +64,13 @@ interface Suite extends TestItem {
   descendants?: string[];
 }
 
+interface Annotation {
+  type: string;
+  description?: string;
+}
+
+export const sharedSuitesAnnotations: Map<string, Array<Annotation>> = new Map();
+
 export class RPReporter implements Reporter {
   config: ReportPortalConfig;
 
@@ -112,10 +119,11 @@ export class RPReporter implements Reporter {
     this.promises.push(promiseErrorHandler(promise, failMessage));
   }
 
-  onStdOut(chunk: string | Buffer, test?: TestCase): void {
+  onEventReport(
+    { type, data, suiteName }: { type: string; data: any; suiteName?: string },
+    test?: TestCase,
+  ): void {
     try {
-      const { type, data, suite: suiteName } = JSON.parse(String(chunk));
-
       switch (type) {
         case EVENTS.ADD_ATTRIBUTES:
           this.addAttributes(data, test, suiteName);
@@ -141,7 +149,7 @@ export class RPReporter implements Reporter {
       }
     } catch (e) {
       if (test) {
-        this.sendTestItemLog({ message: String(chunk) }, test);
+        this.sendTestItemLog({ message: e.message }, test);
       }
     }
   }
@@ -311,6 +319,11 @@ export class RPReporter implements Reporter {
 
       const testItemType = i === lastSuiteIndex ? TEST_ITEM_TYPES.SUITE : TEST_ITEM_TYPES.TEST;
       const codeRef = getCodeRef(test, currentSuiteTitle, projectName);
+      const annotations = sharedSuitesAnnotations.get(currentSuiteTitle);
+      if (annotations && annotations.length) {
+        this.processAnnotations({ annotations, suiteName: currentSuiteTitle });
+        sharedSuitesAnnotations.delete(currentSuiteTitle);
+      }
       const { attributes, description, testCaseId, status, logs } =
         this.suitesInfo.get(currentSuiteTitle) || {};
 
@@ -447,7 +460,30 @@ export class RPReporter implements Reporter {
     this.nestedSteps.delete(fullStepName);
   }
 
+  processAnnotations({
+    annotations,
+    test,
+    suiteName,
+  }: {
+    annotations: Annotation[];
+    test?: TestCase;
+    suiteName?: string;
+  }): void {
+    annotations.forEach(({ type, description }) => {
+      if (type && description) {
+        const data = JSON.parse(description);
+        const reportData = {
+          type,
+          data,
+          ...(suiteName ? { suiteName } : {}),
+        };
+        this.onEventReport(reportData, test);
+      }
+    });
+  }
+
   async onTestEnd(test: TestCase, result: TestResult): Promise<void> {
+    this.processAnnotations({ annotations: test.annotations, test });
     const savedTestItem = this.testItems.get(test.id);
     if (!savedTestItem) {
       return Promise.resolve();
