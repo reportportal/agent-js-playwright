@@ -14,7 +14,6 @@
  *  limitations under the License.
  */
 
-
 import helpers from '@reportportal/client-javascript/lib/helpers';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';

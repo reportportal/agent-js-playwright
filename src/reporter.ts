@@ -547,7 +547,6 @@ export class RPReporter implements Reporter {
       });
 
       testDescription = description.concat(`\n\`\`\`error\n${stacktrace}\n\`\`\``);
-
     }
 
     [...this.nestedSteps.entries()].forEach(([key, value]) => {

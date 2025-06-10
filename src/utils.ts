@@ -152,7 +152,6 @@ export const getAttachments = async (
         if (body) {
           fileContent = body;
         } else {
-
           if (!fs.existsSync(attachmentPath)) {
             return undefined;
           }
