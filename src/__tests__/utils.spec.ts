@@ -15,6 +15,7 @@
  *
  */
 
+// @ts-ignore
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 // @ts-ignore
 import { name as pjsonName, version as pjsonVersion } from '../../package.json';
