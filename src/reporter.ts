@@ -156,6 +156,12 @@ export class RPReporter implements Reporter {
     }
   }
 
+  onStdOut(chunk: string | Buffer, test?: TestCase): void {
+    if (test) {
+      this.sendTestItemLog({ message: String(chunk) }, test);
+    }
+  }
+
   onStdErr(chunk: string | Buffer, test?: TestCase): void {
     if (test) {
       const message = String(chunk);

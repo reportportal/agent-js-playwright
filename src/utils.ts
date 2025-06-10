@@ -192,7 +192,8 @@ export const calculateRpStatus = (
   return calculatedStatus;
 };
 
-export const getAdditionalInfo = (passedTest: TestCase): TestAdditionalInfo => {
+// eslint-disable-next-line @typescript-eslint/no-shadow
+export const getAdditionalInfo = (test: TestCase): TestAdditionalInfo => {
   const initialValue: TestAdditionalInfo = {
     attributes: [],
     description: '',
@@ -200,7 +201,7 @@ export const getAdditionalInfo = (passedTest: TestCase): TestAdditionalInfo => {
     status: '',
   };
 
-  return passedTest.results.reduce<TestAdditionalInfo>(
+  return test.results.reduce<TestAdditionalInfo>(
     (additionalInfo, { attachments = [] }) =>
       Object.assign(
         additionalInfo,
