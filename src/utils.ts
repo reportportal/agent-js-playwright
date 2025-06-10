@@ -108,6 +108,20 @@ export const sendEventToReporter = (type: string, data: any, suite?: string): vo
   }
 };
 
+export const fileExists = async (filePath: string) => {
+  try {
+    await fsPromises.stat(filePath);
+    return true;
+  } catch (error) {
+    // ENOENT code - File does not exist
+    if (error.code === 'ENOENT') {
+      return false;
+    } else {
+      throw error;
+    }
+  }
+};
+
 export const getAttachments = async (
   attachments: TestResult['attachments'],
   { uploadTrace, uploadVideo }: AttachmentsConfig = { uploadTrace: true, uploadVideo: true },
@@ -138,6 +152,7 @@ export const getAttachments = async (
         if (body) {
           fileContent = body;
         } else {
+
           if (!fs.existsSync(attachmentPath)) {
             return undefined;
           }

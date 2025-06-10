@@ -539,13 +539,15 @@ export class RPReporter implements Reporter {
       });
     }
 
-    if (result.error && this.config.extendTestDescriptionWithLastError) {
+    if (result.error) {
       const stacktrace = stripAnsi(result.error.stack || result.error.message);
       this.sendLog(testItemId, {
         level: LOG_LEVELS.ERROR,
         message: stacktrace,
       });
+
       testDescription = description.concat(`\n\`\`\`error\n${stacktrace}\n\`\`\``);
+
     }
 
     [...this.nestedSteps.entries()].forEach(([key, value]) => {

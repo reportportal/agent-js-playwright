@@ -27,7 +27,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install of node dependencies
+      - name: Install dependencies
         run: npm install
       - name: Build the source code
         run: npm run build
@@ -47,7 +47,7 @@ jobs:
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
-      - name: Install of node dependencies
+      - name: Install dependencies
         run: npm install
       - name: Build the source code
         run: npm run build
