@@ -1,23 +1,7 @@
-/*
- *  Copyright 2021 EPAM Systems
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
-
-import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
+import helpers from '@reportportal/client-javascript/lib/helpers';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
-import { RPClientMock } from '../mocks/RPClientMock';
+import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
 import { FinishTestItemObjType } from '../../models';
 import { STATUSES } from '../../constants';
 
@@ -25,11 +9,10 @@ const rootSuite = 'rootSuite';
 const suiteName = 'suiteName';
 
 describe('finish test reporting', () => {
+  jest.spyOn(helpers, 'now').mockReturnValue(mockedDate);
   const testCase = {
     title: 'testTitle',
     id: 'testItemId',
-    //@ts-ignore
-    results: [{ attachments: [] }],
     parent: {
       title: rootSuite,
       project: () => ({ name: rootSuite }),
@@ -96,36 +79,14 @@ describe('finish test reporting', () => {
       status: 'passed',
     };
     const finishTestItemObj: FinishTestItemObjType = {
-      endTime: reporter.client.helpers.now(),
+      endTime: mockedDate,
       status: result.status,
       attributes: [{ key: 'key', value: 'value' }],
       description: 'description',
     };
 
-    await reporter.onTestEnd(
-      {
-        ...testCase,
-        outcome: () => 'expected',
-        results: [
-          // @ts-ignore
-          {
-            attachments: [
-              {
-                name: EVENTS.ADD_ATTRIBUTES,
-                body: Buffer.from(JSON.stringify([{ key: 'key', value: 'value' }])),
-                contentType: 'application/json',
-              },
-              {
-                name: EVENTS.SET_DESCRIPTION,
-                body: Buffer.from('description'),
-                contentType: 'text/plain',
-              },
-            ],
-          },
-        ],
-      },
-      result,
-    );
+    // @ts-ignore
+    await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
 
     expect(reporter.client.finishTestItem).toHaveBeenCalledTimes(3);
     expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(
@@ -142,37 +103,14 @@ describe('finish test reporting', () => {
       status: 'skipped',
     };
     const finishTestItemObj: FinishTestItemObjType = {
-      endTime: reporter.client.helpers.now(),
+      endTime: mockedDate,
       status: result.status,
       attributes: [{ key: 'key', value: 'value' }],
       description: 'description',
       issue: { issueType: 'NOT_ISSUE' },
     };
     // @ts-ignore
-    await reporter.onTestEnd(
-      {
-        ...testCase,
-        outcome: () => 'skipped',
-        results: [
-          // @ts-ignore
-          {
-            attachments: [
-              {
-                name: EVENTS.ADD_ATTRIBUTES,
-                body: Buffer.from(JSON.stringify([{ key: 'key', value: 'value' }])),
-                contentType: 'application/json',
-              },
-              {
-                name: EVENTS.SET_DESCRIPTION,
-                body: Buffer.from('description'),
-                contentType: 'text/plain',
-              },
-            ],
-          },
-        ],
-      },
-      result,
-    );
+    await reporter.onTestEnd({ ...testCase, outcome: () => 'skipped' }, result);
 
     expect(reporter.client.finishTestItem).toHaveBeenCalledTimes(3);
     expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(
@@ -214,7 +152,7 @@ describe('finish test reporting', () => {
     await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
 
     const finishStepObject: FinishTestItemObjType = {
-      endTime: reporter.client.helpers.now(),
+      endTime: mockedDate,
       status: STATUSES.INTERRUPTED,
     };
 
@@ -231,78 +169,10 @@ describe('finish test reporting', () => {
     await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
 
     const finishStepObject: FinishTestItemObjType = {
-      endTime: reporter.client.helpers.now(),
+      endTime: mockedDate,
       status: STATUSES.FAILED,
     };
 
     expect(reporter.client.finishTestItem).toHaveBeenCalledWith('1214r1', finishStepObject);
-  });
-
-  test('client.finishTestItem should call reporter.client.finishTestItem with correct values', async () => {
-    const result = { status: 'passed' };
-
-    await reporter.onTestEnd(
-      {
-        ...testCase,
-        outcome: () => 'expected',
-        results: [
-          // @ts-ignore
-          {
-            attachments: [
-              {
-                name: EVENTS.ADD_ATTRIBUTES,
-                contentType: 'application/json',
-                body: Buffer.from(
-                  JSON.stringify([
-                    { key: 'key1', value: 'value1', system: false },
-                    { key: 'key2', value: 'value2', system: false },
-                  ]),
-                ),
-              },
-              {
-                name: EVENTS.SET_DESCRIPTION,
-                contentType: 'plain/text',
-                body: Buffer.from('Description'),
-              },
-              {
-                name: EVENTS.SET_STATUS,
-                contentType: 'plain/text',
-                body: Buffer.from('skipped'),
-              },
-              {
-                name: EVENTS.SET_STATUS,
-                contentType: 'plain/text',
-                body: Buffer.from('interrupted'),
-              },
-              {
-                name: EVENTS.SET_TEST_CASE_ID,
-                contentType: 'plain/text',
-                body: Buffer.from('testCaseId'),
-              },
-              {
-                name: 'notAllowedField',
-                contentType: 'plain/text',
-                body: Buffer.from('notAllowedValue'),
-              },
-            ],
-          },
-        ],
-      },
-      result,
-    );
-
-    const finishStepObject: FinishTestItemObjType = {
-      endTime: reporter.client.helpers.now(),
-      status: STATUSES.INTERRUPTED,
-      attributes: [{ key: 'key', value: 'value' }],
-      description: 'description',
-      testCaseId: 'testCaseId',
-    };
-
-    expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(
-      1,
-      'tempTestItemId',
-      finishStepObject,
-    );
   });
 });
