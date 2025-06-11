@@ -18,6 +18,7 @@
 import { ReportingApi } from '../reportingApi';
 import * as utils from '../utils';
 import { LOG_LEVELS } from '../constants';
+import { RPReporter } from '../reporter';
 
 const reportingApiStatusMethods = [
   { method: 'setStatusPassed', status: 'passed' },
@@ -58,6 +59,16 @@ const reportingApiLaunchLogMethods = [
   { method: 'launchError', level: 'ERROR' },
   { method: 'launchFatal', level: 'FATAL' },
 ];
+
+const mockAnnotations: any[] = [];
+
+jest.mock('@playwright/test', () => ({
+  test: {
+    info: () => ({
+      annotations: mockAnnotations,
+    }),
+  },
+}));
 
 describe('reportingApi', () => {
   test('addAttributes should call sendEventToReporter with params', () => {
@@ -120,6 +131,9 @@ describe('reportingApi', () => {
   });
 
   describe('Launch status reporting', () => {
+    beforeEach(() => {
+      RPReporter.sharedSuitesAnnotations.clear();
+    });
     reportingApiLaunchStatusMethods.map(({ method, status }) => {
       test(`${method} should call sendEventToReporter with ${status} status`, () => {
         const event = 'rp:setLaunchStatus';
@@ -175,6 +189,10 @@ describe('reportingApi', () => {
   });
 
   describe('Launch logs reporting', () => {
+    beforeEach(() => {
+      RPReporter.sharedSuitesAnnotations.clear();
+    });
+
     const file = {
       name: 'filename',
       type: 'image/png',

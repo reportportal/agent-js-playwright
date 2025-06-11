@@ -37,6 +37,17 @@ import {
   BASIC_ATTACHMENT_CONTENT_TYPES,
   BASIC_ATTACHMENT_NAMES,
 } from '../constants';
+import { RPReporter } from '../reporter';
+
+const mockAnnotations: any[] = [];
+
+jest.mock('@playwright/test', () => ({
+  test: {
+    info: () => ({
+      annotations: mockAnnotations,
+    }),
+  },
+}));
 
 describe('testing utils', () => {
   test('isFalse', () => {
@@ -189,17 +200,38 @@ describe('testing utils', () => {
     });
   });
   describe('sendEventToReporter', () => {
-    test('func must send event to reporter', () => {
+    beforeEach(() => {
+      mockAnnotations.length = 0;
+      RPReporter.sharedSuitesAnnotations.clear();
+    });
+
+    test('should send event to annotations when no suite is given', () => {
       const type = 'ADD_ATTRIBUTES';
-      const data = [
-        {
-          key: 'key',
-          value: 'value',
-        },
-      ];
-      const spyProcess = jest.spyOn(process.stdout, 'write');
+      const data = [{ key: 'key', value: 'value' }];
+
       sendEventToReporter(type, data);
-      expect(spyProcess).toHaveBeenCalledWith(JSON.stringify({ type, data }));
+
+      expect(mockAnnotations).toEqual([
+        {
+          type,
+          description: JSON.stringify(data),
+        },
+      ]);
+    });
+
+    test('should send event to RPReporter.sharedSuitesAnnotations when suite is given', () => {
+      const type = 'ADD_ATTRIBUTES';
+      const data = [{ key: 'key', value: 'value' }];
+      const suite = 'someSuite';
+
+      sendEventToReporter(type, data, suite);
+
+      expect(RPReporter.sharedSuitesAnnotations.get(suite)).toEqual([
+        {
+          type,
+          description: JSON.stringify(data),
+        },
+      ]);
     });
   });
 

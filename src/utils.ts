@@ -30,6 +30,8 @@ import {
   TEST_ANNOTATION_TYPES,
   TEST_OUTCOME_TYPES,
 } from './constants';
+import { test } from '@playwright/test';
+import { RPReporter } from './reporter';
 
 const fsPromises = fs.promises;
 
@@ -89,7 +91,18 @@ export const getCodeRef = (
 };
 
 export const sendEventToReporter = (type: string, data: any, suite?: string): void => {
-  process.stdout.write(JSON.stringify({ type, data, suite }));
+  const annotation = {
+    type: type,
+    description: JSON.stringify(data),
+  };
+  if (suite) {
+    if (!RPReporter.sharedSuitesAnnotations.get(suite)) {
+      RPReporter.sharedSuitesAnnotations.set(suite, []);
+    }
+    RPReporter.sharedSuitesAnnotations.get(suite).push(annotation);
+  } else {
+    test.info().annotations.push(annotation);
+  }
 };
 
 export const fileExists = async (filePath: string) => {
