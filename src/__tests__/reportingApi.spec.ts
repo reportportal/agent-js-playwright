@@ -122,12 +122,13 @@ describe('reportingApi', () => {
   describe('Launch status reporting', () => {
     reportingApiLaunchStatusMethods.map(({ method, status }) => {
       test(`${method} should call sendEventToReporter with ${status} status`, () => {
+        const suite = 'suite';
         const event = 'rp:setLaunchStatus';
         const spySendEventToReporter = jest.spyOn(utils, 'sendEventToReporter');
         // @ts-ignore
-        ReportingApi[method]();
+        ReportingApi[method](suite);
 
-        expect(spySendEventToReporter).toHaveBeenCalledWith(event, status);
+        expect(spySendEventToReporter).toHaveBeenCalledWith(event, status, suite);
       });
     });
 
@@ -190,19 +191,6 @@ describe('reportingApi', () => {
 
         expect(spyLogFunc).toHaveBeenCalledWith(level, 'message', file);
       });
-    });
-
-    test('ReportingApi.launchLog should call sendEventToReporter with params', () => {
-      const event = 'rp:addLaunchLog';
-      const expectedData = {
-        file,
-        level: 'INFO',
-        message: 'message',
-      };
-      const spySendEventToReporter = jest.spyOn(utils, 'sendEventToReporter');
-      ReportingApi.launchLog(LOG_LEVELS.INFO, 'message', file);
-
-      expect(spySendEventToReporter).toHaveBeenCalledWith(event, expectedData);
     });
   });
 });

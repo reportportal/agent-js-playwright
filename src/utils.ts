@@ -34,7 +34,7 @@ import {
 } from './constants';
 import { TestAdditionalInfo } from './models/reporting';
 import { test } from '@playwright/test';
-import { sharedSuitesAnnotations } from './reporter';
+import { RPReporter } from './reporter';
 
 const fsPromises = fs.promises;
 
@@ -99,10 +99,10 @@ export const sendEventToReporter = (type: string, data: any, suite?: string): vo
     description: JSON.stringify(data),
   };
   if (suite) {
-    if (!sharedSuitesAnnotations.get(suite)) {
-      sharedSuitesAnnotations.set(suite, []);
+    if (!RPReporter.sharedSuitesAnnotations.get(suite)) {
+      RPReporter.sharedSuitesAnnotations.set(suite, []);
     }
-    sharedSuitesAnnotations.get(suite).push(annotation);
+    RPReporter.sharedSuitesAnnotations.get(suite).push(annotation);
   } else {
     test.info().annotations.push(annotation);
   }
@@ -152,14 +152,15 @@ export const getAttachments = async (
         if (body) {
           fileContent = body;
         } else {
-          if (!fs.existsSync(attachmentPath)) {
-            return undefined;
+          const isFileExist = await fileExists(attachmentPath);
+          if (!isFileExist) {
+            return;
           }
           fileContent = await fsPromises.readFile(attachmentPath);
         }
       } catch (e) {
         console.error(e);
-        return undefined;
+        return;
       }
 
       return {

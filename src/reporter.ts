@@ -66,14 +66,14 @@ interface Suite extends TestItem {
   executedTestCount?: number;
 }
 
-interface Annotation {
+export interface Annotation {
   type: string;
   description?: string;
 }
 
-export const sharedSuitesAnnotations: Map<string, Array<Annotation>> = new Map();
-
 export class RPReporter implements Reporter {
+  static sharedSuitesAnnotations: Map<string, Array<Annotation>> = new Map();
+
   config: ReportPortalConfig;
 
   client: RPClient;
@@ -329,10 +329,10 @@ export class RPReporter implements Reporter {
 
       const testItemType = i === lastSuiteIndex ? TEST_ITEM_TYPES.SUITE : TEST_ITEM_TYPES.TEST;
       const codeRef = getCodeRef(test, currentSuiteTitle, projectName);
-      const annotations = sharedSuitesAnnotations.get(currentSuiteTitle);
+      const annotations = RPReporter.sharedSuitesAnnotations.get(currentSuiteTitle);
       if (annotations && annotations.length) {
         this.processAnnotations({ annotations, suiteName: currentSuiteTitle });
-        sharedSuitesAnnotations.delete(currentSuiteTitle);
+        RPReporter.sharedSuitesAnnotations.delete(currentSuiteTitle);
       }
       const { attributes, description, testCaseId, status, logs } =
         this.suitesInfo.get(currentSuiteTitle) || {};
