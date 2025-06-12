@@ -38,6 +38,7 @@ import {
 } from './constants';
 import {
   calculateRpStatus,
+  getAdditionalInfo,
   getAgentInfo,
   getAttachments,
   getCodeRef,
@@ -370,8 +371,6 @@ export class RPReporter implements Reporter {
         ...(status && { status }),
         ...(logs && { logs }), // TODO: may be send it on suite start
       });
-
-      this.suitesInfo.delete(currentSuiteTitle);
     }
 
     return projectName;
@@ -503,17 +502,20 @@ export class RPReporter implements Reporter {
     if (!savedTestItem) {
       return Promise.resolve();
     }
+    const additionalInfo = getAdditionalInfo(test);
     const {
       id: testItemId,
-      attributes,
-      description,
-      testCaseId,
-      status: predefinedStatus,
+      attributes = additionalInfo.attributes,
+      description = additionalInfo.description,
+      testCaseId = additionalInfo.testCaseId,
+      status: predefinedStatus = additionalInfo.status,
     } = savedTestItem;
     let withoutIssue;
     let testDescription = description;
+
     const calculatedStatus = calculateRpStatus(test.outcome(), result.status, test.annotations);
     const status = predefinedStatus || calculatedStatus;
+
     if (status === STATUSES.SKIPPED) {
       withoutIssue = isFalse(this.config.skippedIssue);
     }
@@ -542,7 +544,7 @@ export class RPReporter implements Reporter {
         message: stacktrace,
       });
       if (this.config.extendTestDescriptionWithLastError) {
-        testDescription = (description || '').concat(`\n\`\`\`error\n${stacktrace}\n\`\`\``);
+        testDescription = description.concat(`\n\`\`\`error\n${stacktrace}\n\`\`\``);
       }
     }
 
@@ -565,7 +567,7 @@ export class RPReporter implements Reporter {
       endTime: clientHelpers.now(),
       status,
       ...(withoutIssue && { issue: { issueType: 'NOT_ISSUE' } }),
-      ...(attributes && { attributes }),
+      ...(attributes.length && { attributes }),
       ...(testDescription && { description: testDescription }),
       ...(testCaseId && { testCaseId }),
     };

@@ -113,6 +113,7 @@ describe('logs reporting', () => {
       const testCase = {
         title: 'testTitle',
         id: 'testItemId',
+        results: [{ attachments: [{}] }],
         parent: {
           title: playwrightProjectName,
           location: 'tests/example.js',

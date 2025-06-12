@@ -35,6 +35,8 @@ describe('finish suites on finish all of their children', () => {
   const testCase = {
     title: 'testTitle',
     id: 'testItemId',
+    // @ts-ignore
+    results: [{ attachments: [] }],
     parent: {
       title: rootSuite,
       project: () => ({ name: rootSuite }),
