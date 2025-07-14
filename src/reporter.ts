@@ -479,11 +479,14 @@ export class RPReporter implements Reporter {
     // TODO: cover with tests
     if (result.attachments?.length) {
       const { uploadVideo, uploadTrace } = this.config;
-      const attachmentsFiles = await getAttachments(result.attachments, {
-        uploadVideo,
-        uploadTrace,
-      });
-
+      const attachmentsFiles = await getAttachments(
+        result.attachments,
+        {
+          uploadVideo,
+          uploadTrace,
+        },
+        test.title,
+      );
       // TODO: use bulk log request
       attachmentsFiles.forEach((file) => {
         this.sendLog(testItemId, {
