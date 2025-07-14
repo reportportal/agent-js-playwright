@@ -35,6 +35,8 @@ interface ClientConfig {
   isLaunchMergeRequired?: boolean; // not used for this agent
   restClientConfig?: RestClientConfig;
   headers?: Record<string, string>;
+  launchUuidPrint?: boolean;
+  launchUuidPrintOutput?: string;
 }
 
 export interface AttachmentsConfig {
