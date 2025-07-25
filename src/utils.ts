@@ -96,10 +96,7 @@ export const sendEventToReporter = (type: string, data: any, suite?: string): vo
     description: JSON.stringify(data),
   };
   if (suite) {
-    if (!RPReporter.sharedSuitesAnnotations.get(suite)) {
-      RPReporter.sharedSuitesAnnotations.set(suite, []);
-    }
-    RPReporter.sharedSuitesAnnotations.get(suite).push(annotation);
+    process.stdout.write(JSON.stringify({ type, data, suite }));
   } else {
     test.info().annotations.push(annotation);
   }

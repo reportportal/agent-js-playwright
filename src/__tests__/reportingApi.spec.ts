@@ -18,7 +18,6 @@
 import { ReportingApi } from '../reportingApi';
 import * as utils from '../utils';
 import { LOG_LEVELS } from '../constants';
-import { RPReporter } from '../reporter';
 
 const reportingApiStatusMethods = [
   { method: 'setStatusPassed', status: 'passed' },
@@ -131,9 +130,7 @@ describe('reportingApi', () => {
   });
 
   describe('Launch status reporting', () => {
-    beforeEach(() => {
-      RPReporter.sharedSuitesAnnotations.clear();
-    });
+
     reportingApiLaunchStatusMethods.map(({ method, status }) => {
       test(`${method} should call sendEventToReporter with ${status} status`, () => {
         const event = 'rp:setLaunchStatus';
@@ -189,9 +186,6 @@ describe('reportingApi', () => {
   });
 
   describe('Launch logs reporting', () => {
-    beforeEach(() => {
-      RPReporter.sharedSuitesAnnotations.clear();
-    });
 
     const file = {
       name: 'filename',

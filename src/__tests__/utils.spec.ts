@@ -54,7 +54,7 @@ describe('testing utils', () => {
     expect(isFalse(false)).toBe(true);
     expect(isFalse('false')).toBe(true);
     expect(isFalse(undefined)).toBe(false);
-    expect(isFalse(null)).toBe(false);
+    expect(isFalse(null as any)).toBe(false);
   });
 
   describe('isErrorLog', () => {
@@ -194,7 +194,7 @@ describe('testing utils', () => {
     });
 
     test('should return an empty string if test title is empty', () => {
-      const codeRef = getCodeRef(mockedTest, undefined);
+      const codeRef = getCodeRef(mockedTest, '');
 
       expect(codeRef).toBe('');
     });
@@ -202,7 +202,6 @@ describe('testing utils', () => {
   describe('sendEventToReporter', () => {
     beforeEach(() => {
       mockAnnotations.length = 0;
-      RPReporter.sharedSuitesAnnotations.clear();
     });
 
     test('should send event to annotations when no suite is given', () => {
@@ -219,19 +218,19 @@ describe('testing utils', () => {
       ]);
     });
 
-    test('should send event to RPReporter.sharedSuitesAnnotations when suite is given', () => {
+    test('should write event to stdout when suite is given', () => {
       const type = 'ADD_ATTRIBUTES';
       const data = [{ key: 'key', value: 'value' }];
       const suite = 'someSuite';
+      
+      // Mock process.stdout.write
+      const mockWrite = jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
       sendEventToReporter(type, data, suite);
 
-      expect(RPReporter.sharedSuitesAnnotations.get(suite)).toEqual([
-        {
-          type,
-          description: JSON.stringify(data),
-        },
-      ]);
+      expect(mockWrite).toHaveBeenCalledWith(JSON.stringify({ type, data, suite }));
+      
+      mockWrite.mockRestore();
     });
   });
 

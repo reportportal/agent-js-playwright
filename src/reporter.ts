@@ -71,8 +71,6 @@ interface Annotation {
 }
 
 export class RPReporter implements Reporter {
-  static sharedSuitesAnnotations: Map<string, Array<Annotation>> = new Map();
-
   config: ReportPortalConfig;
 
   client: RPClient;
@@ -156,8 +154,24 @@ export class RPReporter implements Reporter {
   }
 
   onStdOut(chunk: string | Buffer, test?: TestCase): void {
+    const chunkString = String(chunk);
     if (test) {
-      this.sendTestItemLog({ message: String(chunk) }, test);
+      this.sendTestItemLog({ message: chunkString }, test);
+    }
+    try {
+      const event = JSON.parse(chunkString);
+      if (
+        event &&
+        typeof event === 'object' &&
+        event.type &&
+        event.data !== undefined &&
+        event.suite
+      ) {
+        this.onEventReport({ type: event.type, data: event.data, suiteName: event.suite }, test);
+        return;
+      }
+    } catch (e) {
+      // Empty catch - ignore JSON parsing errors
     }
   }
 
@@ -328,11 +342,6 @@ export class RPReporter implements Reporter {
 
       const testItemType = i === lastSuiteIndex ? TEST_ITEM_TYPES.SUITE : TEST_ITEM_TYPES.TEST;
       const codeRef = getCodeRef(test, currentSuiteTitle, projectName);
-      const annotations = RPReporter.sharedSuitesAnnotations.get(currentSuiteTitle);
-      if (annotations && annotations.length) {
-        this.processAnnotations({ annotations, suiteName: currentSuiteTitle });
-        RPReporter.sharedSuitesAnnotations.delete(currentSuiteTitle);
-      }
       const { attributes, description, testCaseId, status, logs } =
         this.suitesInfo.get(currentSuiteTitle) || {};
 
