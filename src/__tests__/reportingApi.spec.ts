@@ -130,7 +130,6 @@ describe('reportingApi', () => {
   });
 
   describe('Launch status reporting', () => {
-
     reportingApiLaunchStatusMethods.map(({ method, status }) => {
       test(`${method} should call sendEventToReporter with ${status} status`, () => {
         const event = 'rp:setLaunchStatus';
@@ -186,7 +185,6 @@ describe('reportingApi', () => {
   });
 
   describe('Launch logs reporting', () => {
-
     const file = {
       name: 'filename',
       type: 'image/png',

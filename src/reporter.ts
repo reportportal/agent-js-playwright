@@ -122,34 +122,28 @@ export class RPReporter implements Reporter {
     { type, data, suiteName }: { type: string; data: any; suiteName?: string },
     test?: TestCase,
   ): void {
-    try {
-      switch (type) {
-        case EVENTS.ADD_ATTRIBUTES:
-          this.addAttributes(data, test, suiteName);
-          break;
-        case EVENTS.SET_DESCRIPTION:
-          this.setDescription(data, test, suiteName);
-          break;
-        case EVENTS.SET_TEST_CASE_ID:
-          this.setTestCaseId(data, test, suiteName);
-          break;
-        case EVENTS.SET_STATUS:
-          this.setStatus(data, test, suiteName);
-          break;
-        case EVENTS.SET_LAUNCH_STATUS:
-          this.setLaunchStatus(data);
-          break;
-        case EVENTS.ADD_LOG:
-          this.sendTestItemLog(data, test, suiteName);
-          break;
-        case EVENTS.ADD_LAUNCH_LOG:
-          this.sendLaunchLog(data);
-          break;
-      }
-    } catch (e) {
-      if (test) {
-        this.sendTestItemLog({ message: e.message }, test);
-      }
+    switch (type) {
+      case EVENTS.ADD_ATTRIBUTES:
+        this.addAttributes(data, test, suiteName);
+        break;
+      case EVENTS.SET_DESCRIPTION:
+        this.setDescription(data, test, suiteName);
+        break;
+      case EVENTS.SET_TEST_CASE_ID:
+        this.setTestCaseId(data, test, suiteName);
+        break;
+      case EVENTS.SET_STATUS:
+        this.setStatus(data, test, suiteName);
+        break;
+      case EVENTS.SET_LAUNCH_STATUS:
+        this.setLaunchStatus(data);
+        break;
+      case EVENTS.ADD_LOG:
+        this.sendTestItemLog(data, test, suiteName);
+        break;
+      case EVENTS.ADD_LAUNCH_LOG:
+        this.sendLaunchLog(data);
+        break;
     }
   }
 
@@ -160,18 +154,11 @@ export class RPReporter implements Reporter {
     }
     try {
       const event = JSON.parse(chunkString);
-      if (
-        event &&
-        typeof event === 'object' &&
-        event.type &&
-        event.data !== undefined &&
-        event.suite
-      ) {
-        this.onEventReport({ type: event.type, data: event.data, suiteName: event.suite }, test);
-        return;
-      }
+      this.onEventReport({ type: event.type, data: event.data, suiteName: event.suite }, test);
     } catch (e) {
-      // Empty catch - ignore JSON parsing errors
+      if (test) {
+        this.sendTestItemLog({ message: e.message }, test);
+      }
     }
   }
 
@@ -484,22 +471,13 @@ export class RPReporter implements Reporter {
     this.nestedSteps.delete(fullStepName);
   }
 
-  processAnnotations({
-    annotations,
-    test,
-    suiteName,
-  }: {
-    annotations: Annotation[];
-    test?: TestCase;
-    suiteName?: string;
-  }): void {
+  processAnnotations({ annotations, test }: { annotations: Annotation[]; test?: TestCase }): void {
     annotations.forEach(({ type, description }) => {
       if (type && description) {
         const data = JSON.parse(description);
         const reportData = {
           type,
           data,
-          ...(suiteName ? { suiteName } : {}),
         };
         this.onEventReport(reportData, test);
       }

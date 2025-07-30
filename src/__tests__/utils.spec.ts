@@ -222,14 +222,14 @@ describe('testing utils', () => {
       const type = 'ADD_ATTRIBUTES';
       const data = [{ key: 'key', value: 'value' }];
       const suite = 'someSuite';
-      
+
       // Mock process.stdout.write
       const mockWrite = jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
       sendEventToReporter(type, data, suite);
 
       expect(mockWrite).toHaveBeenCalledWith(JSON.stringify({ type, data, suite }));
-      
+
       mockWrite.mockRestore();
     });
   });

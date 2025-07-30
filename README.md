@@ -1,15 +1,18 @@
 # @reportportal/agent-js-playwright
 
 Agent to integrate Playwright with ReportPortal.
-* More about [Playwright](https://playwright.dev/)
-* More about [ReportPortal](http://reportportal.io/)
+
+- More about [Playwright](https://playwright.dev/)
+- More about [ReportPortal](http://reportportal.io/)
 
 ## Example
 
 Look through the [example-playwright](https://github.com/reportportal/examples-js/tree/main/example-playwright) to check out the integration in action.
 
 ## Installation
+
 Install the agent in your project:
+
 ```cmd
 npm install --save-dev @reportportal/agent-js-playwright
 ```
@@ -17,6 +20,7 @@ npm install --save-dev @reportportal/agent-js-playwright
 ## Configuration
 
 **1.** Create `playwright.config.ts` or `*.config.js` file with reportportal configuration:
+
 ```typescript
 import { PlaywrightTestConfig } from '@playwright/test';
 
@@ -47,7 +51,7 @@ export default config;
 The full list of available options presented below.
 
 | Option                                      | Necessity  | Default   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-|---------------------------------------------|------------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------------------------------- | ---------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | apiKey                                      | Required   |           | User's reportportal token from which you want to send requests. It can be found on the profile page of this user.                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | endpoint                                    | Required   |           | URL of your server. For example 'https://server:8080/api/v1'.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | launch                                      | Required   |           | Name of launch at creation.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
@@ -56,14 +60,14 @@ The full list of available options presented below.
 | description                                 | Optional   | ''        | Launch description.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | rerun                                       | Optional   | false     | Enable [rerun](https://reportportal.io/docs/dev-guides/RerunDevelopersGuide)                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | rerunOf                                     | Optional   | Not set   | UUID of launch you want to rerun. If not specified, reportportal will update the latest launch with the same name                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| mode                                        | Optional   | 'DEFAULT' | Results will be submitted to Launches page <br/> *'DEBUG'* - Results will be submitted to Debug page.                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| skippedIssue                                | Optional   | true      | reportportal provides feature to mark skipped tests as not 'To Investigate'. <br/> Option could be equal boolean values: <br/> *true* - skipped tests considered as issues and will be marked as 'To Investigate' on reportportal. <br/> *false* - skipped tests will not be marked as 'To Investigate' on application.                                                                                                                                                                                                                          |
+| mode                                        | Optional   | 'DEFAULT' | Results will be submitted to Launches page <br/> _'DEBUG'_ - Results will be submitted to Debug page.                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| skippedIssue                                | Optional   | true      | reportportal provides feature to mark skipped tests as not 'To Investigate'. <br/> Option could be equal boolean values: <br/> _true_ - skipped tests considered as issues and will be marked as 'To Investigate' on reportportal. <br/> _false_ - skipped tests will not be marked as 'To Investigate' on application.                                                                                                                                                                                                                          |
 | debug                                       | Optional   | false     | This flag allows seeing the logs of the client-javascript. Useful for debugging.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| launchId                                    | Optional   | Not set   | The _ID_ of an already existing launch. The launch must be in 'IN_PROGRESS' status while the tests are running. Please note that if this _ID_ is provided, the launch will not be finished at the end of the run and must be finished separately.                                                                                                                                                                                                                                                                                                |                            
+| launchId                                    | Optional   | Not set   | The _ID_ of an already existing launch. The launch must be in 'IN*PROGRESS' status while the tests are running. Please note that if this \_ID* is provided, the launch will not be finished at the end of the run and must be finished separately.                                                                                                                                                                                                                                                                                               |
 | restClientConfig                            | Optional   | Not set   | `axios` like http client [config](https://github.com/axios/axios#request-config). May contain `agent` property for configure [http(s)](https://nodejs.org/api/https.html#https_https_request_url_options_callback) client, and other client options e.g. `proxy`, [`timeout`](https://github.com/reportportal/client-javascript#timeout-30000ms-on-axios-requests). For debugging and displaying logs the `debug: true` option can be used. <br/> Visit [client-javascript](https://github.com/reportportal/client-javascript) for more details. |
 | headers                                     | Optional   | {}        | The object with custom headers for internal http client.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | launchUuidPrint                             | Optional   | false     | Whether to print the current launch UUID.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| launchUuidPrintOutput                       | Optional   | 'STDOUT'  | Launch UUID printing output. Possible values: 'STDOUT', 'STDERR', 'FILE', 'ENVIRONMENT'. Works only if `launchUuidPrint` set to `true`. File format: `rp-launch-uuid-${launch_uuid}.tmp`. Env variable: `RP_LAUNCH_UUID`, note that the env variable is only available in the reporter process (it cannot be obtained from tests).                                                                                                                                                                                                                                                                                                                       |
+| launchUuidPrintOutput                       | Optional   | 'STDOUT'  | Launch UUID printing output. Possible values: 'STDOUT', 'STDERR', 'FILE', 'ENVIRONMENT'. Works only if `launchUuidPrint` set to `true`. File format: `rp-launch-uuid-${launch_uuid}.tmp`. Env variable: `RP_LAUNCH_UUID`, note that the env variable is only available in the reporter process (it cannot be obtained from tests).                                                                                                                                                                                                               |
 | includeTestSteps                            | Optional   | false     | Allows you to see the test steps at the log level.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | includePlaywrightProjectNameToCodeReference | Optional   | false     | Includes Playwright project name to code reference. See [`testCaseId and codeRef calculation`](#setTestCaseId). It may be useful when you want to see the different history for the same test cases within different playwright projects.                                                                                                                                                                                                                                                                                                        |
 | extendTestDescriptionWithLastError          | Optional   | true      | If set to `true` the latest error log will be attached to the test case description.                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
@@ -73,11 +77,12 @@ The full list of available options presented below.
 
 The following options can be overridden using ENVIRONMENT variables:
 
-| Option      | ENV variable    |
-|-------------|-----------------|
-| launchId    | RP_LAUNCH_ID    |
+| Option   | ENV variable |
+| -------- | ------------ |
+| launchId | RP_LAUNCH_ID |
 
 **2.** Add script to `package.json` file:
+
 ```json
 {
   "scripts": {
@@ -168,6 +173,7 @@ To turn on this feature, just set the `includeTestSteps` config options to `true
 This reporter provides Reporting API to use it directly in tests to send some additional data to the report.
 
 To start using the `ReportingApi` in tests, just import it from `'@reportportal/agent-js-playwright'`:
+
 ```javascript
 import { ReportingApi } from '@reportportal/agent-js-playwright';
 ```
@@ -179,11 +185,13 @@ All ReportingApi methods have an optional _suite_ parameter.<br/>
 If you want to add a data to the suite, you must pass the suite name as the last parameter.
 
 ##### addAttributes
+
 Add attributes (tags) to the current test. Should be called inside of corresponding test.<br/>
 `ReportingApi.addAttributes(attributes: Array<Attribute>, suite?: string);`<br/>
 **required**: `attributes`<br/>
 **optional**: `suite`<br/>
 Example:
+
 ```javascript
 test('should have the correct attributes', () => {
   ReportingApi.addAttributes([
@@ -200,12 +208,14 @@ test('should have the correct attributes', () => {
 ```
 
 ##### setTestCaseId
+
 Set test case id to the current test ([About test case id](https://reportportal.io/docs/Test-case-ID%3Ewhat-is-it-test-case-id)). Should be called inside of corresponding test.<br/>
 `ReportingApi.setTestCaseId(id: string, suite?: string);`<br/>
 **required**: `id`<br/>
 **optional**: `suite`<br/>
 If `testCaseId` not specified, it will be generated automatically based on [codeRef](https://reportportal.io/docs/Test-case-ID%3Ewhat-does-happen-if-you-do-not-report-items-with-test-case-id-).<br/>
 Example:
+
 ```javascript
 test('should have the correct testCaseId', () => {
   ReportingApi.setTestCaseId('itemTestCaseId');
@@ -214,14 +224,16 @@ test('should have the correct testCaseId', () => {
 ```
 
 ##### log
+
 Send logs to report portal for the current test. Should be called inside of corresponding test.<br/>
 `ReportingApi.log(level: LOG_LEVELS, message: string, file?: Attachment, suite?: string);`<br/>
 **required**: `level`, `message`<br/>
 **optional**: `file`, `suite`<br/>
-where `level` can be one of the following: *TRACE*, *DEBUG*, *WARN*, *INFO*, *ERROR*, *FATAL*<br/>
+where `level` can be one of the following: _TRACE_, _DEBUG_, _WARN_, _INFO_, _ERROR_, _FATAL_<br/>
 Example:
+
 ```javascript
-test('should contain logs with attachments',() => {
+test('should contain logs with attachments', () => {
   const fileName = 'test.jpg';
   const fileContent = fs.readFileSync(path.resolve(__dirname, './attachments', fileName));
   const attachment = {
@@ -236,6 +248,7 @@ test('should contain logs with attachments',() => {
 ```
 
 ##### info, debug, warn, error, trace, fatal
+
 Send logs with corresponding level to report portal for the current test. Should be called inside of corresponding test.<br/>
 `ReportingApi.info(message: string, file?: Attachment, suite?: string);`<br/>
 `ReportingApi.debug(message: string, file?: Attachment, suite?: string);`<br/>
@@ -246,26 +259,29 @@ Send logs with corresponding level to report portal for the current test. Should
 **required**: `message`<br/>
 **optional**: `file`, `suite`<br/>
 Example:
+
 ```javascript
 test('should contain logs with attachments', () => {
-    ReportingApi.info('Log message');
-    ReportingApi.debug('Log message');
-    ReportingApi.warn('Log message');
-    ReportingApi.error('Log message');
-    ReportingApi.trace('Log message');
-    ReportingApi.fatal('Log message');
-    
-    expect(true).toBe(true);
+  ReportingApi.info('Log message');
+  ReportingApi.debug('Log message');
+  ReportingApi.warn('Log message');
+  ReportingApi.error('Log message');
+  ReportingApi.trace('Log message');
+  ReportingApi.fatal('Log message');
+
+  expect(true).toBe(true);
 });
 ```
 
 ##### launchLog
+
 Send logs to report portal for the current launch. Should be called inside of the any test or suite.<br/>
 `ReportingApi.launchLog(level: LOG_LEVELS, message: string, file?: Attachment);`<br/>
 **required**: `level`, `message`<br/>
 **optional**: `file`<br/>
-where `level` can be one of the following: *TRACE*, *DEBUG*, *WARN*, *INFO*, *ERROR*, *FATAL*<br/>
+where `level` can be one of the following: _TRACE_, _DEBUG_, _WARN_, _INFO_, _ERROR_, _FATAL_<br/>
 Example:
+
 ```javascript
 test('should contain logs with attachments', async () => {
   const fileName = 'test.jpg';
@@ -282,6 +298,7 @@ test('should contain logs with attachments', async () => {
 ```
 
 ##### launchInfo, launchDebug, launchWarn, launchError, launchTrace, launchFatal
+
 Send logs with corresponding level to report portal for the current launch. Should be called inside of the any test or suite.<br/>
 `ReportingApi.launchInfo(message: string, file?: Attachment);`<br/>
 `ReportingApi.launchDebug(message: string, file?: Attachment);`<br/>
@@ -292,35 +309,39 @@ Send logs with corresponding level to report portal for the current launch. Shou
 **required**: `message`<br/>
 **optional**: `file`<br/>
 Example:
+
 ```javascript
 test('should contain logs with attachments', () => {
-    ReportingApi.launchInfo('Log message');
-    ReportingApi.launchDebug('Log message');
-    ReportingApi.launchWarn('Log message');
-    ReportingApi.launchError('Log message');
-    ReportingApi.launchTrace('Log message');
-    ReportingApi.launchFatal('Log message');
-    
-    expect(true).toBe(true);
+  ReportingApi.launchInfo('Log message');
+  ReportingApi.launchDebug('Log message');
+  ReportingApi.launchWarn('Log message');
+  ReportingApi.launchError('Log message');
+  ReportingApi.launchTrace('Log message');
+  ReportingApi.launchFatal('Log message');
+
+  expect(true).toBe(true);
 });
 ```
 
 ##### setStatus
+
 Assign corresponding status to the current test item. Should be called inside of corresponding test.<br/>
 `ReportingApi.setStatus(status: string, suite?: string);`<br/>
 **required**: `status`<br/>
 **optional**: `suite`<br/>
-where `status` must be one of the following: *passed*, *failed*, *stopped*, *skipped*, *interrupted*, *cancelled*<br/>
+where `status` must be one of the following: _passed_, _failed_, _stopped_, _skipped_, _interrupted_, _cancelled_<br/>
 Example:
+
 ```javascript
 test('should have status FAILED', () => {
-    ReportingApi.setStatus('failed');
-    
-    expect(true).toBe(true);
+  ReportingApi.setStatus('failed');
+
+  expect(true).toBe(true);
 });
 ```
 
 ##### setStatusFailed, setStatusPassed, setStatusSkipped, setStatusStopped, setStatusInterrupted, setStatusCancelled
+
 Assign corresponding status to the current test item. Should be called inside of corresponding test.<br/>
 `ReportingApi.setStatusFailed(suite?: string);`<br/>
 `ReportingApi.setStatusPassed(suite?: string);`<br/>
@@ -330,31 +351,35 @@ Assign corresponding status to the current test item. Should be called inside of
 `ReportingApi.setStatusCancelled(suite?: string);`<br/>
 **optional**: `suite`<br/>
 Example:
+
 ```javascript
 test('should call ReportingApi to set statuses', () => {
-    ReportingAPI.setStatusFailed();
-    ReportingAPI.setStatusPassed();
-    ReportingAPI.setStatusSkipped();
-    ReportingAPI.setStatusStopped();
-    ReportingAPI.setStatusInterrupted();
-    ReportingAPI.setStatusCancelled();
+  ReportingAPI.setStatusFailed();
+  ReportingAPI.setStatusPassed();
+  ReportingAPI.setStatusSkipped();
+  ReportingAPI.setStatusStopped();
+  ReportingAPI.setStatusInterrupted();
+  ReportingAPI.setStatusCancelled();
 });
 ```
 
 ##### setLaunchStatus
+
 Assign corresponding status to the current launch. Should be called inside of the any test or suite.<br/>
 `ReportingApi.setLaunchStatus(status: string);`<br/>
 **required**: `status`<br/>
-where `status` must be one of the following: *passed*, *failed*, *stopped*, *skipped*, *interrupted*, *cancelled*<br/>
+where `status` must be one of the following: _passed_, _failed_, _stopped_, _skipped_, _interrupted_, _cancelled_<br/>
 Example:
+
 ```javascript
-test('launch should have status FAILED',  () => {
-    ReportingApi.setLaunchStatus('failed');
-    expect(true).toBe(true);
+test('launch should have status FAILED', () => {
+  ReportingApi.setLaunchStatus('failed');
+  expect(true).toBe(true);
 });
 ```
 
 ##### setLaunchStatusFailed, setLaunchStatusPassed, setLaunchStatusSkipped, setLaunchStatusStopped, setLaunchStatusInterrupted, setLaunchStatusCancelled
+
 Assign corresponding status to the current test item. Should be called inside of the any test or suite.<br/>
 `ReportingApi.setLaunchStatusFailed();`<br/>
 `ReportingApi.setLaunchStatusPassed();`<br/>
@@ -363,29 +388,33 @@ Assign corresponding status to the current test item. Should be called inside of
 `ReportingApi.setLaunchStatusInterrupted();`<br/>
 `ReportingApi.setLaunchStatusCancelled();`<br/>
 Example:
+
 ```javascript
 test('should call ReportingApi to set launch statuses', () => {
-    ReportingAPI.setLaunchStatusFailed();
-    ReportingAPI.setLaunchStatusPassed();
-    ReportingAPI.setLaunchStatusSkipped();
-    ReportingAPI.setLaunchStatusStopped();
-    ReportingAPI.setLaunchStatusInterrupted();
-    ReportingAPI.setLaunchStatusCancelled();
+  ReportingAPI.setLaunchStatusFailed();
+  ReportingAPI.setLaunchStatusPassed();
+  ReportingAPI.setLaunchStatusSkipped();
+  ReportingAPI.setLaunchStatusStopped();
+  ReportingAPI.setLaunchStatusInterrupted();
+  ReportingAPI.setLaunchStatusCancelled();
 });
 ```
 
 ### Integration with Sauce Labs
 
-To integrate with Sauce Labs just add attributes for the test case: 
+To integrate with Sauce Labs just add attributes for the test case:
 
 ```javascript
-[{
- "key": "SLID",
- "value": "# of the job in Sauce Labs"
-}, {
- "key": "SLDC",
- "value": "EU (your job region in Sauce Labs)"
-}]
+[
+  {
+    key: 'SLID',
+    value: '# of the job in Sauce Labs',
+  },
+  {
+    key: 'SLDC',
+    value: 'EU (your job region in Sauce Labs)',
+  },
+];
 ```
 
 Example available in [examples repo](https://github.com/reportportal/examples-js/tree/main/example-playwright#run-in-saucelabs).
@@ -399,8 +428,8 @@ But the mentioned CLI tool `merge-reports` is designed to merge local reports re
 Thus, in order to have a single launch in ReportPortal for sharded tests, additional customization is required.
 There are several options to achieve this:
 
-* [Using the `launchId` config option](#using-the-launchid-config-option)
-* [Merging launches based on the build ID](#merging-launches-based-on-the-build-id)
+- [Using the `launchId` config option](#using-the-launchid-config-option)
+- [Merging launches based on the build ID](#merging-launches-based-on-the-build-id)
 
 **Note:** The [`@reportportal/client-javascript`](https://github.com/reportportal/client-javascript) SDK used here as a reference, but of course the same actions can be performed by sending requests to the ReportPortal API directly.
 
@@ -417,17 +446,17 @@ The `@reportportal/client-javascript` `startLaunch` method can be used.
 
 ```javascript
 /*
-* startLaunch.js
-* */
+ * startLaunch.js
+ * */
 const rpClient = require('@reportportal/client-javascript');
 
 const rpConfig = {
-    // ...
+  // ...
 };
 
 async function startLaunch() {
   const client = new rpClient(rpConfig);
-   // see https://github.com/reportportal/client-javascript?tab=readme-ov-file#startlaunch for the details
+  // see https://github.com/reportportal/client-javascript?tab=readme-ov-file#startlaunch for the details
   const response = await client.startLaunch({
     name: rpConfig.launch,
     attributes: rpConfig.attributes,
@@ -439,20 +468,23 @@ async function startLaunch() {
 
 const launchId = await startLaunch();
 ```
+
 Received `launchId` can be exported e.g. as an environment variable to your CI job.
 
 2. Specify the launch ID for each job.
-This step depends on your CI provider and the available ways to path some values to the Node.js process.
-The launch ID can be set directly to the [reporter config](https://github.com/reportportal/agent-js-playwright#:~:text=Useful%20for%20debugging.-,launchId,-Optional).
+   This step depends on your CI provider and the available ways to path some values to the Node.js process.
+   The launch ID can be set directly to the [reporter config](https://github.com/reportportal/agent-js-playwright#:~:text=Useful%20for%20debugging.-,launchId,-Optional).
+
 ```javascript
 /*
-* playwright.config.js
-* */
+ * playwright.config.js
+ * */
 const rpConfig = {
   // ...
-  launchId: 'receivedLaunchId'
+  launchId: 'receivedLaunchId',
 };
 ```
+
 or just set as `RP_LAUNCH_ID` environment variable.
 
 With launch ID provided, the agent will attach all test results to that launch.
@@ -464,12 +496,12 @@ The `@reportportal/client-javascript` `finishLaunch` method can be used.
 
 ```javascript
 /*
-* finishLaunch.js
-* */
+ * finishLaunch.js
+ * */
 const RPClient = require('@reportportal/client-javascript');
 
 const rpConfig = {
-    // ...
+  // ...
 };
 
 const finishLaunch = async () => {
@@ -485,18 +517,20 @@ await finishLaunch();
 ### Merging launches based on the build ID
 
 This approach offers a way to merge several launches reported from different shards into one launch after the entire test execution completed and launches are finished.
-* With this option the Auto-analysis, Pattern-analysis and Quality Gates will be triggered for each sharded launch individually.
-* The launch numbering will be changed as each sharded launch will have its own number.
-* The merged launch will be treated as a new launch with its own number.
+
+- With this option the Auto-analysis, Pattern-analysis and Quality Gates will be triggered for each sharded launch individually.
+- The launch numbering will be changed as each sharded launch will have its own number.
+- The merged launch will be treated as a new launch with its own number.
 
 This approach is equal to merging launches via [ReportPortal UI](https://reportportal.io/docs/work-with-reports/OperationsUnderLaunches/#merge-launches).
 
 1. Specify a unique CI build ID as a launch attribute, which will be the same for different jobs in the same run (this could be a commit hash or something else).
-This step depends on your CI provider and the available ways to path some values to the Node.js process.
+   This step depends on your CI provider and the available ways to path some values to the Node.js process.
+
 ```javascript
 /*
-* playwright.config.js
-* */
+ * playwright.config.js
+ * */
 const rpConfig = {
   // ...
   attributes: [
@@ -504,7 +538,7 @@ const rpConfig = {
       key: 'CI_BUILD_ID',
       // e.g.
       value: process.env.GITHUB_COMMIT_SHA,
-    }
+    },
   ],
 };
 ```
@@ -515,8 +549,8 @@ The ReportPortal API can be used to filter the required launches by the provided
 
 ```javascript
 /*
-* mergeRpLaunches.js
-* */
+ * mergeRpLaunches.js
+ * */
 const rpClient = require('@reportportal/client-javascript');
 
 const rpConfig = {
@@ -573,7 +607,8 @@ There is known issue that in some cases launches not finished as expected in Rep
 This may happen in case of error thrown from `before`/`beforeAll` hooks, retries enabled and `fullyParallel: false`. Associated with [#85](https://github.com/reportportal/agent-js-playwright/issues/85).<br/>
 In this case as a workaround we suggest to use `.skip()` and `.fixme()` annotations inside the test body:
 
-use 
+use
+
 ```javascript
 test('example fail', async ({}) => {
   test.fixme();
@@ -581,7 +616,8 @@ test('example fail', async ({}) => {
 });
 ```
 
-instead of 
+instead of
+
 ```javascript
 test.fixme('example fail', async ({}) => {
   expect(1).toBeGreaterThan(2);
