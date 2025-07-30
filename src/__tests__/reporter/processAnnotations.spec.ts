@@ -24,17 +24,17 @@ describe('processAnnotations', () => {
       { type: 'rp:setDescription', description: JSON.stringify('My description') },
     ];
 
-    reporter.processAnnotations({ annotations, test: testCase, suiteName: 'suiteA' });
+    reporter.processAnnotations({ annotations, test: testCase });
 
     expect(reporter.onEventReport).toHaveBeenCalledTimes(2);
 
     expect(reporter.onEventReport).toHaveBeenCalledWith(
-      { type: 'rp:addAttributes', data: [{ key: 'k', value: 'v' }], suiteName: 'suiteA' },
+      { type: 'rp:addAttributes', data: [{ key: 'k', value: 'v' }] },
       testCase,
     );
 
     expect(reporter.onEventReport).toHaveBeenCalledWith(
-      { type: 'rp:setDescription', data: 'My description', suiteName: 'suiteA' },
+      { type: 'rp:setDescription', data: 'My description' },
       testCase,
     );
   });
