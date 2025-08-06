@@ -149,15 +149,12 @@ export class RPReporter implements Reporter {
 
   onStdOut(chunk: string | Buffer, test?: TestCase): void {
     const chunkString = String(chunk);
-    if (test) {
-      this.sendTestItemLog({ message: chunkString }, test);
-    }
     try {
       const event = JSON.parse(chunkString);
       this.onEventReport({ type: event.type, data: event.data, suiteName: event.suite }, test);
     } catch (e) {
       if (test) {
-        this.sendTestItemLog({ message: e.message }, test);
+        this.sendTestItemLog({ message: chunkString }, test);
       }
     }
   }
