@@ -21,6 +21,7 @@ declare module '@reportportal/client-javascript' {
 
     public startLaunch(launchObj: any): any;
     public finishLaunch(launchId: string, launchObj: any): any;
+    public updateLaunch(launchId: string, launchObj: any): any;
     public startTestItem(itemObj: any, launchId: string, parentId?: string): any;
     public finishTestItem(itemId: string, itemObj: any): any;
     public sendLog(itemId: string, itemObj: any, fileObj?: any): any;

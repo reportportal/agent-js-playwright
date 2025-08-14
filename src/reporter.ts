@@ -18,7 +18,13 @@
 import RPClient from '@reportportal/client-javascript';
 import clientHelpers from '@reportportal/client-javascript/lib/helpers';
 import stripAnsi from 'strip-ansi';
-import { Reporter, Suite as PWSuite, TestCase, TestResult, FullResult } from '@playwright/test/reporter';
+import {
+  Reporter,
+  Suite as PWSuite,
+  TestCase,
+  TestResult,
+  FullResult,
+} from '@playwright/test/reporter';
 import {
   Attribute,
   FinishTestItemObjType,
@@ -624,7 +630,7 @@ export class RPReporter implements Reporter {
     }
 
     if (!this.config.launchId) {
-      const endTime = new Date(result.startTime.getTime() + result.duration).valueOf
+      const endTime = new Date(result.startTime.getTime() + result.duration).valueOf;
       const { promise } = this.client.finishLaunch(this.launchId, {
         endTime: endTime,
         ...(this.customLaunchStatus && { status: this.customLaunchStatus }),
