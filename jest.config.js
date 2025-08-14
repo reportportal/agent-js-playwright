@@ -18,11 +18,14 @@
 module.exports = {
   roots: ['<rootDir>/src'],
   transform: {
-    '.ts': ['ts-jest', {
-      diagnostics: {
-        pathRegex: '(/__tests__/.*?\\.(test|spec))\\.(ts|js)$',
+    '.ts': [
+      'ts-jest',
+      {
+        diagnostics: {
+          pathRegex: '(/__tests__/.*?\\.(test|spec))\\.(ts|js)$',
+        },
       },
-    }],
+    ],
   },
   testEnvironment: 'node',
   testRegex: '/__tests__/.*\\.(test|spec)?\\.(ts|js)$',

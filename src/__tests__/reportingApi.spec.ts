@@ -59,6 +59,16 @@ const reportingApiLaunchLogMethods = [
   { method: 'launchFatal', level: 'FATAL' },
 ];
 
+const mockAnnotations: any[] = [];
+
+jest.mock('@playwright/test', () => ({
+  test: {
+    info: () => ({
+      annotations: mockAnnotations,
+    }),
+  },
+}));
+
 describe('reportingApi', () => {
   test('addAttributes should call sendEventToReporter with params', () => {
     const attrs = [
