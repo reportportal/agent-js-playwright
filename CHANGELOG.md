@@ -1,3 +1,5 @@
+
+## [5.2.0] - 2025-08-22
 ### Added
 - Semantic names for test artefacts based on the test names. Resolves [#173](https://github.com/reportportal/agent-js-playwright/issues/173).
 ### Changed
