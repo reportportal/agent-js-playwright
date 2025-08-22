@@ -30,6 +30,8 @@ import {
   TEST_ANNOTATION_TYPES,
   TEST_OUTCOME_TYPES,
 } from './constants';
+import { test } from '@playwright/test';
+import { RPReporter } from './reporter';
 
 const fsPromises = fs.promises;
 
@@ -89,7 +91,15 @@ export const getCodeRef = (
 };
 
 export const sendEventToReporter = (type: string, data: any, suite?: string): void => {
-  process.stdout.write(JSON.stringify({ type, data, suite }));
+  const annotation = {
+    type: type,
+    description: JSON.stringify(data),
+  };
+  if (suite) {
+    process.stdout.write(JSON.stringify({ type, data, suite }));
+  } else {
+    test.info().annotations.push(annotation);
+  }
 };
 
 export const fileExists = async (filePath: string) => {
@@ -109,6 +119,7 @@ export const fileExists = async (filePath: string) => {
 export const getAttachments = async (
   attachments: TestResult['attachments'],
   { uploadTrace, uploadVideo }: AttachmentsConfig = { uploadTrace: true, uploadVideo: true },
+  testTitle?: string,
 ): Promise<Attachment[]> => {
   const isTraceNotAllowed = isFalse(uploadTrace);
   const isVideoNotAllowed = isFalse(uploadVideo);
@@ -146,9 +157,16 @@ export const getAttachments = async (
         console.error(e);
         return;
       }
+      const attachmentName = testTitle
+        ? testTitle
+            .toLowerCase()
+            .replace(/[^a-z0-9 _-]/g, '')
+            .replace(/\s+/g, '-')
+            .concat('_', name)
+        : name;
 
       return {
-        name,
+        name: attachmentName,
         type: contentType,
         content: fileContent,
       };

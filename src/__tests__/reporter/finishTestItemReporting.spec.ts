@@ -24,6 +24,16 @@ import { STATUSES } from '../../constants';
 const rootSuite = 'rootSuite';
 const suiteName = 'suiteName';
 
+const mockAnnotations: any[] = [];
+
+jest.mock('@playwright/test', () => ({
+  test: {
+    info: () => ({
+      annotations: mockAnnotations,
+    }),
+  },
+}));
+
 describe('finish test reporting', () => {
   jest.spyOn(helpers, 'now').mockReturnValue(mockedDate);
   const testCase = {

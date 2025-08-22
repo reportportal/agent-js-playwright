@@ -65,6 +65,11 @@ interface Suite extends TestItem {
   executedTestCount?: number;
 }
 
+interface Annotation {
+  type: string;
+  description?: string;
+}
+
 export class RPReporter implements Reporter {
   config: ReportPortalConfig;
 
@@ -113,36 +118,43 @@ export class RPReporter implements Reporter {
     this.promises.push(promiseErrorHandler(promise, failMessage));
   }
 
-  onStdOut(chunk: string | Buffer, test?: TestCase): void {
-    try {
-      const { type, data, suite: suiteName } = JSON.parse(String(chunk));
+  onEventReport(
+    { type, data, suiteName }: { type: string; data: any; suiteName?: string },
+    test?: TestCase,
+  ): void {
+    switch (type) {
+      case EVENTS.ADD_ATTRIBUTES:
+        this.addAttributes(data, test, suiteName);
+        break;
+      case EVENTS.SET_DESCRIPTION:
+        this.setDescription(data, test, suiteName);
+        break;
+      case EVENTS.SET_TEST_CASE_ID:
+        this.setTestCaseId(data, test, suiteName);
+        break;
+      case EVENTS.SET_STATUS:
+        this.setStatus(data, test, suiteName);
+        break;
+      case EVENTS.SET_LAUNCH_STATUS:
+        this.setLaunchStatus(data);
+        break;
+      case EVENTS.ADD_LOG:
+        this.sendTestItemLog(data, test, suiteName);
+        break;
+      case EVENTS.ADD_LAUNCH_LOG:
+        this.sendLaunchLog(data);
+        break;
+    }
+  }
 
-      switch (type) {
-        case EVENTS.ADD_ATTRIBUTES:
-          this.addAttributes(data, test, suiteName);
-          break;
-        case EVENTS.SET_DESCRIPTION:
-          this.setDescription(data, test, suiteName);
-          break;
-        case EVENTS.SET_TEST_CASE_ID:
-          this.setTestCaseId(data, test, suiteName);
-          break;
-        case EVENTS.SET_STATUS:
-          this.setStatus(data, test, suiteName);
-          break;
-        case EVENTS.SET_LAUNCH_STATUS:
-          this.setLaunchStatus(data);
-          break;
-        case EVENTS.ADD_LOG:
-          this.sendTestItemLog(data, test, suiteName);
-          break;
-        case EVENTS.ADD_LAUNCH_LOG:
-          this.sendLaunchLog(data);
-          break;
-      }
+  onStdOut(chunk: string | Buffer, test?: TestCase): void {
+    const chunkString = String(chunk);
+    try {
+      const event = JSON.parse(chunkString);
+      this.onEventReport({ type: event.type, data: event.data, suiteName: event.suite }, test);
     } catch (e) {
       if (test) {
-        this.sendTestItemLog({ message: String(chunk) }, test);
+        this.sendTestItemLog({ message: chunkString }, test);
       }
     }
   }
@@ -456,7 +468,21 @@ export class RPReporter implements Reporter {
     this.nestedSteps.delete(fullStepName);
   }
 
+  processAnnotations({ annotations, test }: { annotations: Annotation[]; test?: TestCase }): void {
+    annotations.forEach(({ type, description }) => {
+      if (type && description) {
+        const data = JSON.parse(description);
+        const reportData = {
+          type,
+          data,
+        };
+        this.onEventReport(reportData, test);
+      }
+    });
+  }
+
   async onTestEnd(test: TestCase, result: TestResult): Promise<void> {
+    this.processAnnotations({ annotations: test.annotations, test });
     const savedTestItem = this.testItems.get(test.id);
     if (!savedTestItem) {
       return Promise.resolve();
@@ -479,11 +505,14 @@ export class RPReporter implements Reporter {
     // TODO: cover with tests
     if (result.attachments?.length) {
       const { uploadVideo, uploadTrace } = this.config;
-      const attachmentsFiles = await getAttachments(result.attachments, {
-        uploadVideo,
-        uploadTrace,
-      });
-
+      const attachmentsFiles = await getAttachments(
+        result.attachments,
+        {
+          uploadVideo,
+          uploadTrace,
+        },
+        test.title,
+      );
       // TODO: use bulk log request
       attachmentsFiles.forEach((file) => {
         this.sendLog(testItemId, {

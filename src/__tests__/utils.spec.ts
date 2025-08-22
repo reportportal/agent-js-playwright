@@ -37,13 +37,24 @@ import {
   BASIC_ATTACHMENT_CONTENT_TYPES,
   BASIC_ATTACHMENT_NAMES,
 } from '../constants';
+import { RPReporter } from '../reporter';
+
+const mockAnnotations: any[] = [];
+
+jest.mock('@playwright/test', () => ({
+  test: {
+    info: () => ({
+      annotations: mockAnnotations,
+    }),
+  },
+}));
 
 describe('testing utils', () => {
   test('isFalse', () => {
     expect(isFalse(false)).toBe(true);
     expect(isFalse('false')).toBe(true);
     expect(isFalse(undefined)).toBe(false);
-    expect(isFalse(null)).toBe(false);
+    expect(isFalse(null as any)).toBe(false);
   });
 
   describe('isErrorLog', () => {
@@ -183,23 +194,43 @@ describe('testing utils', () => {
     });
 
     test('should return an empty string if test title is empty', () => {
-      const codeRef = getCodeRef(mockedTest, undefined);
+      const codeRef = getCodeRef(mockedTest, '');
 
       expect(codeRef).toBe('');
     });
   });
   describe('sendEventToReporter', () => {
-    test('func must send event to reporter', () => {
+    beforeEach(() => {
+      mockAnnotations.length = 0;
+    });
+
+    test('should send event to annotations when no suite is given', () => {
       const type = 'ADD_ATTRIBUTES';
-      const data = [
-        {
-          key: 'key',
-          value: 'value',
-        },
-      ];
-      const spyProcess = jest.spyOn(process.stdout, 'write');
+      const data = [{ key: 'key', value: 'value' }];
+
       sendEventToReporter(type, data);
-      expect(spyProcess).toHaveBeenCalledWith(JSON.stringify({ type, data }));
+
+      expect(mockAnnotations).toEqual([
+        {
+          type,
+          description: JSON.stringify(data),
+        },
+      ]);
+    });
+
+    test('should write event to stdout when suite is given', () => {
+      const type = 'ADD_ATTRIBUTES';
+      const data = [{ key: 'key', value: 'value' }];
+      const suite = 'someSuite';
+
+      // Mock process.stdout.write
+      const mockWrite = jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
+
+      sendEventToReporter(type, data, suite);
+
+      expect(mockWrite).toHaveBeenCalledWith(JSON.stringify({ type, data, suite }));
+
+      mockWrite.mockRestore();
     });
   });
 
