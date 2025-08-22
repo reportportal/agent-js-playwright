@@ -1,7 +1,7 @@
 ### Added
-- Semantic names for test artefacts. Resolves [#173](https://github.com/reportportal/agent-js-playwright/issues/173).
+- Semantic names for test artefacts based on the test names. Resolves [#173](https://github.com/reportportal/agent-js-playwright/issues/173).
 ### Changed
-- Use Playwright's `testInfo.annotations` for ReportPortal runtime data. Addresses [#113](https://github.com/reportportal/agent-js-playwright/issues/113).
+- Use Playwright's `testInfo.annotations` for ReportPortal runtime data for tests. Addresses [#113](https://github.com/reportportal/agent-js-playwright/issues/113).
 - Revert time format back to milliseconds (based on [#217](https://github.com/reportportal/client-javascript/issues/217#issuecomment-2659843471)). This is also fixing the issue with agents installation on ARM processors [#212](https://github.com/reportportal/agent-js-cypress/issues/212).
 - `@reportportal/client-javascript` bumped to version `5.4.1`.
 ### Security
