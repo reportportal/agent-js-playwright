@@ -471,7 +471,7 @@ export class RPReporter implements Reporter {
 
   processAnnotations({ annotations, test }: { annotations: Annotation[]; test?: TestCase }): void {
     annotations.forEach(({ type, description }) => {
-      if (type && description) {
+      if (type && description && Object.values(EVENTS).includes(type)) {
         try {
           const data = safeParse(description);
           const reportData = {
