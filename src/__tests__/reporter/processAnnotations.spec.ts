@@ -66,7 +66,7 @@ describe('processAnnotations', () => {
     );
   });
 
-  test('should handle invalid JSON gracefully and not crash', () => {
+  test('should handle invalid JSON and not crash', () => {
     const annotations = [{ type: 'rp:setDescription', description: '{invalidJson' }];
 
     expect(() => reporter.processAnnotations({ annotations, test: testCase })).not.toThrow();
@@ -77,9 +77,9 @@ describe('processAnnotations', () => {
     );
   });
 
-  test('should handle URL annotations gracefully without crashing', () => {
+  test('should handle URL annotations without crashing', () => {
     const annotations = [
-      { type: 'rp:testCaseId', description: 'https://jira.example.com/browse/SPIRE-31613' },
+      { type: 'rp:setTestCaseId', description: 'https://jira.example.com/browse/SPIRE-31613' },
       { type: 'rp:setDescription', description: JSON.stringify('Valid JSON description') },
     ];
 
@@ -87,7 +87,7 @@ describe('processAnnotations', () => {
 
     expect(reporter.onEventReport).toHaveBeenCalledTimes(2);
     expect(reporter.onEventReport).toHaveBeenCalledWith(
-      { type: 'rp:testCaseId', data: 'https://jira.example.com/browse/SPIRE-31613' },
+      { type: 'rp:setTestCaseId', data: 'https://jira.example.com/browse/SPIRE-31613' },
       testCase,
     );
     expect(reporter.onEventReport).toHaveBeenCalledWith(
@@ -96,7 +96,7 @@ describe('processAnnotations', () => {
     );
   });
 
-  test('should handle plain text annotations gracefully', () => {
+  test('should skip non-ReportPortal event types', () => {
     const annotations = [
       { type: 'rp:customType', description: 'This is plain text' },
       { type: 'rp:anotherType', description: 'Another plain text description' },
@@ -104,18 +104,10 @@ describe('processAnnotations', () => {
 
     expect(() => reporter.processAnnotations({ annotations, test: testCase })).not.toThrow();
 
-    expect(reporter.onEventReport).toHaveBeenCalledTimes(2);
-    expect(reporter.onEventReport).toHaveBeenCalledWith(
-      { type: 'rp:customType', data: 'This is plain text' },
-      testCase,
-    );
-    expect(reporter.onEventReport).toHaveBeenCalledWith(
-      { type: 'rp:anotherType', data: 'Another plain text description' },
-      testCase,
-    );
+    expect(reporter.onEventReport).not.toHaveBeenCalled();
   });
 
-  test('should process mixed valid and invalid annotations correctly', () => {
+  test('should process only valid ReportPortal event types', () => {
     const annotations = [
       { type: 'rp:addAttributes', description: JSON.stringify([{ key: 'k1', value: 'v1' }]) },
       { type: 'rp:invalidType', description: 'https://example.com/test' },
@@ -125,21 +117,13 @@ describe('processAnnotations', () => {
 
     expect(() => reporter.processAnnotations({ annotations, test: testCase })).not.toThrow();
 
-    expect(reporter.onEventReport).toHaveBeenCalledTimes(4);
+    expect(reporter.onEventReport).toHaveBeenCalledTimes(2);
     expect(reporter.onEventReport).toHaveBeenCalledWith(
       { type: 'rp:addAttributes', data: [{ key: 'k1', value: 'v1' }] },
       testCase,
     );
     expect(reporter.onEventReport).toHaveBeenCalledWith(
-      { type: 'rp:invalidType', data: 'https://example.com/test' },
-      testCase,
-    );
-    expect(reporter.onEventReport).toHaveBeenCalledWith(
       { type: 'rp:setDescription', data: 'Valid description' },
-      testCase,
-    );
-    expect(reporter.onEventReport).toHaveBeenCalledWith(
-      { type: 'rp:anotherInvalid', data: 'Plain text' },
       testCase,
     );
   });
