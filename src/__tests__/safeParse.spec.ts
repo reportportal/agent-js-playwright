@@ -50,7 +50,6 @@ describe('safeParse', () => {
       expect(safeParse(arr)).toBe(arr);
       expect(safeParse(arr)).toEqual([1, 2, 3]);
     });
-
   });
 
   describe('Valid JSON strings', () => {
@@ -88,13 +87,14 @@ describe('safeParse', () => {
     });
 
     test('should parse complex nested JSON', () => {
-      const jsonString = '{"users": [{"id": 1, "name": "John"}, {"id": 2, "name": "Jane"}], "count": 2}';
+      const jsonString =
+        '{"users": [{"id": 1, "name": "John"}, {"id": 2, "name": "Jane"}], "count": 2}';
       const expected = {
         users: [
           { id: 1, name: 'John' },
-          { id: 2, name: 'Jane' }
+          { id: 2, name: 'Jane' },
         ],
-        count: 2
+        count: 2,
       };
       expect(safeParse(jsonString)).toEqual(expected);
     });
@@ -109,10 +109,7 @@ describe('safeParse', () => {
   describe('ReportPortal specific use cases', () => {
     test('should parse ReportPortal attributes JSON', () => {
       const attributesJson = '[{"key": "priority", "value": "high"}, {"value": "demo"}]';
-      const expected = [
-        { key: 'priority', value: 'high' },
-        { value: 'demo' }
-      ];
+      const expected = [{ key: 'priority', value: 'high' }, { value: 'demo' }];
       expect(safeParse(attributesJson)).toEqual(expected);
     });
 
@@ -126,14 +123,14 @@ describe('safeParse', () => {
       const expected = {
         level: 'INFO',
         message: 'Test log',
-        file: { name: 'test.png' }
+        file: { name: 'test.png' },
       };
       expect(safeParse(logJson)).toEqual(expected);
     });
 
     test('should handle ReportPortal annotation with URL', () => {
       const url = 'https://jira.example.com/browse/SPIRE-31613';
-      expect(safeParse(url)).toBe(url); 
+      expect(safeParse(url)).toBe(url);
     });
 
     test('should handle ReportPortal annotation with plain text (invalid JSON)', () => {
@@ -141,5 +138,4 @@ describe('safeParse', () => {
       expect(safeParse(plainText)).toBe(plainText); // Should return as-is, not crash
     });
   });
-
 });
