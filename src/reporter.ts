@@ -45,6 +45,7 @@ import {
   isErrorLog,
   isFalse,
   promiseErrorHandler,
+  safeParse,
 } from './utils';
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
 import { randomUUID } from 'crypto';
@@ -470,13 +471,20 @@ export class RPReporter implements Reporter {
 
   processAnnotations({ annotations, test }: { annotations: Annotation[]; test?: TestCase }): void {
     annotations.forEach(({ type, description }) => {
-      if (type && description) {
-        const data = JSON.parse(description);
-        const reportData = {
-          type,
-          data,
-        };
-        this.onEventReport(reportData, test);
+      if (type && description && Object.values(EVENTS).includes(type)) {
+        try {
+          const data = safeParse(description);
+          const reportData = {
+            type,
+            data,
+          };
+          this.onEventReport(reportData, test);
+        } catch (error) {
+          console.warn(
+            `[ReportPortal] Skipping annotation with type "${type}" as description is not valid JSON: "${description}". ` +
+              `Only JSON-formatted annotation descriptions are supported for ReportPortal event processing.`,
+          );
+        }
       }
     });
   }
