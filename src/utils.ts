@@ -208,3 +208,16 @@ export const calculateRpStatus = (
 
   return calculatedStatus;
 };
+
+export const safeParse = (input: unknown) => {
+  if (typeof input !== 'string') {
+    return input;
+  }
+
+  try {
+    const parsed = JSON.parse(input);
+    return parsed;
+  } catch {
+    return input;
+  }
+};
