@@ -220,4 +220,4 @@ export const safeParse = (input: unknown) => {
   } catch {
     return input;
   }
-}
+};

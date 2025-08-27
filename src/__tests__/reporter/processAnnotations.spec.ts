@@ -71,14 +71,14 @@ describe('processAnnotations', () => {
     const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
     expect(() => reporter.processAnnotations({ annotations, test: testCase })).not.toThrow();
-    
+
     expect(reporter.onEventReport).not.toHaveBeenCalled();
-    
+
     expect(consoleSpy).toHaveBeenCalledWith(
       `[ReportPortal] Skipping annotation with type "rp:setDescription" as description is not valid JSON: "{invalidJson". ` +
-      `Only JSON-formatted annotation descriptions are supported for ReportPortal event processing.`
+        `Only JSON-formatted annotation descriptions are supported for ReportPortal event processing.`,
     );
-    
+
     consoleSpy.mockRestore();
   });
 
@@ -90,18 +90,18 @@ describe('processAnnotations', () => {
     const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
     expect(() => reporter.processAnnotations({ annotations, test: testCase })).not.toThrow();
-    
+
     expect(reporter.onEventReport).toHaveBeenCalledTimes(1);
     expect(reporter.onEventReport).toHaveBeenCalledWith(
       { type: 'rp:setDescription', data: 'Valid JSON description' },
       testCase,
     );
-    
+
     expect(consoleSpy).toHaveBeenCalledWith(
       `[ReportPortal] Skipping annotation with type "rp:testCaseId" as description is not valid JSON: "https://jira.example.com/browse/SPIRE-31613". ` +
-      `Only JSON-formatted annotation descriptions are supported for ReportPortal event processing.`
+        `Only JSON-formatted annotation descriptions are supported for ReportPortal event processing.`,
     );
-    
+
     consoleSpy.mockRestore();
   });
 
@@ -113,19 +113,19 @@ describe('processAnnotations', () => {
     const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
     expect(() => reporter.processAnnotations({ annotations, test: testCase })).not.toThrow();
-    
+
     expect(reporter.onEventReport).not.toHaveBeenCalled();
-    
+
     expect(consoleSpy).toHaveBeenCalledTimes(2);
     expect(consoleSpy).toHaveBeenCalledWith(
       `[ReportPortal] Skipping annotation with type "rp:customType" as description is not valid JSON: "This is plain text". ` +
-      `Only JSON-formatted annotation descriptions are supported for ReportPortal event processing.`
+        `Only JSON-formatted annotation descriptions are supported for ReportPortal event processing.`,
     );
     expect(consoleSpy).toHaveBeenCalledWith(
       `[ReportPortal] Skipping annotation with type "rp:anotherType" as description is not valid JSON: "Another plain text description". ` +
-      `Only JSON-formatted annotation descriptions are supported for ReportPortal event processing.`
+        `Only JSON-formatted annotation descriptions are supported for ReportPortal event processing.`,
     );
-    
+
     consoleSpy.mockRestore();
   });
 
@@ -139,7 +139,7 @@ describe('processAnnotations', () => {
     const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
     expect(() => reporter.processAnnotations({ annotations, test: testCase })).not.toThrow();
-    
+
     expect(reporter.onEventReport).toHaveBeenCalledTimes(2);
     expect(reporter.onEventReport).toHaveBeenCalledWith(
       { type: 'rp:addAttributes', data: [{ key: 'k1', value: 'v1' }] },
@@ -149,9 +149,9 @@ describe('processAnnotations', () => {
       { type: 'rp:setDescription', data: 'Valid description' },
       testCase,
     );
-    
+
     expect(consoleSpy).toHaveBeenCalledTimes(2);
-    
+
     consoleSpy.mockRestore();
   });
 });

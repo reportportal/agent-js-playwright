@@ -482,7 +482,7 @@ export class RPReporter implements Reporter {
         } catch (error) {
           console.warn(
             `[ReportPortal] Skipping annotation with type "${type}" as description is not valid JSON: "${description}". ` +
-            `Only JSON-formatted annotation descriptions are supported for ReportPortal event processing.`
+              `Only JSON-formatted annotation descriptions are supported for ReportPortal event processing.`,
           );
         }
       }
