@@ -1,3 +1,5 @@
+
+## [5.2.1] - 2025-08-27
 ### Fixed
 - [#184](https://github.com/reportportal/agent-js-playwright/issues/184) Test run failures in case of string static annotations and skipping reasons used.
 
