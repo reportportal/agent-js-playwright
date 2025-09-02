@@ -1,8 +1,22 @@
 
+## [5.2.1] - 2025-08-27
+### Fixed
+- [#184](https://github.com/reportportal/agent-js-playwright/issues/184) Test run failures in case of string static annotations and skipping reasons used.
+
+## [5.2.0] - 2025-08-22
+### Added
+- Semantic names for test artefacts based on the test names. Resolves [#173](https://github.com/reportportal/agent-js-playwright/issues/173).
+### Changed
+- Use Playwright's `testInfo.annotations` for ReportPortal runtime data for tests. Addresses [#113](https://github.com/reportportal/agent-js-playwright/issues/113).
+- Revert time format back to milliseconds (based on [#217](https://github.com/reportportal/client-javascript/issues/217#issuecomment-2659843471)). This is also fixing the issue with agents installation on ARM processors [#212](https://github.com/reportportal/agent-js-cypress/issues/212).
+- `@reportportal/client-javascript` bumped to version `5.4.1`.
+### Security
+- Updated versions of vulnerable packages (axios).
+
 ## [5.1.11] - 2024-09-23
 ### Changed
 - The agent now supports reporting the time for launches, test items and logs with microsecond precision in the ISO string format.
-For logs, microsecond precision is available on the UI from ReportPortal version 24.2.
+  For logs, microsecond precision is available on the UI from ReportPortal version 24.2.
 - `@reportportal/client-javascript` bumped to version `5.3.0`.
 
 ## [5.1.10] - 2024-09-17
@@ -97,7 +111,7 @@ For logs, microsecond precision is available on the UI from ReportPortal version
 ## [5.0.6] - 2022-09-13
 ### Fixed
 - [#56](https://github.com/reportportal/agent-js-playwright/issues/56) and [#57](https://github.com/reportportal/agent-js-playwright/issues/57)
-Error (cannot read property of undefined 'rootSuite').
+  Error (cannot read property of undefined 'rootSuite').
 - Launch finishing for skipped tests with retries.
 ### Added
 - Ability to switch on/off adding Playwright project names to code reference via config property `includePlaywrightProjectNameToCodeReference`.
@@ -138,4 +152,4 @@ Error (cannot read property of undefined 'rootSuite').
 
 ## [5.0.0] - 2021-12-16
 ### Added
-- Full compatibility with ReportPortal version 5.* (see [reportportal releases](https://github.com/reportportal/reportportal/releases))
+- Full compatibility with ReportPortal version 5.\* (see [reportportal releases](https://github.com/reportportal/reportportal/releases))

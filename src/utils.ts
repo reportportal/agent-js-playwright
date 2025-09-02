@@ -30,6 +30,8 @@ import {
   TEST_ANNOTATION_TYPES,
   TEST_OUTCOME_TYPES,
 } from './constants';
+import { test } from '@playwright/test';
+import { RPReporter } from './reporter';
 
 const fsPromises = fs.promises;
 
@@ -89,7 +91,15 @@ export const getCodeRef = (
 };
 
 export const sendEventToReporter = (type: string, data: any, suite?: string): void => {
-  process.stdout.write(JSON.stringify({ type, data, suite }));
+  const annotation = {
+    type: type,
+    description: JSON.stringify(data),
+  };
+  if (suite) {
+    process.stdout.write(JSON.stringify({ type, data, suite }));
+  } else {
+    test.info().annotations.push(annotation);
+  }
 };
 
 export const fileExists = async (filePath: string) => {
@@ -197,4 +207,17 @@ export const calculateRpStatus = (
   }
 
   return calculatedStatus;
+};
+
+export const safeParse = (input: unknown) => {
+  if (typeof input !== 'string') {
+    return input;
+  }
+
+  try {
+    const parsed = JSON.parse(input);
+    return parsed;
+  } catch {
+    return input;
+  }
 };
