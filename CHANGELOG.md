@@ -1,3 +1,5 @@
+### Fixed
+- [#187](https://github.com/reportportal/agent-js-playwright/issues/187) Logs being displayed in incorrect order and with identical timestamps.
 
 ## [5.2.1] - 2025-08-27
 ### Fixed

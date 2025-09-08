@@ -15,9 +15,11 @@
  *
  */
 
+import helpers from '@reportportal/client-javascript/lib/helpers';
 import { ReportingApi } from '../reportingApi';
 import * as utils from '../utils';
 import { LOG_LEVELS } from '../constants';
+import { mockedDate } from './mocks/RPClientMock';
 
 const reportingApiStatusMethods = [
   { method: 'setStatusPassed', status: 'passed' },
@@ -70,6 +72,8 @@ jest.mock('@playwright/test', () => ({
 }));
 
 describe('reportingApi', () => {
+  jest.spyOn(helpers, 'now').mockReturnValue(mockedDate);
+
   test('addAttributes should call sendEventToReporter with params', () => {
     const attrs = [
       {
@@ -176,6 +180,7 @@ describe('reportingApi', () => {
         file,
         level: 'INFO',
         message: 'message',
+        time: mockedDate,
       };
       const spySendEventToReporter = jest.spyOn(utils, 'sendEventToReporter');
       ReportingApi.log(LOG_LEVELS.INFO, 'message', file, suite);
@@ -208,6 +213,7 @@ describe('reportingApi', () => {
         file,
         level: 'INFO',
         message: 'message',
+        time: mockedDate,
       };
       const spySendEventToReporter = jest.spyOn(utils, 'sendEventToReporter');
       ReportingApi.launchLog(LOG_LEVELS.INFO, 'message', file);

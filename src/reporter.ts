@@ -245,13 +245,16 @@ export class RPReporter implements Reporter {
     }
   }
 
-  sendLog(tempId: string, { level = LOG_LEVELS.INFO, message = '', file }: LogRQ): void {
+  sendLog(
+    tempId: string,
+    { level = LOG_LEVELS.INFO, message = '', time = clientHelpers.now(), file }: LogRQ,
+  ): void {
     const { promise } = this.client.sendLog(
       tempId,
       {
         message,
         level,
-        time: clientHelpers.now(),
+        time,
       },
       file,
     );

@@ -16,6 +16,7 @@
  */
 
 import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
+import clientHelpers from '@reportportal/client-javascript/lib/helpers';
 import { sendEventToReporter } from './utils';
 import { Attribute } from './models';
 import { STATUSES, LOG_LEVELS } from './constants';
@@ -66,9 +67,10 @@ export const ReportingApi = {
     message = '',
     file?: Attachment,
     suite?: string,
-  ): void => sendEventToReporter(EVENTS.ADD_LOG, { level, message, file }, suite),
+  ): void =>
+    sendEventToReporter(EVENTS.ADD_LOG, { level, message, file, time: clientHelpers.now() }, suite),
   launchLog: (level: LOG_LEVELS = LOG_LEVELS.INFO, message = '', file?: Attachment): void =>
-    sendEventToReporter(EVENTS.ADD_LAUNCH_LOG, { level, message, file }),
+    sendEventToReporter(EVENTS.ADD_LAUNCH_LOG, { level, message, file, time: clientHelpers.now() }),
   trace: (message: string, file?: Attachment, suite?: string): void =>
     ReportingApi.log(LOG_LEVELS.TRACE, message, file, suite),
   debug: (message: string, file?: Attachment, suite?: string): void =>
