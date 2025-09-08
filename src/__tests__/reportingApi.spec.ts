@@ -73,7 +73,7 @@ jest.mock('@playwright/test', () => ({
 
 describe('reportingApi', () => {
   jest.spyOn(helpers, 'now').mockReturnValue(mockedDate);
-  
+
   test('addAttributes should call sendEventToReporter with params', () => {
     const attrs = [
       {
