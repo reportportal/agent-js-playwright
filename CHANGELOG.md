@@ -1,7 +1,7 @@
 ### Added
 - Allow configuring the HTTP retry strategy via `restClientConfig.retry` and tune the [default policy](https://github.com/reportportal/client-javascript?tab=readme-ov-file#retry-configuration).
 ### Changed
-- `@reportportal/client-javascript` bumped to version `5.4.1`.
+- `@reportportal/client-javascript` bumped to version `5.4.2`.
 ### Security
 - Updated versions of vulnerable packages (axios).
 
