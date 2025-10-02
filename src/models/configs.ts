@@ -16,6 +16,7 @@
  */
 
 import { AxiosRequestConfig } from 'axios';
+import { IAxiosRetryConfig } from 'axios-retry';
 import { AgentOptions } from 'https';
 
 import { Attribute } from './common';
@@ -23,6 +24,7 @@ import { LAUNCH_MODES } from '../constants';
 
 export interface RestClientConfig extends AxiosRequestConfig {
   agent?: AgentOptions;
+  retry?: number | IAxiosRetryConfig;
 }
 
 interface ClientConfig {
