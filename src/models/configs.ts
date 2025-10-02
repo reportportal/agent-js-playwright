@@ -15,9 +15,9 @@
  *
  */
 
-import { AxiosRequestConfig } from 'axios';
-import { IAxiosRetryConfig } from 'axios-retry';
-import { AgentOptions } from 'https';
+import type { AxiosRequestConfig } from 'axios';
+import type { IAxiosRetryConfig } from 'axios-retry';
+import type { AgentOptions } from 'https';
 
 import { Attribute } from './common';
 import { LAUNCH_MODES } from '../constants';
