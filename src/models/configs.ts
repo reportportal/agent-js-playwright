@@ -15,14 +15,16 @@
  *
  */
 
-import { AxiosRequestConfig } from 'axios';
-import { AgentOptions } from 'https';
+import type { AxiosRequestConfig } from 'axios';
+import type { IAxiosRetryConfig } from 'axios-retry';
+import type { AgentOptions } from 'https';
 
 import { Attribute } from './common';
 import { LAUNCH_MODES } from '../constants';
 
 export interface RestClientConfig extends AxiosRequestConfig {
   agent?: AgentOptions;
+  retry?: number | IAxiosRetryConfig;
 }
 
 interface ClientConfig {
