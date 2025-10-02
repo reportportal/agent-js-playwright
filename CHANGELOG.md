@@ -1,3 +1,5 @@
+
+## [5.2.3] - 2025-10-02
 ### Added
 - Allow configuring the HTTP retry strategy via `restClientConfig.retry` and tune the [default policy](https://github.com/reportportal/client-javascript?tab=readme-ov-file#retry-configuration).
 ### Changed
