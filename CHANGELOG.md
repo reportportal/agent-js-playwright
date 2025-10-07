@@ -1,3 +1,5 @@
+### Fixed
+- Intermittent issue with empty launches.
 
 ## [5.2.3] - 2025-10-02
 ### Added
