@@ -54,6 +54,7 @@ export interface ReportPortalConfig extends ClientConfig, AttachmentsConfig {
   rerun?: boolean;
   rerunOf?: string;
   mode?: LAUNCH_MODES;
+  skipProjectInSuiteStructure?: boolean?
 
   // agent specific options
   skippedIssue?: boolean;

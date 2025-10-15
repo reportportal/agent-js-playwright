@@ -300,7 +300,13 @@ export class RPReporter implements Reporter {
   }
 
   createSuitesOrder(suite: PWSuite, suitesOrder: PWSuite[]): void {
-    if (!suite?.title) {
+    const { skipProjectInSuiteStructure } = this.config
+    const shouldSkipProjectNameInReportStructure = 
+      skipProjectInSuiteStructure ||
+      !!process.env.EXCLUDE_PROJECT_FROM_STRUCTURE
+        ? !suite?.location 
+        : false;
+    if (!suite?.title || shouldSkipProjectNameInReportStructure ) {
       return;
     }
     suitesOrder.push(suite);
