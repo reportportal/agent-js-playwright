@@ -78,21 +78,21 @@ export class RPReporter implements Reporter {
 
   launchId: string;
 
-  suites: Map<string, Suite>;
+  suites: Map<string, Suite> = new Map();
 
-  suitesInfo: Map<string, Omit<Suite, 'id'>>;
+  suitesInfo: Map<string, Omit<Suite, 'id'>> = new Map();
 
-  promises: Promise<void>[];
+  promises: Promise<void>[] = [];
 
-  testItems: Map<string, TestItem>;
+  testItems: Map<string, TestItem> = new Map();
 
-  customLaunchStatus: string;
+  customLaunchStatus = '';
 
-  launchLogs: Map<string, LogRQ>;
+  launchLogs: Map<string, LogRQ> = new Map();
 
-  nestedSteps: Map<string, TestItem>;
+  nestedSteps: Map<string, TestItem> = new Map();
 
-  isLaunchFinishSend: boolean;
+  isLaunchFinishSend = false;
 
   constructor(config: ReportPortalConfig) {
     this.config = {
@@ -102,13 +102,6 @@ export class RPReporter implements Reporter {
       ...config,
       launchId: process.env.RP_LAUNCH_ID || config.launchId,
     };
-    this.suites = new Map();
-    this.suitesInfo = new Map();
-    this.testItems = new Map();
-    this.promises = [];
-    this.customLaunchStatus = '';
-    this.launchLogs = new Map();
-    this.nestedSteps = new Map();
 
     const agentInfo = getAgentInfo();
 
@@ -284,6 +277,8 @@ export class RPReporter implements Reporter {
   }
 
   onBegin(): void {
+    // reset the flag in case the Playwright will reuse the reporter instance
+    this.isLaunchFinishSend = false;
     const { launch, description, attributes, skippedIssue, rerun, rerunOf, mode, launchId } =
       this.config;
     const systemAttributes: Attribute[] = getSystemAttributes(skippedIssue);
@@ -672,6 +667,7 @@ export class RPReporter implements Reporter {
     this.isLaunchFinishSend = true;
     await Promise.all(this.promises);
     this.launchId = null;
+    this.promises = [];
   }
 
   printsToStdio(): boolean {
