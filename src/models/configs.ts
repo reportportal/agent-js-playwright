@@ -33,9 +33,9 @@ interface ClientConfig {
   launch: string;
   apiKey?: string;
   oauth?: {
-    tokenEndpoint: string,
-    username: string,
-    password: string,
+    tokenEndpoint: string;
+    username: string;
+    password: string;
     clientId: string;
     clientSecret?: string;
     scope?: string;
