@@ -1,3 +1,5 @@
+
+## [5.2.4] - 2025-10-20
 ### Added
 - OAuth 2.0 Password Grant authentication, check [Authentication Options](https://github.com/reportportal/agent-js-playwright?tab=readme-ov-file#authentication-options) for more details.
 ### Fixed
