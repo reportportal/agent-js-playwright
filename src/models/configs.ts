@@ -28,10 +28,18 @@ export interface RestClientConfig extends AxiosRequestConfig {
 }
 
 interface ClientConfig {
-  apiKey: string;
   project: string;
   endpoint: string;
   launch: string;
+  apiKey?: string;
+  oauth?: {
+    tokenEndpoint: string,
+    username: string,
+    password: string,
+    clientId: string;
+    clientSecret?: string;
+    scope?: string;
+  };
 
   debug?: boolean;
   isLaunchMergeRequired?: boolean; // not used for this agent

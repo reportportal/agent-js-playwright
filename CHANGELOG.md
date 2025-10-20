@@ -1,5 +1,9 @@
+### Added
+- OAuth 2.0 Password Grant authentication, check [Authentication Options](https://github.com/reportportal/agent-js-playwright?tab=readme-ov-file#authentication-options) for more details.
 ### Fixed
 - Intermittent issue with empty launches.
+### Changed
+- `@reportportal/client-javascript` bumped to version `5.4.3`.
 
 ## [5.2.3] - 2025-10-02
 ### Added
