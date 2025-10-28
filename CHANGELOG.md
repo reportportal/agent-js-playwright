@@ -1,7 +1,11 @@
+### Added
+- Full http/https proxy support with `noProxy` configuration, check [Proxy configuration options](https://github.com/reportportal/client-javascript?tab=readme-ov-file#proxy-configuration-options) for more details.
+### Changed
+- `@reportportal/client-javascript` bumped to version `5.5.0`.
 
 ## [5.2.4] - 2025-10-20
 ### Added
-- OAuth 2.0 Password Grant authentication, check [Authentication Options](https://github.com/reportportal/agent-js-playwright?tab=readme-ov-file#authentication-options) for more details.
+- OAuth 2.0 Password Grant authentication, check [Authentication options](https://github.com/reportportal/agent-js-playwright?tab=readme-ov-file#authentication-options) for more details.
 ### Fixed
 - Intermittent issue with empty launches.
 ### Changed
