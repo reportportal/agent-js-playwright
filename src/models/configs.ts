@@ -15,16 +15,19 @@
  *
  */
 
-import type { AxiosRequestConfig } from 'axios';
+import type { AxiosProxyConfig, AxiosRequestConfig } from 'axios';
 import type { IAxiosRetryConfig } from 'axios-retry';
 import type { AgentOptions } from 'https';
 
 import { Attribute } from './common';
 import { LAUNCH_MODES } from '../constants';
 
+// TODO: use types from client-javascript
 export interface RestClientConfig extends AxiosRequestConfig {
   agent?: AgentOptions;
   retry?: number | IAxiosRetryConfig;
+  proxy?: any | AxiosProxyConfig | false;
+  noProxy?: string;
 }
 
 interface ClientConfig {
