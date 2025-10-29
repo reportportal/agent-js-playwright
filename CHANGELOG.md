@@ -1,3 +1,5 @@
+
+## [5.3.1] - 2025-10-29
 ### Fixed
 - Client errors when the `restClientConfig` not specified.
 ### Changed
