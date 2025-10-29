@@ -1,3 +1,7 @@
+### Fixed
+- Client errors when the `restClientConfig` not specified.
+### Changed
+- `@reportportal/client-javascript` bumped to version `5.5.1`.
 
 ## [5.3.0] - 2025-10-28
 ### Added
