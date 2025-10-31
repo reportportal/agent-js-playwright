@@ -22,9 +22,8 @@ export const mockedDate = Date.now();
 export class RPClientMock {
   private config: ReportPortalConfig;
 
-  constructor(config: ReportPortalConfig) {
-    this.config = config;
-  }
+  constructor(config?: ReportPortalConfig) {
+    this.config = config || ({} as ReportPortalConfig);
 
   public startLaunch = jest.fn().mockReturnValue({
     promise: Promise.resolve('ok'),
@@ -32,6 +31,10 @@ export class RPClientMock {
   });
 
   public finishLaunch = jest.fn().mockReturnValue({
+    promise: Promise.resolve('ok'),
+  });
+
+  public updateLaunch = jest.fn().mockReturnValue({
     promise: Promise.resolve('ok'),
   });
 
