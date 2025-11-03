@@ -42,6 +42,10 @@ describe('logs reporting', () => {
     file,
   };
 
+  beforeEach(() => {
+    reporter.logTime = 0;
+  });
+
   describe('send log', () => {
     test('should send custom log for test item with params', () => {
       const spySendLog = jest.spyOn(reporter.client, 'sendLog');
