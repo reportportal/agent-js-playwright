@@ -92,6 +92,10 @@ export class RPReporter implements Reporter {
 
   nestedSteps: Map<string, TestItem> = new Map();
 
+  activeSteps: Map<string, string[]> = new Map();
+
+  logTime = 0;
+
   isLaunchFinishSend = false;
 
   constructor(config: ReportPortalConfig) {
@@ -222,10 +226,15 @@ export class RPReporter implements Reporter {
       const logs = (suiteItem?.logs || []).concat(log);
       this.suitesInfo.set(suiteName, { ...suiteItem, logs });
     } else if (test) {
-      const testItem = this.testItems.get(test.id);
-
-      if (testItem) {
-        this.sendLog(testItem.id, log);
+      const activeStepStack = this.activeSteps.get(test.id);
+      if (activeStepStack && activeStepStack.length > 0) {
+        const activeStepId = activeStepStack[activeStepStack.length - 1];
+        this.sendLog(activeStepId, log);
+      } else {
+        const testItem = this.testItems.get(test.id);
+        if (testItem) {
+          this.sendLog(testItem.id, log);
+        }
       }
     }
   }
@@ -238,10 +247,14 @@ export class RPReporter implements Reporter {
     }
   }
 
-  sendLog(
-    tempId: string,
-    { level = LOG_LEVELS.INFO, message = '', time = clientHelpers.now(), file }: LogRQ,
-  ): void {
+  sendLog(tempId: string, { level = LOG_LEVELS.INFO, message = '', time, file }: LogRQ): void {
+    if (!time) {
+      const now = clientHelpers.now();
+      // Increment by at least 1ms to ensure chronological order
+      time = Math.max(now, this.logTime + 1);
+      this.logTime = time;
+    }
+
     const { promise } = this.client.sendLog(
       tempId,
       {
@@ -445,6 +458,10 @@ export class RPReporter implements Reporter {
       name: step.title,
       id: tempId,
     });
+
+    const activeStepStack = this.activeSteps.get(test.id) || [];
+    activeStepStack.push(tempId);
+    this.activeSteps.set(test.id, activeStepStack);
   }
 
   onStepEnd(test: TestCase, result: TestResult, step: TestStepWithId): void {
@@ -465,6 +482,16 @@ export class RPReporter implements Reporter {
 
     this.addRequestToPromisesQueue(promise, 'Failed to finish nested step.');
     this.nestedSteps.delete(fullStepName);
+
+    const activeStepStack = this.activeSteps.get(test.id);
+    if (activeStepStack && activeStepStack.length > 0) {
+      activeStepStack.pop();
+      if (activeStepStack.length === 0) {
+        this.activeSteps.delete(test.id);
+      } else {
+        this.activeSteps.set(test.id, activeStepStack);
+      }
+    }
   }
 
   processAnnotations({ annotations, test }: { annotations: Annotation[]; test?: TestCase }): void {
@@ -566,6 +593,8 @@ export class RPReporter implements Reporter {
 
     this.addRequestToPromisesQueue(promise, 'Failed to finish test.');
     this.testItems.delete(test.id);
+
+    this.activeSteps.delete(test.id);
 
     this.updateAncestorsTestInvocations(test, result);
 
