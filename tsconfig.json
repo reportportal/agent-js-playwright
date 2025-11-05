@@ -17,6 +17,6 @@
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "outDir": "./build"
   },
-  "include": ["./src/**/*"],
+  "include": ["./src/**/*", "mocks", "tests/utils.spec.ts", "index.ts", "reporter.ts", "reportingApi.ts", "utils.ts", "constants", "tests/reporter"],
   "exclude": ["node_modules", "src/__tests__"]
 }
