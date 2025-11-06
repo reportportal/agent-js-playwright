@@ -1,3 +1,5 @@
+### Added
+- Support for custom log levels in `ReportingApi.log()` and `ReportingApi.launchLog()` methods. Now you can pass any string as a log level, not limited to predefined LOG_LEVELS enum values.
 
 ## [5.3.2] - 2025-10-29
 ### Changed
