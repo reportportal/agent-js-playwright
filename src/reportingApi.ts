@@ -69,11 +69,7 @@ export const ReportingApi = {
     suite?: string,
   ): void =>
     sendEventToReporter(EVENTS.ADD_LOG, { level, message, file, time: clientHelpers.now() }, suite),
-  launchLog: (
-    level: LOG_LEVELS = DEFAULT_LOG_LEVELS.INFO,
-    message = '',
-    file?: Attachment,
-  ): void =>
+  launchLog: (level: LOG_LEVELS = DEFAULT_LOG_LEVELS.INFO, message = '', file?: Attachment): void =>
     sendEventToReporter(EVENTS.ADD_LAUNCH_LOG, { level, message, file, time: clientHelpers.now() }),
   trace: (message: string, file?: Attachment, suite?: string): void =>
     ReportingApi.log(DEFAULT_LOG_LEVELS.TRACE, message, file, suite),
