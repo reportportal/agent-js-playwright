@@ -275,7 +275,7 @@ test('should have the correct testCaseId', () => {
 ##### log
 
 Send logs to report portal for the current test. Should be called inside of corresponding test.<br/>
-`ReportingApi.log(level: LOG_LEVELS | string, message: string, file?: Attachment, suite?: string);`<br/>
+`ReportingApi.log(level: LOG_LEVELS, message: string, file?: Attachment, suite?: string);`<br/>
 **required**: `level`, `message`<br/>
 **optional**: `file`, `suite`<br/>
 where `level` can be one of the following: _TRACE_, _DEBUG_, _WARN_, _INFO_, _ERROR_, _FATAL_, or a custom log level string<br/>
@@ -328,7 +328,7 @@ test('should contain logs with attachments', () => {
 ##### launchLog
 
 Send logs to report portal for the current launch. Should be called inside of the any test or suite.<br/>
-`ReportingApi.launchLog(level: LOG_LEVELS | string, message: string, file?: Attachment);`<br/>
+`ReportingApi.launchLog(level: LOG_LEVELS, message: string, file?: Attachment);`<br/>
 **required**: `level`, `message`<br/>
 **optional**: `file`<br/>
 where `level` can be one of the following: _TRACE_, _DEBUG_, _WARN_, _INFO_, _ERROR_, _FATAL_, or a custom log level string<br/>

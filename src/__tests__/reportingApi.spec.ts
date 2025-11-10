@@ -18,7 +18,7 @@
 import helpers from '@reportportal/client-javascript/lib/helpers';
 import { ReportingApi } from '../reportingApi';
 import * as utils from '../utils';
-import { DEFAULT_LOG_LEVELS } from '../constants';
+import { PREDEFINED_LOG_LEVELS } from '../constants';
 import { mockedDate } from './mocks/RPClientMock';
 
 const reportingApiStatusMethods = [
@@ -183,7 +183,7 @@ describe('reportingApi', () => {
         time: mockedDate,
       };
       const spySendEventToReporter = jest.spyOn(utils, 'sendEventToReporter');
-      ReportingApi.log(DEFAULT_LOG_LEVELS.INFO, 'message', file, suite);
+      ReportingApi.log(PREDEFINED_LOG_LEVELS.INFO, 'message', file, suite);
 
       expect(spySendEventToReporter).toHaveBeenCalledWith(event, expectedData, suite);
     });
@@ -231,7 +231,7 @@ describe('reportingApi', () => {
         time: mockedDate,
       };
       const spySendEventToReporter = jest.spyOn(utils, 'sendEventToReporter');
-      ReportingApi.launchLog(DEFAULT_LOG_LEVELS.INFO, 'message', file);
+      ReportingApi.launchLog(PREDEFINED_LOG_LEVELS.INFO, 'message', file);
 
       expect(spySendEventToReporter).toHaveBeenCalledWith(event, expectedData);
     });

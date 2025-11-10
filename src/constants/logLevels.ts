@@ -15,7 +15,7 @@
  *
  */
 
-export enum DEFAULT_LOG_LEVELS {
+export enum PREDEFINED_LOG_LEVELS {
   TRACE = 'TRACE',
   DEBUG = 'DEBUG',
   WARN = 'WARN',
@@ -24,4 +24,4 @@ export enum DEFAULT_LOG_LEVELS {
   FATAL = 'FATAL',
 }
 
-export type LOG_LEVELS = DEFAULT_LOG_LEVELS | string;
+export type LOG_LEVELS = PREDEFINED_LOG_LEVELS | string;
