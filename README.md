@@ -278,7 +278,7 @@ Send logs to report portal for the current test. Should be called inside of corr
 `ReportingApi.log(level: LOG_LEVELS, message: string, file?: Attachment, suite?: string);`<br/>
 **required**: `level`, `message`<br/>
 **optional**: `file`, `suite`<br/>
-where `level` can be one of the following: _TRACE_, _DEBUG_, _WARN_, _INFO_, _ERROR_, _FATAL_<br/>
+where `level` can be one of the following: _TRACE_, _DEBUG_, _WARN_, _INFO_, _ERROR_, _FATAL_, or a custom log level string<br/>
 Example:
 
 ```javascript
@@ -291,6 +291,9 @@ test('should contain logs with attachments', () => {
     content: fileContent.toString('base64'),
   };
   ReportingApi.log('INFO', 'info log with attachment', attachment);
+  
+  // Custom log level
+  ReportingApi.log('CUSTOM_LEVEL', 'custom log message', attachment);
 
   expect(true).toBe(true);
 });
@@ -328,7 +331,7 @@ Send logs to report portal for the current launch. Should be called inside of th
 `ReportingApi.launchLog(level: LOG_LEVELS, message: string, file?: Attachment);`<br/>
 **required**: `level`, `message`<br/>
 **optional**: `file`<br/>
-where `level` can be one of the following: _TRACE_, _DEBUG_, _WARN_, _INFO_, _ERROR_, _FATAL_<br/>
+where `level` can be one of the following: _TRACE_, _DEBUG_, _WARN_, _INFO_, _ERROR_, _FATAL_, or a custom log level string<br/>
 Example:
 
 ```javascript
@@ -341,6 +344,9 @@ test('should contain logs with attachments', async () => {
     content: fileContent.toString('base64'),
   };
   ReportingApi.launchLog('INFO', 'info log with attachment', attachment);
+  
+  // Custom log level
+  ReportingApi.launchLog('CUSTOM_LAUNCH_LEVEL', 'custom launch log message', attachment);
 
   await expect(true).toBe(true);
 });

@@ -30,7 +30,7 @@ import {
 } from './models';
 import {
   LAUNCH_MODES,
-  LOG_LEVELS,
+  PREDEFINED_LOG_LEVELS,
   STATUSES,
   TEST_ITEM_TYPES,
   TEST_ANNOTATION_TYPES,
@@ -156,7 +156,7 @@ export class RPReporter implements Reporter {
   onStdErr(chunk: string | Buffer, test?: TestCase): void {
     if (test) {
       const message = String(chunk);
-      const level = isErrorLog(message) ? LOG_LEVELS.ERROR : LOG_LEVELS.WARN;
+      const level = isErrorLog(message) ? PREDEFINED_LOG_LEVELS.ERROR : PREDEFINED_LOG_LEVELS.WARN;
       this.sendTestItemLog({ level, message }, test);
     }
   }
@@ -240,7 +240,7 @@ export class RPReporter implements Reporter {
 
   sendLog(
     tempId: string,
-    { level = LOG_LEVELS.INFO, message = '', time = clientHelpers.now(), file }: LogRQ,
+    { level = PREDEFINED_LOG_LEVELS.INFO, message = '', time = clientHelpers.now(), file }: LogRQ,
   ): void {
     const { promise } = this.client.sendLog(
       tempId,
@@ -531,7 +531,7 @@ export class RPReporter implements Reporter {
     if (result.error) {
       const stacktrace = stripAnsi(result.error.stack || result.error.message);
       this.sendLog(testItemId, {
-        level: LOG_LEVELS.ERROR,
+        level: PREDEFINED_LOG_LEVELS.ERROR,
         message: stacktrace,
       });
       if (this.config.extendTestDescriptionWithLastError) {
