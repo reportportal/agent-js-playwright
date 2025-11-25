@@ -98,6 +98,8 @@ export class RPReporter implements Reporter {
 
   isLaunchFinishSend = false;
 
+  loggedErrors: Map<string, Set<string>> = new Map();
+
   constructor(config: ReportPortalConfig) {
     this.config = {
       uploadTrace: true,
@@ -473,6 +475,25 @@ export class RPReporter implements Reporter {
     const nestedStep = this.nestedSteps.get(fullStepName);
     if (!nestedStep) return;
 
+    if (step.error) {
+      const errorMessages = this.loggedErrors.get(test.id);
+      const isLogged = errorMessages?.has(step.error.message);
+
+      if (!isLogged) {
+        const stacktrace = stripAnsi(step.error.stack || step.error.message || '');
+        this.sendLog(nestedStep.id, {
+          level: LOG_LEVELS.ERROR,
+          message: stacktrace,
+        });
+
+        if (!errorMessages) {
+          this.loggedErrors.set(test.id, new Set([step.error.message]));
+        } else {
+          errorMessages.add(step.error.message);
+        }
+      }
+    }
+
     const stepFinishObj = {
       status: step.error ? STATUSES.FAILED : STATUSES.PASSED,
       endTime: clientHelpers.now(),
@@ -555,30 +576,41 @@ export class RPReporter implements Reporter {
       });
     }
 
+    const hasUnfinishedNestedSteps = [...this.nestedSteps.keys()].some((key) =>
+      key.includes(test.id),
+    );
+
     if (result.error) {
       const stacktrace = stripAnsi(result.error.stack || result.error.message);
-      this.sendLog(testItemId, {
-        level: LOG_LEVELS.ERROR,
-        message: stacktrace,
-      });
+      const errorMessages = this.loggedErrors.get(test.id);
+      const isLogged = errorMessages?.has(result.error.message);
+
+      if (!hasUnfinishedNestedSteps && !isLogged) {
+        this.sendLog(testItemId, {
+          level: LOG_LEVELS.ERROR,
+          message: stacktrace,
+        });
+      }
       if (this.config.extendTestDescriptionWithLastError) {
         testDescription = (description || '').concat(`\n\`\`\`error\n${stacktrace}\n\`\`\``);
       }
     }
 
-    [...this.nestedSteps.entries()].forEach(([key, value]) => {
-      if (key.includes(test.id)) {
-        const { id: stepId } = value;
-        const itemObject = {
-          status: result.status === 'timedOut' ? STATUSES.INTERRUPTED : STATUSES.FAILED,
-          endTime: clientHelpers.now(),
-        };
+    const unfinishedSteps = [...this.nestedSteps.entries()].filter(([key]) =>
+      key.includes(test.id),
+    );
 
-        const { promise } = this.client.finishTestItem(stepId, itemObject);
-        this.addRequestToPromisesQueue(promise, 'Failed to finish nested step.');
+    unfinishedSteps.reverse().forEach(([key, value]) => {
+      const { id: stepId } = value;
+      const itemObject = {
+        status: result.status === 'timedOut' ? STATUSES.INTERRUPTED : STATUSES.FAILED,
+        endTime: clientHelpers.now(),
+      };
 
-        this.nestedSteps.delete(key);
-      }
+      const { promise } = this.client.finishTestItem(stepId, itemObject);
+      this.addRequestToPromisesQueue(promise, 'Failed to finish nested step.');
+
+      this.nestedSteps.delete(key);
     });
 
     const finishTestItemObj: FinishTestItemObjType = {
@@ -595,6 +627,7 @@ export class RPReporter implements Reporter {
     this.testItems.delete(test.id);
 
     this.activeSteps.delete(test.id);
+    this.loggedErrors.delete(test.id);
 
     this.updateAncestorsTestInvocations(test, result);
 
