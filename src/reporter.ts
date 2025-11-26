@@ -30,7 +30,7 @@ import {
 } from './models';
 import {
   LAUNCH_MODES,
-  LOG_LEVELS,
+  PREDEFINED_LOG_LEVELS,
   STATUSES,
   TEST_ITEM_TYPES,
   TEST_ANNOTATION_TYPES,
@@ -162,7 +162,7 @@ export class RPReporter implements Reporter {
   onStdErr(chunk: string | Buffer, test?: TestCase): void {
     if (test) {
       const message = String(chunk);
-      const level = isErrorLog(message) ? LOG_LEVELS.ERROR : LOG_LEVELS.WARN;
+      const level = isErrorLog(message) ? PREDEFINED_LOG_LEVELS.ERROR : PREDEFINED_LOG_LEVELS.WARN;
       this.sendTestItemLog({ level, message }, test);
     }
   }
@@ -249,7 +249,7 @@ export class RPReporter implements Reporter {
     }
   }
 
-  sendLog(tempId: string, { level = LOG_LEVELS.INFO, message = '', time, file }: LogRQ): void {
+  sendLog(tempId: string, { level = PREDEFINED_LOG_LEVELS.INFO, message = '', time, file }: LogRQ): void {
     if (!time) {
       const now = clientHelpers.now();
       // Increment by at least 1ms to ensure chronological order
@@ -482,7 +482,7 @@ export class RPReporter implements Reporter {
       if (!isLogged) {
         const stacktrace = stripAnsi(step.error.stack || step.error.message || '');
         this.sendLog(nestedStep.id, {
-          level: LOG_LEVELS.ERROR,
+          level: PREDEFINED_LOG_LEVELS.ERROR,
           message: stacktrace,
         });
 
@@ -575,7 +575,7 @@ export class RPReporter implements Reporter {
         });
       });
     }
-
+    
     const hasUnfinishedNestedSteps = [...this.nestedSteps.keys()].some((key) =>
       key.includes(test.id),
     );
@@ -587,7 +587,7 @@ export class RPReporter implements Reporter {
 
       if (!hasUnfinishedNestedSteps && !isLogged) {
         this.sendLog(testItemId, {
-          level: LOG_LEVELS.ERROR,
+          level: PREDEFINED_LOG_LEVELS.ERROR,
           message: stacktrace,
         });
       }

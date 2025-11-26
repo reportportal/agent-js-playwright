@@ -18,7 +18,7 @@ import helpers from '@reportportal/client-javascript/lib/helpers';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
-import { LOG_LEVELS } from '../../constants';
+import { PREDEFINED_LOG_LEVELS } from '../../constants';
 
 const playwrightProjectName = 'projectName';
 const tempTestItemId = 'tempTestItemId';
@@ -37,7 +37,7 @@ describe('logs reporting', () => {
   };
 
   const log = {
-    level: LOG_LEVELS.INFO,
+    level: PREDEFINED_LOG_LEVELS.INFO,
     message: 'info log',
     file,
   };
@@ -55,7 +55,7 @@ describe('logs reporting', () => {
       };
       const expectedSendLogObj = {
         time: mockedDate,
-        level: LOG_LEVELS.INFO,
+        level: PREDEFINED_LOG_LEVELS.INFO,
         message: 'info log',
       };
 
@@ -70,7 +70,7 @@ describe('logs reporting', () => {
 
       const expectedSendLogObj = {
         time: mockedDate,
-        level: LOG_LEVELS.INFO,
+        level: PREDEFINED_LOG_LEVELS.INFO,
         message: 'info log',
       };
 
@@ -160,7 +160,7 @@ describe('logs reporting', () => {
       await reporter.onTestEnd(testCase, result);
 
       expect(reporter.sendLog).toHaveBeenCalledWith(tempTestItemId, {
-        level: LOG_LEVELS.ERROR,
+        level: PREDEFINED_LOG_LEVELS.ERROR,
         message: result.error.stack,
       });
     });
