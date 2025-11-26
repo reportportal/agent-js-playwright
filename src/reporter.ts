@@ -249,7 +249,10 @@ export class RPReporter implements Reporter {
     }
   }
 
-  sendLog(tempId: string, { level = PREDEFINED_LOG_LEVELS.INFO, message = '', time, file }: LogRQ): void {
+  sendLog(
+    tempId: string,
+    { level = PREDEFINED_LOG_LEVELS.INFO, message = '', time, file }: LogRQ,
+  ): void {
     if (!time) {
       const now = clientHelpers.now();
       // Increment by at least 1ms to ensure chronological order
@@ -575,7 +578,7 @@ export class RPReporter implements Reporter {
         });
       });
     }
-    
+
     const hasUnfinishedNestedSteps = [...this.nestedSteps.keys()].some((key) =>
       key.includes(test.id),
     );
