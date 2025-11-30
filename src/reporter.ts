@@ -509,7 +509,10 @@ export class RPReporter implements Reporter {
 
     const activeStepStack = this.activeSteps.get(test.id);
     if (activeStepStack && activeStepStack.length > 0) {
-      activeStepStack.pop();
+      const stepIndex = activeStepStack.indexOf(nestedStep.id);
+      if (stepIndex !== -1) {
+        activeStepStack.splice(stepIndex, 1);
+      }
       if (activeStepStack.length === 0) {
         this.activeSteps.delete(test.id);
       } else {
