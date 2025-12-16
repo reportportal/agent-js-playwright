@@ -20,7 +20,6 @@ import { name as pjsonName, version as pjsonVersion } from '../../package.json';
 import {
   getAgentInfo,
   getCodeRef,
-  getSystemAttributes,
   promiseErrorHandler,
   sendEventToReporter,
   isFalse,
@@ -124,32 +123,6 @@ describe('testing utils', () => {
 
       expect(agentInfo.name).toBe(pjsonName);
       expect(agentInfo.version).toBe(pjsonVersion);
-    });
-  });
-
-  describe('getSystemAttributes', () => {
-    const expectedRes = [
-      {
-        key: 'agent',
-        value: `${pjsonName}|${pjsonVersion}`,
-        system: true,
-      },
-    ];
-    test('should return the list of system attributes', () => {
-      const systemAttributes = getSystemAttributes();
-
-      expect(systemAttributes).toEqual(expectedRes);
-    });
-
-    test('should return expected list of system attributes in case skippedIssue=false', () => {
-      const systemAttributes = getSystemAttributes(false);
-      const skippedIssueAttribute = {
-        key: 'skippedIssue',
-        value: 'false',
-        system: true,
-      };
-
-      expect(systemAttributes).toEqual([...expectedRes, skippedIssueAttribute]);
     });
   });
 
@@ -367,6 +340,31 @@ describe('testing utils', () => {
       const attachmentResult = await getAttachments(attachments);
 
       expect(attachmentResult).toEqual(expectedAttachments);
+    });
+
+    test('should log error to console when reading file fails', async () => {
+      const readError = new Error('Read file error');
+      const spyConsoleError = jest.spyOn(console, 'error').mockImplementation();
+
+      jest.spyOn(fs.promises, 'stat').mockImplementationOnce(() => Promise.resolve({} as fs.Stats));
+      jest.spyOn(fs.promises, 'readFile').mockImplementationOnce(async () => {
+        throw readError;
+      });
+
+      const attachments = [
+        {
+          name: 'filename1',
+          contentType: 'image/png',
+          path: 'path/to/attachment',
+        },
+      ];
+
+      const attachmentResult = await getAttachments(attachments);
+
+      expect(spyConsoleError).toHaveBeenCalledWith(readError);
+      expect(attachmentResult).toEqual([]);
+
+      spyConsoleError.mockRestore();
     });
 
     describe('with attachments options', () => {
