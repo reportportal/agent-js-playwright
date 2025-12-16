@@ -100,6 +100,8 @@ export class RPReporter implements Reporter {
 
   loggedErrors: Map<string, Set<string>> = new Map();
 
+  stepAttachments: Map<string, Set<string>> = new Map();
+
   constructor(config: ReportPortalConfig) {
     this.config = {
       uploadTrace: true,
@@ -469,7 +471,7 @@ export class RPReporter implements Reporter {
     this.activeSteps.set(test.id, activeStepStack);
   }
 
-  onStepEnd(test: TestCase, result: TestResult, step: TestStepWithId): void {
+  async onStepEnd(test: TestCase, result: TestResult, step: TestStepWithId): Promise<void> {
     const { includeTestSteps } = this.config;
     if (!includeTestSteps) return;
 
@@ -494,6 +496,31 @@ export class RPReporter implements Reporter {
         } else {
           errorMessages.add(step.error.message);
         }
+      }
+    }
+    if (step.attachments?.length) {
+      try {
+        const { uploadVideo, uploadTrace } = this.config;
+        const attachmentsFiles = await getAttachments(
+          step.attachments,
+          {
+            uploadVideo,
+            uploadTrace,
+          },
+          step.title,
+        );
+        const attachmentNames = this.stepAttachments.get(test.id) || new Set();
+
+        attachmentsFiles.forEach((file) => {
+          this.sendLog(nestedStep.id, {
+            message: `Attachment ${file.name} with type ${file.type}`,
+            file,
+          });
+          attachmentNames.add(file.name);
+        });
+        this.stepAttachments.set(test.id, attachmentNames);
+      } catch (error) {
+        console.error(`Failed to process attachments for step "${step.title}":`, error);
       }
     }
 
@@ -574,7 +601,9 @@ export class RPReporter implements Reporter {
         test.title,
       );
       // TODO: use bulk log request
-      attachmentsFiles.forEach((file) => {
+      const stepAttachmentNames = this.stepAttachments.get(test.id) || new Set();
+      const filteredFiles = attachmentsFiles.filter((file) => !stepAttachmentNames.has(file.name));
+      filteredFiles.forEach((file) => {
         this.sendLog(testItemId, {
           message: `Attachment ${file.name} with type ${file.type}`,
           file,
@@ -634,6 +663,7 @@ export class RPReporter implements Reporter {
 
     this.activeSteps.delete(test.id);
     this.loggedErrors.delete(test.id);
+    this.stepAttachments.delete(test.id);
 
     this.updateAncestorsTestInvocations(test, result);
 
