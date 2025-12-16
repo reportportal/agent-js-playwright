@@ -499,25 +499,29 @@ export class RPReporter implements Reporter {
       }
     }
     if (step.attachments?.length) {
-      const { uploadVideo, uploadTrace } = this.config;
-      const attachmentsFiles = await getAttachments(
-        step.attachments,
-        {
-          uploadVideo,
-          uploadTrace,
-        },
-        step.title,
-      );
-      const attachmentNames = this.stepAttachments.get(test.id) || new Set();
+      try {
+        const { uploadVideo, uploadTrace } = this.config;
+        const attachmentsFiles = await getAttachments(
+          step.attachments,
+          {
+            uploadVideo,
+            uploadTrace,
+          },
+          step.title,
+        );
+        const attachmentNames = this.stepAttachments.get(test.id) || new Set();
 
-      attachmentsFiles.forEach((file) => {
-        this.sendLog(nestedStep.id, {
-          message: `Attachment ${file.name} with type ${file.type}`,
-          file,
+        attachmentsFiles.forEach((file) => {
+          this.sendLog(nestedStep.id, {
+            message: `Attachment ${file.name} with type ${file.type}`,
+            file,
+          });
+          attachmentNames.add(file.name);
         });
-        attachmentNames.add(file.name);
-      });
-      this.stepAttachments.set(test.id, attachmentNames);
+        this.stepAttachments.set(test.id, attachmentNames);
+      } catch (error) {
+        console.error(`Failed to process attachments for step "${step.title}":`, error);
+      }
     }
 
     const stepFinishObj = {
