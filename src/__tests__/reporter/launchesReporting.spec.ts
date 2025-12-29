@@ -19,6 +19,7 @@ import helpers from '@reportportal/client-javascript/lib/helpers';
 import { RPReporter } from '../../reporter';
 import { StartLaunchObjType } from '../../models';
 import { LAUNCH_MODES } from '../../constants';
+import { getSystemAttribute } from '../../utils';
 
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
@@ -32,7 +33,7 @@ describe('start launch', () => {
     const startLaunchObj: StartLaunchObjType = {
       name: mockConfig.launch,
       startTime: mockedDate,
-      attributes: mockConfig.attributes,
+      attributes: [...(mockConfig.attributes || []), getSystemAttribute()],
       description: mockConfig.description,
       mode: LAUNCH_MODES.DEFAULT,
     };
@@ -59,7 +60,7 @@ describe('start launch', () => {
     const startLaunchObj: StartLaunchObjType = {
       name: customConfig.launch,
       startTime: mockedDate,
-      attributes: customConfig.attributes,
+      attributes: [...(customConfig.attributes || []), getSystemAttribute()],
       description: customConfig.description,
       mode: customConfig.mode,
     };
@@ -86,7 +87,7 @@ describe('start launch', () => {
     const startLaunchObj: StartLaunchObjType = {
       name: customConfig.launch,
       startTime: mockedDate,
-      attributes: customConfig.attributes,
+      attributes: [...(customConfig.attributes || []), getSystemAttribute()],
       description: customConfig.description,
       mode: LAUNCH_MODES.DEFAULT,
       id: 'id',
@@ -109,7 +110,7 @@ describe('start launch', () => {
     const startLaunchObj: StartLaunchObjType = {
       name: mockConfig.launch,
       startTime: mockedDate,
-      attributes: mockConfig.attributes,
+      attributes: [...(mockConfig.attributes || []), getSystemAttribute()],
       description: mockConfig.description,
       mode: LAUNCH_MODES.DEFAULT,
       id: 'id',

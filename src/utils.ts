@@ -48,6 +48,12 @@ export const getAgentInfo = (): { version: string; name: string } => ({
   name: pjsonName,
 });
 
+export const getSystemAttribute = (): Attribute => ({
+  key: 'agent',
+  value: `${getAgentInfo().name}|${getAgentInfo().version}`,
+  system: true,
+});
+
 type testItemPick = Pick<TestCase, 'titlePath'>;
 
 export const getCodeRef = (

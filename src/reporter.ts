@@ -41,6 +41,7 @@ import {
   getAgentInfo,
   getAttachments,
   getCodeRef,
+  getSystemAttribute,
   isErrorLog,
   isFalse,
   promiseErrorHandler,
@@ -305,12 +306,13 @@ export class RPReporter implements Reporter {
     // reset the flag in case the Playwright will reuse the reporter instance
     this.isLaunchFinishSend = false;
     const { launch, description, attributes, rerun, rerunOf, mode, launchId } = this.config;
+    const systemAttribute = getSystemAttribute();
 
     const startLaunchObj: StartLaunchObjType = {
       name: launch,
       startTime: clientHelpers.now(),
       description,
-      attributes,
+      attributes: [...(attributes || []), systemAttribute],
       rerun,
       rerunOf,
       mode: mode || LAUNCH_MODES.DEFAULT,
