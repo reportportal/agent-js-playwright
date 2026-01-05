@@ -41,7 +41,7 @@ import {
   getAgentInfo,
   getAttachments,
   getCodeRef,
-  getSystemAttributes,
+  getSystemAttribute,
   isErrorLog,
   isFalse,
   promiseErrorHandler,
@@ -113,7 +113,13 @@ export class RPReporter implements Reporter {
 
     const agentInfo = getAgentInfo();
 
-    this.client = new RPClient(this.config, agentInfo);
+    this.client = new RPClient(
+      {
+        ...this.config,
+        skippedIsNotIssue: isFalse(this.config.skippedIssue),
+      },
+      agentInfo,
+    );
   }
 
   addRequestToPromisesQueue(promise: Promise<void>, failMessage: string): void {
@@ -299,16 +305,14 @@ export class RPReporter implements Reporter {
   onBegin(): void {
     // reset the flag in case the Playwright will reuse the reporter instance
     this.isLaunchFinishSend = false;
-    const { launch, description, attributes, skippedIssue, rerun, rerunOf, mode, launchId } =
-      this.config;
-    const systemAttributes: Attribute[] = getSystemAttributes(skippedIssue);
+    const { launch, description, attributes, rerun, rerunOf, mode, launchId } = this.config;
+    const systemAttribute = getSystemAttribute();
 
     const startLaunchObj: StartLaunchObjType = {
       name: launch,
       startTime: clientHelpers.now(),
       description,
-      attributes:
-        attributes && attributes.length ? attributes.concat(systemAttributes) : systemAttributes,
+      attributes: [...(attributes || []), systemAttribute],
       rerun,
       rerunOf,
       mode: mode || LAUNCH_MODES.DEFAULT,
@@ -581,15 +585,10 @@ export class RPReporter implements Reporter {
       testCaseId,
       status: predefinedStatus,
     } = savedTestItem;
-    let withoutIssue;
     let testDescription = description;
     const calculatedStatus = calculateRpStatus(test.outcome(), result.status, test.annotations);
     const status = predefinedStatus || calculatedStatus;
-    if (status === STATUSES.SKIPPED) {
-      withoutIssue = isFalse(this.config.skippedIssue);
-    }
 
-    // TODO: cover with tests
     if (result.attachments?.length) {
       const { uploadVideo, uploadTrace } = this.config;
       const attachmentsFiles = await getAttachments(
@@ -651,7 +650,6 @@ export class RPReporter implements Reporter {
     const finishTestItemObj: FinishTestItemObjType = {
       endTime: clientHelpers.now(),
       status,
-      ...(withoutIssue && { issue: { issueType: 'NOT_ISSUE' } }),
       ...(attributes && { attributes }),
       ...(testDescription && { description: testDescription }),
       ...(testCaseId && { testCaseId }),

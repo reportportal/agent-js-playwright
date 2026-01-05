@@ -48,26 +48,11 @@ export const getAgentInfo = (): { version: string; name: string } => ({
   name: pjsonName,
 });
 
-export const getSystemAttributes = (skippedIssue = true): Array<Attribute> => {
-  const systemAttributes = [
-    {
-      key: 'agent',
-      value: `${pjsonName}|${pjsonVersion}`,
-      system: true,
-    },
-  ];
-
-  if (isFalse(skippedIssue)) {
-    const skippedIssueAttribute = {
-      key: 'skippedIssue',
-      value: 'false',
-      system: true,
-    };
-    systemAttributes.push(skippedIssueAttribute);
-  }
-
-  return systemAttributes;
-};
+export const getSystemAttribute = (): Attribute => ({
+  key: 'agent',
+  value: `${getAgentInfo().name}|${getAgentInfo().version}`,
+  system: true,
+});
 
 type testItemPick = Pick<TestCase, 'titlePath'>;
 
