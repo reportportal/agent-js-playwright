@@ -145,6 +145,46 @@ describe('finish test reporting', () => {
     expect(reporter.testItems.size).toBe(0);
   });
 
+  test.each([
+    ['skip', 'Cannot run suite.', '**Skip reason: Cannot run suite.**\ndescription'],
+    ['fixme', 'Feature not implemented.', '**Skip reason: Feature not implemented.**\ndescription'],
+  ])(
+    'client.finishTestItem should be called with %s reason prepended to description',
+    async (type, reason, expectedDescription) => {
+      const testCaseWithAnnotation = {
+        ...testCase,
+        annotations: [{ type, description: reason }],
+        outcome: () => 'skipped',
+      };
+      // @ts-ignore
+      await reporter.onTestEnd(testCaseWithAnnotation, { status: 'skipped' });
+
+      expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(1, 'tempTestItemId', {
+        endTime: mockedDate,
+        status: 'skipped',
+        attributes: [{ key: 'key', value: 'value' }],
+        description: expectedDescription,
+      });
+    },
+  );
+
+  test('client.finishTestItem should be called with skip reason as description when no existing description', async () => {
+    reporter.testItems = new Map([['testItemId', { id: 'tempTestItemId', name: 'testTitle' }]]);
+    const testCaseWithSkipAnnotation = {
+      ...testCase,
+      annotations: [{ type: 'skip', description: 'Cannot run suite.' }],
+      outcome: () => 'skipped',
+    };
+    // @ts-ignore
+    await reporter.onTestEnd(testCaseWithSkipAnnotation, { status: 'skipped' });
+
+    expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(1, 'tempTestItemId', {
+      endTime: mockedDate,
+      status: 'skipped',
+      description: '**Skip reason: Cannot run suite.**',
+    });
+  });
+
   test('client.finishTestItem should not be called in case of test item not found', async () => {
     const result = {
       status: 'passed',

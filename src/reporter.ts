@@ -41,6 +41,7 @@ import {
   getAgentInfo,
   getAttachments,
   getCodeRef,
+  getSkipReason,
   getSystemAttribute,
   isErrorLog,
   isFalse,
@@ -587,6 +588,12 @@ export class RPReporter implements Reporter {
     } = savedTestItem;
     let testDescription = description;
     const calculatedStatus = calculateRpStatus(test.outcome(), result.status, test.annotations);
+
+    const skipReason = getSkipReason(test.annotations);
+    if (skipReason) {
+      const skipReasonText = `**Skip reason: ${skipReason}**`;
+      testDescription = testDescription ? `${skipReasonText}\n${testDescription}` : skipReasonText;
+    }
     const status = predefinedStatus || calculatedStatus;
 
     if (result.attachments?.length) {

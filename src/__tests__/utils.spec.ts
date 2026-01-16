@@ -27,6 +27,7 @@ import {
   isErrorLog,
   fileExists,
   calculateRpStatus,
+  getSkipReason,
 } from '../utils';
 import fs from 'fs';
 import path from 'path';
@@ -36,7 +37,6 @@ import {
   BASIC_ATTACHMENT_CONTENT_TYPES,
   BASIC_ATTACHMENT_NAMES,
 } from '../constants';
-import { RPReporter } from '../reporter';
 
 const mockAnnotations: any[] = [];
 
@@ -463,6 +463,40 @@ describe('testing utils', () => {
     test('calculateRpStatus should return STATUSES.PASSED in case of "unexpected" outcome, "fail" annotation and "failed" status', () => {
       const status = calculateRpStatus('unexpected', 'failed', [{ type: 'fail' }]);
       expect(status).toBe(STATUSES.PASSED);
+    });
+  });
+
+  describe('getSkipReason', () => {
+    test.each([
+      [[{ type: 'skip', description: 'Cannot run suite.' }], 'Cannot run suite.'],
+      [[{ type: 'fixme', description: 'Feature not implemented.' }], 'Feature not implemented.'],
+      [
+        [
+          { type: 'skip', description: 'First reason' },
+          { type: 'skip', description: 'Second reason' },
+        ],
+        'First reason',
+      ],
+      [
+        [
+          { type: 'skip', description: 'Skip reason' },
+          { type: 'fixme', description: 'Fixme reason' },
+        ],
+        'Skip reason',
+      ],
+    ])('should return skip reason for %j', (annotations, expected) => {
+      expect(getSkipReason(annotations)).toBe(expected);
+    });
+
+    test.each([
+      { annotations: [{ type: 'skip' }], name: 'skip annotation without description' },
+      {
+        annotations: [{ type: 'custom', description: 'Some description' }],
+        name: 'non-skip annotation',
+      },
+      { annotations: [], name: 'empty annotations array' },
+    ])('should return undefined for $name', ({ annotations }) => {
+      expect(getSkipReason(annotations)).toBeUndefined();
     });
   });
 });
