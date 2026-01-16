@@ -19,7 +19,7 @@ import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
 import { FinishTestItemObjType } from '../../models';
-import { STATUSES } from '../../constants';
+import { STATUSES, TEST_ANNOTATION_TYPES } from '../../constants';
 import * as utils from '../../utils';
 
 const rootSuite = 'rootSuite';
@@ -146,8 +146,16 @@ describe('finish test reporting', () => {
   });
 
   test.each([
-    ['skip', 'Cannot run suite.', '**Skip reason: Cannot run suite.**\ndescription'],
-    ['fixme', 'Feature not implemented.', '**Skip reason: Feature not implemented.**\ndescription'],
+    [
+      TEST_ANNOTATION_TYPES.SKIP,
+      'Cannot run suite.',
+      '**Skip reason: Cannot run suite.**\ndescription',
+    ],
+    [
+      TEST_ANNOTATION_TYPES.FIXME,
+      'Feature not implemented.',
+      '**Skip reason: Feature not implemented.**\ndescription',
+    ],
   ])(
     'client.finishTestItem should be called with %s reason prepended to description',
     async (type, reason, expectedDescription) => {
@@ -172,7 +180,7 @@ describe('finish test reporting', () => {
     reporter.testItems = new Map([['testItemId', { id: 'tempTestItemId', name: 'testTitle' }]]);
     const testCaseWithSkipAnnotation = {
       ...testCase,
-      annotations: [{ type: 'skip', description: 'Cannot run suite.' }],
+      annotations: [{ type: TEST_ANNOTATION_TYPES.SKIP, description: 'Cannot run suite.' }],
       outcome: () => 'skipped',
     };
     // @ts-ignore

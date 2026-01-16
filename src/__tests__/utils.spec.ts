@@ -36,6 +36,7 @@ import {
   TestOutcome,
   BASIC_ATTACHMENT_CONTENT_TYPES,
   BASIC_ATTACHMENT_NAMES,
+  TEST_ANNOTATION_TYPES,
 } from '../constants';
 
 const mockAnnotations: any[] = [];
@@ -468,19 +469,25 @@ describe('testing utils', () => {
 
   describe('getSkipReason', () => {
     test.each([
-      [[{ type: 'skip', description: 'Cannot run suite.' }], 'Cannot run suite.'],
-      [[{ type: 'fixme', description: 'Feature not implemented.' }], 'Feature not implemented.'],
+      [
+        [{ type: TEST_ANNOTATION_TYPES.SKIP, description: 'Cannot run suite.' }],
+        'Cannot run suite.',
+      ],
+      [
+        [{ type: TEST_ANNOTATION_TYPES.FIXME, description: 'Feature not implemented.' }],
+        'Feature not implemented.',
+      ],
       [
         [
-          { type: 'skip', description: 'First reason' },
-          { type: 'skip', description: 'Second reason' },
+          { type: TEST_ANNOTATION_TYPES.SKIP, description: 'First reason' },
+          { type: TEST_ANNOTATION_TYPES.SKIP, description: 'Second reason' },
         ],
         'First reason',
       ],
       [
         [
-          { type: 'skip', description: 'Skip reason' },
-          { type: 'fixme', description: 'Fixme reason' },
+          { type: TEST_ANNOTATION_TYPES.SKIP, description: 'Skip reason' },
+          { type: TEST_ANNOTATION_TYPES.FIXME, description: 'Fixme reason' },
         ],
         'Skip reason',
       ],
@@ -489,7 +496,10 @@ describe('testing utils', () => {
     });
 
     test.each([
-      { annotations: [{ type: 'skip' }], name: 'skip annotation without description' },
+      {
+        annotations: [{ type: TEST_ANNOTATION_TYPES.SKIP }],
+        name: 'skip annotation without description',
+      },
       {
         annotations: [{ type: 'custom', description: 'Some description' }],
         name: 'non-skip annotation',
