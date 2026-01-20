@@ -633,7 +633,7 @@ export class RPReporter implements Reporter {
         });
       }
       if (this.config.extendTestDescriptionWithLastError) {
-        testDescription = (description || '').concat(`\n\`\`\`error\n${stacktrace}\n\`\`\``);
+        testDescription = (testDescription || '').concat(`\n\`\`\`error\n${stacktrace}\n\`\`\``);
       }
     }
 
