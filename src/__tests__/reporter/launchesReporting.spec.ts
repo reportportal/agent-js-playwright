@@ -24,6 +24,13 @@ import { getSystemAttribute } from '../../utils';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
 
+// Mock object for Playwright FullResult type
+const mockFullResult = {
+  status: 'passed' as const,
+  startTime: new Date('2021-05-18T12:00:00.000Z'),
+  duration: 1000,
+};
+
 describe('start launch', () => {
   jest.spyOn(helpers, 'now').mockReturnValue(mockedDate);
 
@@ -145,12 +152,15 @@ describe('finish launch', () => {
     reporter.client = new RPClientMock(mockConfig);
     reporter.launchId = 'tempLaunchId';
 
-    beforeAll(() => reporter.onEnd());
+    beforeAll(() => reporter.onEnd(mockFullResult));
 
     test('launch should be finished', () => {
       expect(reporter.client.finishLaunch).toHaveBeenCalledTimes(1);
+      const expectedEndTime = new Date(
+        mockFullResult.startTime.getTime() + mockFullResult.duration,
+      ).toISOString();
       expect(reporter.client.finishLaunch).toHaveBeenCalledWith('tempLaunchId', {
-        endTime: mockedDate,
+        endTime: expectedEndTime,
       });
       expect(reporter.isLaunchFinishSend).toBe(true);
     });
@@ -165,7 +175,7 @@ describe('finish launch', () => {
     reporter.client = new RPClientMock(customConfig);
     reporter.launchId = 'tempLaunchId';
 
-    beforeAll(() => reporter.onEnd());
+    beforeAll(() => reporter.onEnd(mockFullResult));
 
     test('launch finish request should not be sent', () => {
       expect(reporter.client.finishLaunch).toHaveBeenCalledTimes(0);
@@ -182,7 +192,7 @@ describe('finish launch', () => {
       reporter.client = new RPClientMock(mockConfig);
       reporter.launchId = 'tempLaunchId';
 
-      reporter.onEnd();
+      reporter.onEnd(mockFullResult);
     });
 
     afterAll(() => {

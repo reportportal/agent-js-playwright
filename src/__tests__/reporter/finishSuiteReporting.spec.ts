@@ -23,6 +23,13 @@ import path from 'path';
 const rootSuite = 'rootSuite';
 const suiteName = 'example.js';
 
+// Mock object for Playwright FullResult type
+const mockFullResult = {
+  status: 'passed' as const,
+  startTime: new Date('2021-05-18T12:00:00.000Z'),
+  duration: 1000,
+};
+
 // TODO: add tests for skipped status and different workerIndex values
 // TODO: add tests for serial mode
 describe('finish suites on finish all of their children', () => {
@@ -117,7 +124,7 @@ describe('finish suites on finish all of their children', () => {
   });
 
   test('client.finishTestItem should be called with suite id in case of run end with unfinished suites', () => {
-    reporter.onEnd();
+    reporter.onEnd(mockFullResult);
 
     expect(spyFinishTestItem).toHaveBeenNthCalledWith(1, 'rootsuiteId', {
       endTime: mockedDate,
@@ -130,7 +137,7 @@ describe('finish suites on finish all of their children', () => {
 
   test('client.finishTestItem should be called with suite id in case of run end without unfinished suites', () => {
     reporter.suites = new Map();
-    reporter.onEnd();
+    reporter.onEnd(mockFullResult);
 
     expect(spyFinishTestItem).toBeCalledTimes(0);
     expect(reporter.suites).toEqual(new Map());
