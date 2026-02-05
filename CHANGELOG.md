@@ -1,5 +1,12 @@
 ### Added
-- Support for custom log levels in `ReportingApi.log()` and `ReportingApi.launchLog()` methods. You can now pass any string as a log level in addition to the PREDEFINED_LOG_LEVELS enum values (TRACE, DEBUG, INFO, WARN, ERROR, FATAL).
+- Report logs and attachments under related nested steps, resolves [#172](https://github.com/reportportal/agent-js-playwright/issues/172).
+- Report skipping reason for the skipped tests in their description, addresses [#119](https://github.com/reportportal/agent-js-playwright/issues/119).
+- Support for custom log levels in `ReportingApi.log()` and `ReportingApi.launchLog()` methods. You can now pass any string as a log level in addition to the predefined values (TRACE, DEBUG, INFO, WARN, ERROR, FATAL).
+**Note:** Custom logs management supported by ReportPortal versions from [25.2](https://github.com/reportportal/reportportal/releases/tag/25.2).
+### Changed
+- `@reportportal/client-javascript` bumped to version `5.5.9`.
+### Security
+- Addressed [CVE-2026-25547](https://www.cve.org/CVERecord?id=CVE-2026-25547).
 
 ## [5.3.2] - 2025-10-29
 ### Changed
