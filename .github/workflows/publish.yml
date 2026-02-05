@@ -19,7 +19,7 @@ on:
 
 permissions:
   id-token: write  # Required for NPM OIDC
-  contents: write
+  contents: read
 
 jobs:
   build:
@@ -40,7 +40,7 @@ jobs:
       - name: Run tests and check coverage
         run: npm run test:coverage
 
-  publish-to-npm-and-gpr:
+  publish-to-npm:
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -59,17 +59,3 @@ jobs:
         run: |
           npm config list
           npm publish --access public
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@reportportal'
-      - name: Publish to GPR
-        run: |
-          npm config set //npm.pkg.github.com/:_authToken=$NODE_AUTH_TOKEN
-          npm config set scope '@reportportal'
-          npm config list
-          npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
