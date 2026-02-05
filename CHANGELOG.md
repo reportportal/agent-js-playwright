@@ -1,3 +1,5 @@
+
+## [5.4.0] - 2026-02-05
 ### Added
 - Report logs and attachments under related nested steps, resolves [#172](https://github.com/reportportal/agent-js-playwright/issues/172).
 - Report skipping reason for the skipped tests in their description, addresses [#119](https://github.com/reportportal/agent-js-playwright/issues/119).
