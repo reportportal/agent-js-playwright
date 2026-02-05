@@ -13,14 +13,14 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@reportportal/client-javascript": "~5.5.2",
+    "@reportportal/client-javascript": "~5.5.10",
     "strip-ansi": "~6.0.1"
   },
   "files": [
     "/build"
   ],
   "devDependencies": {
-    "@playwright/test": "^1.45.1",
+    "@playwright/test": "^1.55.1",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.14.10",
     "@typescript-eslint/eslint-plugin": "^5.62.0",

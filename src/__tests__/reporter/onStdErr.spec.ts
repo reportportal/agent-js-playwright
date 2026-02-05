@@ -17,7 +17,7 @@
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock } from '../mocks/RPClientMock';
-import { LOG_LEVELS } from '../../constants';
+import { PREDEFINED_LOG_LEVELS } from '../../constants';
 
 describe('onStdErr testing', () => {
   const reporter = new RPReporter(mockConfig);
@@ -28,22 +28,22 @@ describe('onStdErr testing', () => {
     titlePath: () => ['rootSuite', 'suiteName', 'testTitle'],
   };
 
-  test('onStdErr call sendTestItemLog with LOG_LEVELS.ERROR', () => {
+  test('onStdErr call sendTestItemLog with PREDEFINED_LOG_LEVELS.ERROR', () => {
     jest.spyOn(reporter, 'sendTestItemLog');
     // @ts-ignore
     reporter.onStdErr('Some error log', testCase);
     expect(reporter.sendTestItemLog).toHaveBeenCalledWith(
-      { level: LOG_LEVELS.ERROR, message: 'Some error log' },
+      { level: PREDEFINED_LOG_LEVELS.ERROR, message: 'Some error log' },
       testCase,
     );
   });
 
-  test('onStdErr call sendTestItemLog with LOG_LEVELS.WARN', () => {
+  test('onStdErr call sendTestItemLog with PREDEFINED_LOG_LEVELS.WARN', () => {
     jest.spyOn(reporter, 'sendTestItemLog');
     // @ts-ignore
     reporter.onStdErr('Some warn message', testCase);
     expect(reporter.sendTestItemLog).toHaveBeenCalledWith(
-      { level: LOG_LEVELS.WARN, message: 'Some warn message' },
+      { level: PREDEFINED_LOG_LEVELS.WARN, message: 'Some warn message' },
       testCase,
     );
   });

@@ -25,4 +25,6 @@ export const mockConfig: ReportPortalConfig = {
   description: 'Launch description',
   attributes: [],
   extendTestDescriptionWithLastError: true,
+  uploadVideo: true,
+  uploadTrace: true,
 };

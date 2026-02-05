@@ -30,7 +30,7 @@ import {
 } from './models';
 import {
   LAUNCH_MODES,
-  LOG_LEVELS,
+  PREDEFINED_LOG_LEVELS,
   STATUSES,
   TEST_ITEM_TYPES,
   TEST_ANNOTATION_TYPES,
@@ -41,7 +41,8 @@ import {
   getAgentInfo,
   getAttachments,
   getCodeRef,
-  getSystemAttributes,
+  getSkipReason,
+  getSystemAttribute,
   isErrorLog,
   isFalse,
   promiseErrorHandler,
@@ -92,7 +93,15 @@ export class RPReporter implements Reporter {
 
   nestedSteps: Map<string, TestItem> = new Map();
 
+  activeSteps: Map<string, string[]> = new Map();
+
+  logTime = 0;
+
   isLaunchFinishSend = false;
+
+  loggedErrors: Map<string, Set<string>> = new Map();
+
+  stepAttachments: Map<string, Set<string>> = new Map();
 
   constructor(config: ReportPortalConfig) {
     this.config = {
@@ -105,7 +114,13 @@ export class RPReporter implements Reporter {
 
     const agentInfo = getAgentInfo();
 
-    this.client = new RPClient(this.config, agentInfo);
+    this.client = new RPClient(
+      {
+        ...this.config,
+        skippedIsNotIssue: isFalse(this.config.skippedIssue),
+      },
+      agentInfo,
+    );
   }
 
   addRequestToPromisesQueue(promise: Promise<void>, failMessage: string): void {
@@ -156,7 +171,7 @@ export class RPReporter implements Reporter {
   onStdErr(chunk: string | Buffer, test?: TestCase): void {
     if (test) {
       const message = String(chunk);
-      const level = isErrorLog(message) ? LOG_LEVELS.ERROR : LOG_LEVELS.WARN;
+      const level = isErrorLog(message) ? PREDEFINED_LOG_LEVELS.ERROR : PREDEFINED_LOG_LEVELS.WARN;
       this.sendTestItemLog({ level, message }, test);
     }
   }
@@ -222,10 +237,15 @@ export class RPReporter implements Reporter {
       const logs = (suiteItem?.logs || []).concat(log);
       this.suitesInfo.set(suiteName, { ...suiteItem, logs });
     } else if (test) {
-      const testItem = this.testItems.get(test.id);
-
-      if (testItem) {
-        this.sendLog(testItem.id, log);
+      const activeStepStack = this.activeSteps.get(test.id);
+      if (activeStepStack && activeStepStack.length > 0) {
+        const activeStepId = activeStepStack[activeStepStack.length - 1];
+        this.sendLog(activeStepId, log);
+      } else {
+        const testItem = this.testItems.get(test.id);
+        if (testItem) {
+          this.sendLog(testItem.id, log);
+        }
       }
     }
   }
@@ -240,8 +260,15 @@ export class RPReporter implements Reporter {
 
   sendLog(
     tempId: string,
-    { level = LOG_LEVELS.INFO, message = '', time = clientHelpers.now(), file }: LogRQ,
+    { level = PREDEFINED_LOG_LEVELS.INFO, message = '', time, file }: LogRQ,
   ): void {
+    if (!time) {
+      const now = clientHelpers.now();
+      // Increment by at least 1ms to ensure chronological order
+      time = Math.max(now, this.logTime + 1);
+      this.logTime = time;
+    }
+
     const { promise } = this.client.sendLog(
       tempId,
       {
@@ -279,16 +306,14 @@ export class RPReporter implements Reporter {
   onBegin(): void {
     // reset the flag in case the Playwright will reuse the reporter instance
     this.isLaunchFinishSend = false;
-    const { launch, description, attributes, skippedIssue, rerun, rerunOf, mode, launchId } =
-      this.config;
-    const systemAttributes: Attribute[] = getSystemAttributes(skippedIssue);
+    const { launch, description, attributes, rerun, rerunOf, mode, launchId } = this.config;
+    const systemAttribute = getSystemAttribute();
 
     const startLaunchObj: StartLaunchObjType = {
       name: launch,
       startTime: clientHelpers.now(),
       description,
-      attributes:
-        attributes && attributes.length ? attributes.concat(systemAttributes) : systemAttributes,
+      attributes: [...(attributes || []), systemAttribute],
       rerun,
       rerunOf,
       mode: mode || LAUNCH_MODES.DEFAULT,
@@ -445,9 +470,13 @@ export class RPReporter implements Reporter {
       name: step.title,
       id: tempId,
     });
+
+    const activeStepStack = this.activeSteps.get(test.id) || [];
+    activeStepStack.push(tempId);
+    this.activeSteps.set(test.id, activeStepStack);
   }
 
-  onStepEnd(test: TestCase, result: TestResult, step: TestStepWithId): void {
+  async onStepEnd(test: TestCase, result: TestResult, step: TestStepWithId): Promise<void> {
     const { includeTestSteps } = this.config;
     if (!includeTestSteps) return;
 
@@ -455,6 +484,50 @@ export class RPReporter implements Reporter {
     const fullStepName = `${test.id}/${stepName}-${step.id}`;
     const nestedStep = this.nestedSteps.get(fullStepName);
     if (!nestedStep) return;
+
+    if (step.error) {
+      const errorMessages = this.loggedErrors.get(test.id);
+      const isLogged = errorMessages?.has(step.error.message);
+
+      if (!isLogged) {
+        const stacktrace = stripAnsi(step.error.stack || step.error.message || '');
+        this.sendLog(nestedStep.id, {
+          level: PREDEFINED_LOG_LEVELS.ERROR,
+          message: stacktrace,
+        });
+
+        if (!errorMessages) {
+          this.loggedErrors.set(test.id, new Set([step.error.message]));
+        } else {
+          errorMessages.add(step.error.message);
+        }
+      }
+    }
+    if (step.attachments?.length) {
+      try {
+        const { uploadVideo, uploadTrace } = this.config;
+        const attachmentsFiles = await getAttachments(
+          step.attachments,
+          {
+            uploadVideo,
+            uploadTrace,
+          },
+          step.title,
+        );
+        const attachmentNames = this.stepAttachments.get(test.id) || new Set();
+
+        attachmentsFiles.forEach((file) => {
+          this.sendLog(nestedStep.id, {
+            message: `Attachment ${file.name} with type ${file.type}`,
+            file,
+          });
+          attachmentNames.add(file.name);
+        });
+        this.stepAttachments.set(test.id, attachmentNames);
+      } catch (error) {
+        console.error(`Failed to process attachments for step "${step.title}":`, error);
+      }
+    }
 
     const stepFinishObj = {
       status: step.error ? STATUSES.FAILED : STATUSES.PASSED,
@@ -465,6 +538,19 @@ export class RPReporter implements Reporter {
 
     this.addRequestToPromisesQueue(promise, 'Failed to finish nested step.');
     this.nestedSteps.delete(fullStepName);
+
+    const activeStepStack = this.activeSteps.get(test.id);
+    if (activeStepStack && activeStepStack.length > 0) {
+      const stepIndex = activeStepStack.indexOf(nestedStep.id);
+      if (stepIndex !== -1) {
+        activeStepStack.splice(stepIndex, 1);
+      }
+      if (activeStepStack.length === 0) {
+        this.activeSteps.delete(test.id);
+      } else {
+        this.activeSteps.set(test.id, activeStepStack);
+      }
+    }
   }
 
   processAnnotations({ annotations, test }: { annotations: Annotation[]; test?: TestCase }): void {
@@ -500,15 +586,16 @@ export class RPReporter implements Reporter {
       testCaseId,
       status: predefinedStatus,
     } = savedTestItem;
-    let withoutIssue;
     let testDescription = description;
     const calculatedStatus = calculateRpStatus(test.outcome(), result.status, test.annotations);
-    const status = predefinedStatus || calculatedStatus;
-    if (status === STATUSES.SKIPPED) {
-      withoutIssue = isFalse(this.config.skippedIssue);
-    }
 
-    // TODO: cover with tests
+    const skipReason = getSkipReason(test.annotations);
+    if (skipReason) {
+      const skipReasonText = `**Skip reason: ${skipReason}**`;
+      testDescription = testDescription ? `${skipReasonText}\n${testDescription}` : skipReasonText;
+    }
+    const status = predefinedStatus || calculatedStatus;
+
     if (result.attachments?.length) {
       const { uploadVideo, uploadTrace } = this.config;
       const attachmentsFiles = await getAttachments(
@@ -520,7 +607,9 @@ export class RPReporter implements Reporter {
         test.title,
       );
       // TODO: use bulk log request
-      attachmentsFiles.forEach((file) => {
+      const stepAttachmentNames = this.stepAttachments.get(test.id) || new Set();
+      const filteredFiles = attachmentsFiles.filter((file) => !stepAttachmentNames.has(file.name));
+      filteredFiles.forEach((file) => {
         this.sendLog(testItemId, {
           message: `Attachment ${file.name} with type ${file.type}`,
           file,
@@ -528,36 +617,46 @@ export class RPReporter implements Reporter {
       });
     }
 
+    const hasUnfinishedNestedSteps = [...this.nestedSteps.keys()].some((key) =>
+      key.includes(test.id),
+    );
+
     if (result.error) {
       const stacktrace = stripAnsi(result.error.stack || result.error.message);
-      this.sendLog(testItemId, {
-        level: LOG_LEVELS.ERROR,
-        message: stacktrace,
-      });
+      const errorMessages = this.loggedErrors.get(test.id);
+      const isLogged = errorMessages?.has(result.error.message);
+
+      if (!hasUnfinishedNestedSteps && !isLogged) {
+        this.sendLog(testItemId, {
+          level: PREDEFINED_LOG_LEVELS.ERROR,
+          message: stacktrace,
+        });
+      }
       if (this.config.extendTestDescriptionWithLastError) {
-        testDescription = (description || '').concat(`\n\`\`\`error\n${stacktrace}\n\`\`\``);
+        testDescription = (testDescription || '').concat(`\n\`\`\`error\n${stacktrace}\n\`\`\``);
       }
     }
 
-    [...this.nestedSteps.entries()].forEach(([key, value]) => {
-      if (key.includes(test.id)) {
-        const { id: stepId } = value;
-        const itemObject = {
-          status: result.status === 'timedOut' ? STATUSES.INTERRUPTED : STATUSES.FAILED,
-          endTime: clientHelpers.now(),
-        };
+    const unfinishedSteps = [...this.nestedSteps.entries()].filter(([key]) =>
+      key.includes(test.id),
+    );
 
-        const { promise } = this.client.finishTestItem(stepId, itemObject);
-        this.addRequestToPromisesQueue(promise, 'Failed to finish nested step.');
+    unfinishedSteps.reverse().forEach(([key, value]) => {
+      const { id: stepId } = value;
+      const itemObject = {
+        status: result.status === 'timedOut' ? STATUSES.INTERRUPTED : STATUSES.FAILED,
+        endTime: clientHelpers.now(),
+      };
 
-        this.nestedSteps.delete(key);
-      }
+      const { promise } = this.client.finishTestItem(stepId, itemObject);
+      this.addRequestToPromisesQueue(promise, 'Failed to finish nested step.');
+
+      this.nestedSteps.delete(key);
     });
 
     const finishTestItemObj: FinishTestItemObjType = {
       endTime: clientHelpers.now(),
       status,
-      ...(withoutIssue && { issue: { issueType: 'NOT_ISSUE' } }),
       ...(attributes && { attributes }),
       ...(testDescription && { description: testDescription }),
       ...(testCaseId && { testCaseId }),
@@ -566,6 +665,10 @@ export class RPReporter implements Reporter {
 
     this.addRequestToPromisesQueue(promise, 'Failed to finish test.');
     this.testItems.delete(test.id);
+
+    this.activeSteps.delete(test.id);
+    this.loggedErrors.delete(test.id);
+    this.stepAttachments.delete(test.id);
 
     this.updateAncestorsTestInvocations(test, result);
 

@@ -15,23 +15,22 @@
  *
  */
 
-import { TestCase, TestStatus, TestResult } from '@playwright/test/reporter';
+import { TestCase, TestResult, TestStatus } from '@playwright/test/reporter';
 import fs from 'fs';
 import path from 'path';
 // @ts-ignore
 import { name as pjsonName, version as pjsonVersion } from '../package.json';
-import { Attribute, Attachment, AttachmentsConfig } from './models';
+import { Attachment, AttachmentsConfig, Attribute } from './models';
 import {
-  STATUSES,
-  TestAnnotation,
-  TestOutcome,
-  BASIC_ATTACHMENT_NAMES,
   BASIC_ATTACHMENT_CONTENT_TYPES,
+  BASIC_ATTACHMENT_NAMES,
+  STATUSES,
   TEST_ANNOTATION_TYPES,
   TEST_OUTCOME_TYPES,
+  TestAnnotation,
+  TestOutcome,
 } from './constants';
 import { test } from '@playwright/test';
-import { RPReporter } from './reporter';
 
 const fsPromises = fs.promises;
 
@@ -48,26 +47,11 @@ export const getAgentInfo = (): { version: string; name: string } => ({
   name: pjsonName,
 });
 
-export const getSystemAttributes = (skippedIssue = true): Array<Attribute> => {
-  const systemAttributes = [
-    {
-      key: 'agent',
-      value: `${pjsonName}|${pjsonVersion}`,
-      system: true,
-    },
-  ];
-
-  if (isFalse(skippedIssue)) {
-    const skippedIssueAttribute = {
-      key: 'skippedIssue',
-      value: 'false',
-      system: true,
-    };
-    systemAttributes.push(skippedIssueAttribute);
-  }
-
-  return systemAttributes;
-};
+export const getSystemAttribute = (): Attribute => ({
+  key: 'agent',
+  value: `${getAgentInfo().name}|${getAgentInfo().version}`,
+  system: true,
+});
 
 type testItemPick = Pick<TestCase, 'titlePath'>;
 
@@ -215,9 +199,18 @@ export const safeParse = (input: unknown) => {
   }
 
   try {
-    const parsed = JSON.parse(input);
-    return parsed;
+    return JSON.parse(input);
   } catch {
     return input;
   }
+};
+
+export const getSkipReason = (annotations: TestAnnotation[]): string | undefined => {
+  const skipAnnotation = annotations.find(
+    (annotation) =>
+      (annotation.type === TEST_ANNOTATION_TYPES.SKIP ||
+        annotation.type === TEST_ANNOTATION_TYPES.FIXME) &&
+      annotation.description,
+  );
+  return skipAnnotation?.description;
 };

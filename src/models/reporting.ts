@@ -65,4 +65,10 @@ export interface LogRQ {
 
 export interface TestStepWithId extends TestStep {
   id: string;
+  attachments: Array<{
+    name: string;
+    contentType: string;
+    path?: string;
+    body?: Buffer;
+  }>;
 }

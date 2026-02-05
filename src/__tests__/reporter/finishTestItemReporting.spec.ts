@@ -19,7 +19,8 @@ import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
 import { FinishTestItemObjType } from '../../models';
-import { STATUSES } from '../../constants';
+import { STATUSES, TEST_ANNOTATION_TYPES } from '../../constants';
+import * as utils from '../../utils';
 
 const rootSuite = 'rootSuite';
 const suiteName = 'suiteName';
@@ -100,7 +101,6 @@ describe('finish test reporting', () => {
   });
 
   test('client.finishTestItem should be called with test item id', async () => {
-    reporter.config.skippedIssue = true;
     const result = {
       status: 'passed',
     };
@@ -123,8 +123,7 @@ describe('finish test reporting', () => {
     expect(reporter.testItems.size).toBe(0);
   });
 
-  test('client.finishTestItem should be called with issueType NOT_ISSUE', async () => {
-    reporter.config.skippedIssue = false;
+  test('client.finishTestItem should be called with skipped status (issue handling delegated to client)', async () => {
     const result = {
       status: 'skipped',
     };
@@ -133,7 +132,6 @@ describe('finish test reporting', () => {
       status: result.status,
       attributes: [{ key: 'key', value: 'value' }],
       description: 'description',
-      issue: { issueType: 'NOT_ISSUE' },
     };
     // @ts-ignore
     await reporter.onTestEnd({ ...testCase, outcome: () => 'skipped' }, result);
@@ -145,6 +143,54 @@ describe('finish test reporting', () => {
       finishTestItemObj,
     );
     expect(reporter.testItems.size).toBe(0);
+  });
+
+  test.each([
+    [
+      TEST_ANNOTATION_TYPES.SKIP,
+      'Cannot run suite.',
+      '**Skip reason: Cannot run suite.**\ndescription',
+    ],
+    [
+      TEST_ANNOTATION_TYPES.FIXME,
+      'Feature not implemented.',
+      '**Skip reason: Feature not implemented.**\ndescription',
+    ],
+  ])(
+    'client.finishTestItem should be called with %s reason prepended to description',
+    async (type, reason, expectedDescription) => {
+      const testCaseWithAnnotation = {
+        ...testCase,
+        annotations: [{ type, description: reason }],
+        outcome: () => 'skipped',
+      };
+      // @ts-ignore
+      await reporter.onTestEnd(testCaseWithAnnotation, { status: 'skipped' });
+
+      expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(1, 'tempTestItemId', {
+        endTime: mockedDate,
+        status: 'skipped',
+        attributes: [{ key: 'key', value: 'value' }],
+        description: expectedDescription,
+      });
+    },
+  );
+
+  test('client.finishTestItem should be called with skip reason as description when no existing description', async () => {
+    reporter.testItems = new Map([['testItemId', { id: 'tempTestItemId', name: 'testTitle' }]]);
+    const testCaseWithSkipAnnotation = {
+      ...testCase,
+      annotations: [{ type: TEST_ANNOTATION_TYPES.SKIP, description: 'Cannot run suite.' }],
+      outcome: () => 'skipped',
+    };
+    // @ts-ignore
+    await reporter.onTestEnd(testCaseWithSkipAnnotation, { status: 'skipped' });
+
+    expect(reporter.client.finishTestItem).toHaveBeenNthCalledWith(1, 'tempTestItemId', {
+      endTime: mockedDate,
+      status: 'skipped',
+      description: '**Skip reason: Cannot run suite.**',
+    });
   });
 
   test('client.finishTestItem should not be called in case of test item not found', async () => {
@@ -200,5 +246,297 @@ describe('finish test reporting', () => {
     };
 
     expect(reporter.client.finishTestItem).toHaveBeenCalledWith('1214r1', finishStepObject);
+  });
+
+  describe('attachment handling', () => {
+    let getAttachmentsSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      // Reset reporter state
+      reporter = new RPReporter(mockConfig);
+      reporter.client = new RPClientMock(mockConfig);
+      reporter.launchId = 'tempLaunchId';
+      reporter.testItems = new Map([['testItemId', { id: 'tempTestItemId', name: 'testTitle' }]]);
+      reporter.suites = new Map([
+        [
+          rootSuite,
+          {
+            id: 'rootsuiteId',
+            name: rootSuite,
+            testInvocationsLeft: 1,
+            descendants: ['testItemId'],
+          },
+        ],
+        [
+          `${rootSuite}/${suiteName}`,
+          {
+            id: 'suiteId',
+            name: suiteName,
+            testInvocationsLeft: 1,
+            descendants: ['testItemId'],
+          },
+        ],
+      ]);
+      // @ts-ignore
+      reporter.addAttributes([{ key: 'key', value: 'value' }], testCase);
+      // @ts-ignore
+      reporter.setDescription('description', testCase);
+    });
+
+    afterEach(() => {
+      if (getAttachmentsSpy) {
+        getAttachmentsSpy.mockRestore();
+      }
+    });
+
+    test('should process attachments and send logs for each attachment', async () => {
+      const mockAttachments = [
+        {
+          name: 'screenshot.png',
+          contentType: 'image/png',
+          path: '/path/to/screenshot.png',
+        },
+        {
+          name: 'video.webm',
+          contentType: 'video/webm',
+          path: '/path/to/video.webm',
+        },
+      ];
+
+      const mockAttachmentFiles = [
+        {
+          name: 'testtitle_screenshot.png',
+          type: 'image/png',
+          content: Buffer.from('screenshot content'),
+        },
+        {
+          name: 'testtitle_video.webm',
+          type: 'video/webm',
+          content: Buffer.from('video content'),
+        },
+      ];
+
+      getAttachmentsSpy = jest
+        .spyOn(utils, 'getAttachments')
+        .mockResolvedValue(mockAttachmentFiles);
+      const sendLogSpy = jest.spyOn(reporter, 'sendLog');
+
+      const result = {
+        status: 'passed',
+        attachments: mockAttachments,
+      };
+
+      // @ts-ignore
+      await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
+
+      expect(utils.getAttachments).toHaveBeenCalledWith(
+        mockAttachments,
+        {
+          uploadVideo: true,
+          uploadTrace: true,
+        },
+        testCase.title,
+      );
+
+      expect(sendLogSpy).toHaveBeenCalledTimes(2);
+      expect(sendLogSpy).toHaveBeenCalledWith('tempTestItemId', {
+        message: 'Attachment testtitle_screenshot.png with type image/png',
+        file: mockAttachmentFiles[0],
+      });
+      expect(sendLogSpy).toHaveBeenCalledWith('tempTestItemId', {
+        message: 'Attachment testtitle_video.webm with type video/webm',
+        file: mockAttachmentFiles[1],
+      });
+    });
+
+    test('should filter out attachments already in stepAttachmentNames', async () => {
+      const mockAttachments = [
+        {
+          name: 'screenshot.png',
+          contentType: 'image/png',
+          path: '/path/to/screenshot.png',
+        },
+        {
+          name: 'video.webm',
+          contentType: 'video/webm',
+          path: '/path/to/video.webm',
+        },
+      ];
+
+      const mockAttachmentFiles = [
+        {
+          name: 'testtitle_screenshot.png',
+          type: 'image/png',
+          content: Buffer.from('screenshot content'),
+        },
+        {
+          name: 'testtitle_video.webm',
+          type: 'video/webm',
+          content: Buffer.from('video content'),
+        },
+      ];
+
+      getAttachmentsSpy = jest
+        .spyOn(utils, 'getAttachments')
+        .mockResolvedValue(mockAttachmentFiles);
+      const sendLogSpy = jest.spyOn(reporter, 'sendLog');
+
+      reporter.stepAttachments.set(testCase.id, new Set(['testtitle_screenshot.png']));
+
+      const result = {
+        status: 'passed',
+        attachments: mockAttachments,
+      };
+
+      // @ts-ignore
+      await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
+
+      expect(sendLogSpy).toHaveBeenCalledTimes(1);
+      expect(sendLogSpy).toHaveBeenCalledWith('tempTestItemId', {
+        message: 'Attachment testtitle_video.webm with type video/webm',
+        file: mockAttachmentFiles[1],
+      });
+    });
+
+    test('should handle empty stepAttachmentNames set', async () => {
+      const mockAttachments = [
+        {
+          name: 'screenshot.png',
+          contentType: 'image/png',
+          path: '/path/to/screenshot.png',
+        },
+      ];
+
+      const mockAttachmentFiles = [
+        {
+          name: 'testtitle_screenshot.png',
+          type: 'image/png',
+          content: Buffer.from('screenshot content'),
+        },
+      ];
+
+      getAttachmentsSpy = jest
+        .spyOn(utils, 'getAttachments')
+        .mockResolvedValue(mockAttachmentFiles);
+      const sendLogSpy = jest.spyOn(reporter, 'sendLog');
+
+      const result = {
+        status: 'passed',
+        attachments: mockAttachments,
+      };
+
+      // @ts-ignore
+      await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
+
+      expect(sendLogSpy).toHaveBeenCalledTimes(1);
+      expect(sendLogSpy).toHaveBeenCalledWith('tempTestItemId', {
+        message: 'Attachment testtitle_screenshot.png with type image/png',
+        file: mockAttachmentFiles[0],
+      });
+    });
+
+    test('should respect uploadVideo config when processing attachments', async () => {
+      const customConfig = {
+        ...mockConfig,
+        uploadVideo: false,
+        uploadTrace: true,
+      };
+
+      const reporterWithConfig = new RPReporter(customConfig);
+      reporterWithConfig.client = new RPClientMock(customConfig);
+      reporterWithConfig.launchId = 'tempLaunchId';
+      reporterWithConfig.testItems = new Map([
+        ['testItemId', { id: 'tempTestItemId', name: 'testTitle' }],
+      ]);
+      reporterWithConfig.suites = new Map([
+        [
+          rootSuite,
+          {
+            id: 'rootsuiteId',
+            name: rootSuite,
+            testInvocationsLeft: 1,
+            descendants: ['testItemId'],
+          },
+        ],
+        [
+          `${rootSuite}/${suiteName}`,
+          {
+            id: 'suiteId',
+            name: suiteName,
+            testInvocationsLeft: 1,
+            descendants: ['testItemId'],
+          },
+        ],
+      ]);
+
+      const mockAttachments = [
+        {
+          name: 'screenshot.png',
+          contentType: 'image/png',
+          path: '/path/to/screenshot.png',
+        },
+      ];
+
+      const mockAttachmentFiles = [
+        {
+          name: 'testtitle_screenshot.png',
+          type: 'image/png',
+          content: Buffer.from('screenshot content'),
+        },
+      ];
+
+      getAttachmentsSpy = jest
+        .spyOn(utils, 'getAttachments')
+        .mockResolvedValue(mockAttachmentFiles);
+
+      const result = {
+        status: 'passed',
+        attachments: mockAttachments,
+      };
+
+      // @ts-ignore
+      await reporterWithConfig.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
+
+      expect(utils.getAttachments).toHaveBeenCalledWith(
+        mockAttachments,
+        {
+          uploadVideo: false,
+          uploadTrace: true,
+        },
+        testCase.title,
+      );
+    });
+
+    test('should not process attachments if result.attachments is empty', async () => {
+      getAttachmentsSpy = jest.spyOn(utils, 'getAttachments');
+      const sendLogSpy = jest.spyOn(reporter, 'sendLog');
+
+      const result: any = {
+        status: 'passed',
+        attachments: [],
+      };
+
+      // @ts-ignore
+      await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
+
+      expect(getAttachmentsSpy).not.toHaveBeenCalled();
+      expect(sendLogSpy).not.toHaveBeenCalled();
+    });
+
+    test('should not process attachments if result.attachments is undefined', async () => {
+      getAttachmentsSpy = jest.spyOn(utils, 'getAttachments');
+      const sendLogSpy = jest.spyOn(reporter, 'sendLog');
+
+      const result = {
+        status: 'passed',
+      };
+
+      // @ts-ignore
+      await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
+
+      expect(getAttachmentsSpy).not.toHaveBeenCalled();
+      expect(sendLogSpy).not.toHaveBeenCalled();
+    });
   });
 });

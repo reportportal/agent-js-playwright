@@ -113,7 +113,7 @@ const rpConfig = {
 | skippedIssue                                | Optional   | true      | reportportal provides feature to mark skipped tests as not 'To Investigate'. <br/> Option could be equal boolean values: <br/> _true_ - skipped tests considered as issues and will be marked as 'To Investigate' on reportportal. <br/> _false_ - skipped tests will not be marked as 'To Investigate' on application.                                                                                                                                                                                                                                                                                                                                                                                                            |
 | debug                                       | Optional   | false     | This flag allows seeing the logs of the client-javascript. Useful for debugging.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | launchId                                    | Optional   | Not set   | The _ID_ of an already existing launch. The launch must be in 'IN*PROGRESS' status while the tests are running. Please note that if this \_ID* is provided, the launch will not be finished at the end of the run and must be finished separately.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| restClientConfig                            | Optional   | Not set   | `axios` like http client [config](https://github.com/axios/axios#request-config). May contain `agent` property for configure [http(s)](https://nodejs.org/api/https.html#https_https_request_url_options_callback) client, and other client options e.g. `proxy`, [`timeout`](https://github.com/reportportal/client-javascript#timeout-30000ms-on-axios-requests). For debugging and displaying logs the `debug: true` option can be used. Use the retry property (number or axios-retry config) to customise [automatic retries](https://github.com/reportportal/client-javascript?tab=readme-ov-file#retry-configuration). <br/> Visit [client-javascript](https://github.com/reportportal/client-javascript) for more details. |
+| restClientConfig                            | Optional   | Not set   | `axios` like http client [config](https://github.com/axios/axios#request-config). May contain `agent` property for configure [http(s)](https://nodejs.org/api/https.html#https_https_request_url_options_callback) client, and other client options e.g. `proxy`, [`timeout`](https://github.com/reportportal/client-javascript#timeout-30000ms-on-axios-requests). For debugging and displaying logs the `debug: true` option can be used. Use the retry property (number or axios-retry config) to customise [automatic retries](https://github.com/reportportal/client-javascript?tab=readme-ov-file#retry-configuration). <br/> Visit [client-javascript](https://github.com/reportportal/client-javascript?tab=readme-ov-file#http-client-options) for more details. |
 | headers                                     | Optional   | {}        | The object with custom headers for internal http client.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | launchUuidPrint                             | Optional   | false     | Whether to print the current launch UUID.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | launchUuidPrintOutput                       | Optional   | 'STDOUT'  | Launch UUID printing output. Possible values: 'STDOUT', 'STDERR', 'FILE', 'ENVIRONMENT'. Works only if `launchUuidPrint` set to `true`. File format: `rp-launch-uuid-${launch_uuid}.tmp`. Env variable: `RP_LAUNCH_UUID`, note that the env variable is only available in the reporter process (it cannot be obtained from tests).                                                                                                                                                                                                                                                                                                                                                                                                 |
@@ -278,7 +278,7 @@ Send logs to report portal for the current test. Should be called inside of corr
 `ReportingApi.log(level: LOG_LEVELS, message: string, file?: Attachment, suite?: string);`<br/>
 **required**: `level`, `message`<br/>
 **optional**: `file`, `suite`<br/>
-where `level` can be one of the following: _TRACE_, _DEBUG_, _WARN_, _INFO_, _ERROR_, _FATAL_<br/>
+where `level` can be one of the following: _TRACE_, _DEBUG_, _WARN_, _INFO_, _ERROR_, _FATAL_, or a custom log level string<br/>
 Example:
 
 ```javascript
@@ -291,6 +291,9 @@ test('should contain logs with attachments', () => {
     content: fileContent.toString('base64'),
   };
   ReportingApi.log('INFO', 'info log with attachment', attachment);
+  
+  // Custom log level
+  ReportingApi.log('CUSTOM_LEVEL', 'custom log message', attachment);
 
   expect(true).toBe(true);
 });
@@ -328,7 +331,7 @@ Send logs to report portal for the current launch. Should be called inside of th
 `ReportingApi.launchLog(level: LOG_LEVELS, message: string, file?: Attachment);`<br/>
 **required**: `level`, `message`<br/>
 **optional**: `file`<br/>
-where `level` can be one of the following: _TRACE_, _DEBUG_, _WARN_, _INFO_, _ERROR_, _FATAL_<br/>
+where `level` can be one of the following: _TRACE_, _DEBUG_, _WARN_, _INFO_, _ERROR_, _FATAL_, or a custom log level string<br/>
 Example:
 
 ```javascript
@@ -341,6 +344,9 @@ test('should contain logs with attachments', async () => {
     content: fileContent.toString('base64'),
   };
   ReportingApi.launchLog('INFO', 'info log with attachment', attachment);
+  
+  // Custom log level
+  ReportingApi.launchLog('CUSTOM_LAUNCH_LEVEL', 'custom launch log message', attachment);
 
   await expect(true).toBe(true);
 });

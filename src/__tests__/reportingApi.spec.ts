@@ -18,7 +18,7 @@
 import helpers from '@reportportal/client-javascript/lib/helpers';
 import { ReportingApi } from '../reportingApi';
 import * as utils from '../utils';
-import { LOG_LEVELS } from '../constants';
+import { PREDEFINED_LOG_LEVELS } from '../constants';
 import { mockedDate } from './mocks/RPClientMock';
 
 const reportingApiStatusMethods = [
@@ -183,7 +183,22 @@ describe('reportingApi', () => {
         time: mockedDate,
       };
       const spySendEventToReporter = jest.spyOn(utils, 'sendEventToReporter');
-      ReportingApi.log(LOG_LEVELS.INFO, 'message', file, suite);
+      ReportingApi.log(PREDEFINED_LOG_LEVELS.INFO, 'message', file, suite);
+
+      expect(spySendEventToReporter).toHaveBeenCalledWith(event, expectedData, suite);
+    });
+
+    test('ReportingApi.log should accept custom log level as string', () => {
+      const event = 'rp:addLog';
+      const customLevel = 'CUSTOM_LEVEL';
+      const expectedData = {
+        file,
+        level: customLevel,
+        message: 'custom message',
+        time: mockedDate,
+      };
+      const spySendEventToReporter = jest.spyOn(utils, 'sendEventToReporter');
+      ReportingApi.log(customLevel, 'custom message', file, suite);
 
       expect(spySendEventToReporter).toHaveBeenCalledWith(event, expectedData, suite);
     });
@@ -216,7 +231,22 @@ describe('reportingApi', () => {
         time: mockedDate,
       };
       const spySendEventToReporter = jest.spyOn(utils, 'sendEventToReporter');
-      ReportingApi.launchLog(LOG_LEVELS.INFO, 'message', file);
+      ReportingApi.launchLog(PREDEFINED_LOG_LEVELS.INFO, 'message', file);
+
+      expect(spySendEventToReporter).toHaveBeenCalledWith(event, expectedData);
+    });
+
+    test('ReportingApi.launchLog should accept custom log level as string', () => {
+      const event = 'rp:addLaunchLog';
+      const customLevel = 'CUSTOM_LAUNCH_LEVEL';
+      const expectedData = {
+        file,
+        level: customLevel,
+        message: 'custom launch message',
+        time: mockedDate,
+      };
+      const spySendEventToReporter = jest.spyOn(utils, 'sendEventToReporter');
+      ReportingApi.launchLog(customLevel, 'custom launch message', file);
 
       expect(spySendEventToReporter).toHaveBeenCalledWith(event, expectedData);
     });

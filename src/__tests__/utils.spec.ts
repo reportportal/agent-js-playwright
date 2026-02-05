@@ -20,7 +20,6 @@ import { name as pjsonName, version as pjsonVersion } from '../../package.json';
 import {
   getAgentInfo,
   getCodeRef,
-  getSystemAttributes,
   promiseErrorHandler,
   sendEventToReporter,
   isFalse,
@@ -28,6 +27,7 @@ import {
   isErrorLog,
   fileExists,
   calculateRpStatus,
+  getSkipReason,
 } from '../utils';
 import fs from 'fs';
 import path from 'path';
@@ -36,8 +36,8 @@ import {
   TestOutcome,
   BASIC_ATTACHMENT_CONTENT_TYPES,
   BASIC_ATTACHMENT_NAMES,
+  TEST_ANNOTATION_TYPES,
 } from '../constants';
-import { RPReporter } from '../reporter';
 
 const mockAnnotations: any[] = [];
 
@@ -124,32 +124,6 @@ describe('testing utils', () => {
 
       expect(agentInfo.name).toBe(pjsonName);
       expect(agentInfo.version).toBe(pjsonVersion);
-    });
-  });
-
-  describe('getSystemAttributes', () => {
-    const expectedRes = [
-      {
-        key: 'agent',
-        value: `${pjsonName}|${pjsonVersion}`,
-        system: true,
-      },
-    ];
-    test('should return the list of system attributes', () => {
-      const systemAttributes = getSystemAttributes();
-
-      expect(systemAttributes).toEqual(expectedRes);
-    });
-
-    test('should return expected list of system attributes in case skippedIssue=false', () => {
-      const systemAttributes = getSystemAttributes(false);
-      const skippedIssueAttribute = {
-        key: 'skippedIssue',
-        value: 'false',
-        system: true,
-      };
-
-      expect(systemAttributes).toEqual([...expectedRes, skippedIssueAttribute]);
     });
   });
 
@@ -369,6 +343,31 @@ describe('testing utils', () => {
       expect(attachmentResult).toEqual(expectedAttachments);
     });
 
+    test('should log error to console when reading file fails', async () => {
+      const readError = new Error('Read file error');
+      const spyConsoleError = jest.spyOn(console, 'error').mockImplementation();
+
+      jest.spyOn(fs.promises, 'stat').mockImplementationOnce(() => Promise.resolve({} as fs.Stats));
+      jest.spyOn(fs.promises, 'readFile').mockImplementationOnce(async () => {
+        throw readError;
+      });
+
+      const attachments = [
+        {
+          name: 'filename1',
+          contentType: 'image/png',
+          path: 'path/to/attachment',
+        },
+      ];
+
+      const attachmentResult = await getAttachments(attachments);
+
+      expect(spyConsoleError).toHaveBeenCalledWith(readError);
+      expect(attachmentResult).toEqual([]);
+
+      spyConsoleError.mockRestore();
+    });
+
     describe('with attachments options', () => {
       test('should return empty attachment list without trace in case of uploadTrace option is false', async () => {
         const attachments = [
@@ -465,6 +464,49 @@ describe('testing utils', () => {
     test('calculateRpStatus should return STATUSES.PASSED in case of "unexpected" outcome, "fail" annotation and "failed" status', () => {
       const status = calculateRpStatus('unexpected', 'failed', [{ type: 'fail' }]);
       expect(status).toBe(STATUSES.PASSED);
+    });
+  });
+
+  describe('getSkipReason', () => {
+    test.each([
+      [
+        [{ type: TEST_ANNOTATION_TYPES.SKIP, description: 'Cannot run suite.' }],
+        'Cannot run suite.',
+      ],
+      [
+        [{ type: TEST_ANNOTATION_TYPES.FIXME, description: 'Feature not implemented.' }],
+        'Feature not implemented.',
+      ],
+      [
+        [
+          { type: TEST_ANNOTATION_TYPES.SKIP, description: 'First reason' },
+          { type: TEST_ANNOTATION_TYPES.SKIP, description: 'Second reason' },
+        ],
+        'First reason',
+      ],
+      [
+        [
+          { type: TEST_ANNOTATION_TYPES.SKIP, description: 'Skip reason' },
+          { type: TEST_ANNOTATION_TYPES.FIXME, description: 'Fixme reason' },
+        ],
+        'Skip reason',
+      ],
+    ])('should return skip reason for %j', (annotations, expected) => {
+      expect(getSkipReason(annotations)).toBe(expected);
+    });
+
+    test.each([
+      {
+        annotations: [{ type: TEST_ANNOTATION_TYPES.SKIP }],
+        name: 'skip annotation without description',
+      },
+      {
+        annotations: [{ type: 'custom', description: 'Some description' }],
+        name: 'non-skip annotation',
+      },
+      { annotations: [], name: 'empty annotations array' },
+    ])('should return undefined for $name', ({ annotations }) => {
+      expect(getSkipReason(annotations)).toBeUndefined();
     });
   });
 });
