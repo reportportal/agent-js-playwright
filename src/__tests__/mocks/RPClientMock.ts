@@ -46,9 +46,21 @@ export class RPClientMock {
 
   public sendLog = jest.fn().mockReturnValue({
     promise: Promise.resolve('ok'),
+    tempId: 'tempLogId',
   });
 
   public checkConnect = jest.fn().mockReturnValue({
     promise: Promise.resolve('ok'),
   });
+
+  public updateLaunch = jest.fn().mockReturnValue({
+    promise: Promise.resolve('ok'),
+    tempId: 'tempLaunchId',
+  });
+
+  public getPromiseFinishAllItems = jest.fn().mockResolvedValue('ok');
+
+  public helpers = {
+    now: jest.fn().mockReturnValue(Date.now()),
+  };
 }
