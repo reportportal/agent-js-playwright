@@ -18,7 +18,6 @@
 import { TestCase, TestResult, TestStatus } from '@playwright/test/reporter';
 import fs from 'fs';
 import path from 'path';
-// @ts-ignore
 import {
   name as pjsonName,
   version as pjsonVersion,
