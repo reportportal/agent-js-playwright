@@ -18,11 +18,7 @@
 import { TestCase, TestResult, TestStatus } from '@playwright/test/reporter';
 import fs from 'fs';
 import path from 'path';
-import {
-  name as pjsonName,
-  version as pjsonVersion,
-  devDependencies as pjsonDevDeps,
-} from '../package.json';
+import { name as pjsonName, version as pjsonVersion } from '../package.json';
 import { Attachment, AttachmentsConfig, Attribute } from './models';
 import {
   BASIC_ATTACHMENT_CONTENT_TYPES,
@@ -37,9 +33,15 @@ import { test } from '@playwright/test';
 
 const fsPromises = fs.promises;
 
-const declaredVersion = ((pjsonDevDeps || {})['@playwright/test'] || '').replace(/^\D+/, '');
-// eslint-disable-next-line @typescript-eslint/no-var-requires,global-require
-const framework_version = require('@playwright/test/package.json').version || declaredVersion;
+const getFrameworkVersion = (): string => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires,global-require
+    return require('@playwright/test/package.json').version || 'not_set';
+  } catch {
+    return 'not_set';
+  }
+};
+const framework_version = getFrameworkVersion();
 
 export const isFalse = (value: string | boolean | undefined): boolean =>
   [false, 'false'].includes(value);
