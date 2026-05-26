@@ -18,7 +18,7 @@
 import { TestCase, TestResult, TestStatus } from '@playwright/test/reporter';
 import fs from 'fs';
 import path from 'path';
-// @ts-ignore
+// @ts-ignore to not include copy of package.json to the build dir
 import { name as pjsonName, version as pjsonVersion } from '../package.json';
 import { Attachment, AttachmentsConfig, Attribute } from './models';
 import {
@@ -34,6 +34,16 @@ import { test } from '@playwright/test';
 
 const fsPromises = fs.promises;
 
+const getFrameworkVersion = (): string => {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires,global-require
+    return require('@playwright/test/package.json').version || 'not_set';
+  } catch {
+    return 'not_set';
+  }
+};
+const framework_version = getFrameworkVersion();
+
 export const isFalse = (value: string | boolean | undefined): boolean =>
   [false, 'false'].includes(value);
 
@@ -42,9 +52,10 @@ export const promiseErrorHandler = (promise: Promise<void>, message = ''): Promi
     console.error(message, err);
   });
 
-export const getAgentInfo = (): { version: string; name: string } => ({
+export const getAgentInfo = (): { version: string; name: string; framework_version?: string } => ({
   version: pjsonVersion,
   name: pjsonName,
+  framework_version,
 });
 
 export const getSystemAttribute = (): Attribute => ({

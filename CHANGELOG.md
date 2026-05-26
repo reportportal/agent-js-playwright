@@ -1,3 +1,7 @@
+### Security
+- Addressed [CVE-2025-69873](https://www.cve.org/CVERecord?id=CVE-2025-69873), [CVE-2026-33750](https://www.cve.org/CVERecord?id=CVE-2026-33750), [CVE-2026-6321](https://www.cve.org/CVERecord?id=CVE-2026-6321), [CVE-2026-6322](https://www.cve.org/CVERecord?id=CVE-2026-6322), [CVE-2026-32141](https://www.cve.org/CVERecord?id=CVE-2026-32141), [CVE-2026-33228](https://www.cve.org/CVERecord?id=CVE-2026-33228), [CVE-2026-33916](https://www.cve.org/CVERecord?id=CVE-2026-33916), [CVE-2026-33937](https://www.cve.org/CVERecord?id=CVE-2026-33937), [CVE-2026-33938](https://www.cve.org/CVERecord?id=CVE-2026-33938), [CVE-2026-33939](https://www.cve.org/CVERecord?id=CVE-2026-33939), [CVE-2026-33940](https://www.cve.org/CVERecord?id=CVE-2026-33940), [CVE-2026-33941](https://www.cve.org/CVERecord?id=CVE-2026-33941), [CVE-2026-26996](https://www.cve.org/CVERecord?id=CVE-2026-26996), [CVE-2026-27903](https://www.cve.org/CVERecord?id=CVE-2026-27903), [CVE-2026-27904](https://www.cve.org/CVERecord?id=CVE-2026-27904), [CVE-2026-33671](https://www.cve.org/CVERecord?id=CVE-2026-33671), [CVE-2026-33672](https://www.cve.org/CVERecord?id=CVE-2026-33672), [GHSA-7rx3-28cr-v5wh](https://github.com/advisories/GHSA-7rx3-28cr-v5wh), [GHSA-442j-39wm-28r2](https://github.com/advisories/GHSA-442j-39wm-28r2).
+### Added
+- Google Analytics improvements.
 
 ## [5.4.0] - 2026-02-05
 ### Added
