@@ -18,6 +18,7 @@
 import { TestCase, TestResult, TestStatus } from '@playwright/test/reporter';
 import fs from 'fs';
 import path from 'path';
+// @ts-ignore to not include copy of package.json to the build dir
 import { name as pjsonName, version as pjsonVersion } from '../package.json';
 import { Attachment, AttachmentsConfig, Attribute } from './models';
 import {
