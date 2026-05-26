@@ -21,6 +21,7 @@ on:
     paths-ignore:
       - README.md
       - CHANGELOG.md
+      - '.github/**'
   pull_request:
     branches:
       - develop
@@ -28,6 +29,7 @@ on:
     paths-ignore:
       - README.md
       - CHANGELOG.md
+      - '.github/**'
 
 jobs:
   test:
