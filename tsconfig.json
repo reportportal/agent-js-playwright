@@ -5,6 +5,7 @@
     "allowJs": false,
     "noImplicitAny": true,
     "moduleResolution": "node",
+    "resolveJsonModule": true,
     "downlevelIteration": true,
     "declaration": true,
     "lib": ["es2016", "es2016.array.include", "dom"],
