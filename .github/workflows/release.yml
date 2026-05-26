@@ -21,6 +21,7 @@ on:
       - '.github/**'
       - README.md
       - CHANGELOG.md
+  workflow_dispatch:
 
 env:
   versionFileName: 'VERSION'
