@@ -678,7 +678,3 @@ test.fixme('example fail', async ({}) => {
   expect(1).toBeGreaterThan(2);
 });
 ```
-
-## Code knowledge graph
-
-See [DEV_GUIDE.md](DEV_GUIDE.md#code-knowledge-graph) for details on the local code knowledge graph used by contributor tooling.
