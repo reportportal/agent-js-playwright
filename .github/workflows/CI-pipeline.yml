@@ -44,6 +44,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Audit for vulnerable prod dependencies
+        run: npm audit --audit-level=high --omit=dev
+
       - name: Build the source code
         run: npm run build
 
