@@ -1,3 +1,5 @@
+
+## [5.4.2] - 2026-07-13
 ### Added
 - Report skipped test steps with skip reason, addresses [#171](https://github.com/reportportal/agent-js-playwright/issues/171).
 ### Changed
