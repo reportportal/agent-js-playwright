@@ -27,7 +27,7 @@ import {
   isErrorLog,
   fileExists,
   calculateRpStatus,
-  getSkipReason,
+  getSkipAnnotation,
 } from '../utils';
 import fs from 'fs';
 import path from 'path';
@@ -467,46 +467,57 @@ describe('testing utils', () => {
     });
   });
 
-  describe('getSkipReason', () => {
+  describe('getSkipAnnotation', () => {
     test.each([
-      [
-        [{ type: TEST_ANNOTATION_TYPES.SKIP, description: 'Cannot run suite.' }],
-        'Cannot run suite.',
-      ],
-      [
-        [{ type: TEST_ANNOTATION_TYPES.FIXME, description: 'Feature not implemented.' }],
-        'Feature not implemented.',
-      ],
-      [
-        [
+      {
+        annotations: [{ type: TEST_ANNOTATION_TYPES.SKIP, description: 'Skip reason' }],
+        expected: { type: TEST_ANNOTATION_TYPES.SKIP, description: 'Skip reason' },
+        name: 'skip annotation with description',
+      },
+      {
+        annotations: [{ type: TEST_ANNOTATION_TYPES.SKIP }],
+        expected: { type: TEST_ANNOTATION_TYPES.SKIP },
+        name: 'skip annotation without description',
+      },
+      {
+        annotations: [{ type: TEST_ANNOTATION_TYPES.FIXME, description: 'Fixme reason' }],
+        expected: { type: TEST_ANNOTATION_TYPES.FIXME, description: 'Fixme reason' },
+        name: 'fixme annotation with description',
+      },
+      {
+        annotations: [{ type: TEST_ANNOTATION_TYPES.FIXME }],
+        expected: { type: TEST_ANNOTATION_TYPES.FIXME },
+        name: 'fixme annotation without description',
+      },
+      {
+        annotations: [
           { type: TEST_ANNOTATION_TYPES.SKIP, description: 'First reason' },
           { type: TEST_ANNOTATION_TYPES.SKIP, description: 'Second reason' },
         ],
-        'First reason',
-      ],
-      [
-        [
+        expected: { type: TEST_ANNOTATION_TYPES.SKIP, description: 'First reason' },
+        name: 'first skip annotation when multiple are present',
+      },
+      {
+        annotations: [
           { type: TEST_ANNOTATION_TYPES.SKIP, description: 'Skip reason' },
           { type: TEST_ANNOTATION_TYPES.FIXME, description: 'Fixme reason' },
         ],
-        'Skip reason',
-      ],
-    ])('should return skip reason for %j', (annotations, expected) => {
-      expect(getSkipReason(annotations)).toBe(expected);
+        expected: { type: TEST_ANNOTATION_TYPES.SKIP, description: 'Skip reason' },
+        name: 'first matching annotation when skip and fixme are present',
+      },
+    ])('should return annotation for $name', ({ annotations, expected }) => {
+      expect(getSkipAnnotation(annotations)).toEqual(expected);
     });
 
     test.each([
       {
-        annotations: [{ type: TEST_ANNOTATION_TYPES.SKIP }],
-        name: 'skip annotation without description',
-      },
-      {
         annotations: [{ type: 'custom', description: 'Some description' }],
-        name: 'non-skip annotation',
+        name: 'custom annotation',
       },
       { annotations: [], name: 'empty annotations array' },
+      { annotations: undefined, name: 'undefined annotations' },
     ])('should return undefined for $name', ({ annotations }) => {
-      expect(getSkipReason(annotations)).toBeUndefined();
+      expect(getSkipAnnotation(annotations)).toBeUndefined();
     });
   });
 });

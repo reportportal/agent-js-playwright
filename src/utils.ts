@@ -216,12 +216,11 @@ export const safeParse = (input: unknown) => {
   }
 };
 
-export const getSkipReason = (annotations: TestAnnotation[]): string | undefined => {
-  const skipAnnotation = annotations.find(
+export const getSkipAnnotation = (annotations?: TestAnnotation[]): TestAnnotation | undefined => {
+  if (!annotations) return undefined;
+  return annotations.find(
     (annotation) =>
-      (annotation.type === TEST_ANNOTATION_TYPES.SKIP ||
-        annotation.type === TEST_ANNOTATION_TYPES.FIXME) &&
-      annotation.description,
+      annotation.type === TEST_ANNOTATION_TYPES.SKIP ||
+      annotation.type === TEST_ANNOTATION_TYPES.FIXME,
   );
-  return skipAnnotation?.description;
 };
