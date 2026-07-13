@@ -41,7 +41,7 @@ import {
   getAgentInfo,
   getAttachments,
   getCodeRef,
-  getSkipReason,
+  getSkipAnnotation,
   getSystemAttribute,
   isErrorLog,
   isFalse,
@@ -485,24 +485,41 @@ export class RPReporter implements Reporter {
     const nestedStep = this.nestedSteps.get(fullStepName);
     if (!nestedStep) return;
 
-    if (step.error) {
-      const errorMessages = this.loggedErrors.get(test.id);
-      const isLogged = errorMessages?.has(step.error.message);
+    const skipAnnotation = getSkipAnnotation(step.annotations);
 
-      if (!isLogged) {
-        const stacktrace = stripAnsi(step.error.stack || step.error.message || '');
+    let stepStatus: STATUSES;
+    if (!!skipAnnotation) {
+      stepStatus = STATUSES.SKIPPED;
+      if (skipAnnotation.description) {
         this.sendLog(nestedStep.id, {
-          level: PREDEFINED_LOG_LEVELS.ERROR,
-          message: stacktrace,
+          level: PREDEFINED_LOG_LEVELS.INFO,
+          message: `**Skip reason: ${skipAnnotation.description}**`,
         });
+      }
+    } else {
+      stepStatus = STATUSES.PASSED;
 
-        if (!errorMessages) {
-          this.loggedErrors.set(test.id, new Set([step.error.message]));
-        } else {
-          errorMessages.add(step.error.message);
+      if (step.error) {
+        stepStatus = STATUSES.FAILED;
+        const errorMessages = this.loggedErrors.get(test.id);
+        const isLogged = errorMessages?.has(step.error.message);
+
+        if (!isLogged) {
+          const stacktrace = stripAnsi(step.error.stack || step.error.message || '');
+          this.sendLog(nestedStep.id, {
+            level: PREDEFINED_LOG_LEVELS.ERROR,
+            message: stacktrace,
+          });
+
+          if (!errorMessages) {
+            this.loggedErrors.set(test.id, new Set([step.error.message]));
+          } else {
+            errorMessages.add(step.error.message);
+          }
         }
       }
     }
+
     if (step.attachments?.length) {
       try {
         const { uploadVideo, uploadTrace } = this.config;
@@ -530,7 +547,7 @@ export class RPReporter implements Reporter {
     }
 
     const stepFinishObj = {
-      status: step.error ? STATUSES.FAILED : STATUSES.PASSED,
+      status: stepStatus,
       endTime: clientHelpers.now(),
     };
 
@@ -589,9 +606,9 @@ export class RPReporter implements Reporter {
     let testDescription = description;
     const calculatedStatus = calculateRpStatus(test.outcome(), result.status, test.annotations);
 
-    const skipReason = getSkipReason(test.annotations);
-    if (skipReason) {
-      const skipReasonText = `**Skip reason: ${skipReason}**`;
+    const skipAnnotation = getSkipAnnotation(test.annotations);
+    if (skipAnnotation?.description) {
+      const skipReasonText = `**Skip reason: ${skipAnnotation.description}**`;
       testDescription = testDescription ? `${skipReasonText}\n${testDescription}` : skipReasonText;
     }
     const status = predefinedStatus || calculatedStatus;

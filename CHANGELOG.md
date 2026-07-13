@@ -1,3 +1,10 @@
+### Added
+- Report skipped test steps with skip reason, addresses [#171](https://github.com/reportportal/agent-js-playwright/issues/171).
+### Changed
+- Outdated `uuid` lib replaced with Node.js native `crypto.randomUUID`, resolves [#210](https://github.com/reportportal/agent-js-playwright/issues/210).
+- `@reportportal/client-javascript` bumped to version `5.5.12`.
+### Security
+- Addressed [CVE-2026-12143](https://www.cve.org/CVERecord?id=CVE-2026-12143).
 
 ## [5.4.1] - 2026-05-26
 ### Security

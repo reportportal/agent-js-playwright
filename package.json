@@ -5,6 +5,7 @@
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "scripts": {
+    "codegraph": "bash scripts/codegraph.sh",
     "build": "npm run clean && tsc",
     "clean": "rimraf ./build",
     "lint": "eslint \"src/**/*.ts\"",
@@ -13,14 +14,14 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@reportportal/client-javascript": "~5.5.11",
+    "@reportportal/client-javascript": "~5.5.12",
     "strip-ansi": "~6.0.1"
   },
   "files": [
     "/build"
   ],
   "devDependencies": {
-    "@playwright/test": "^1.55.1",
+    "@playwright/test": "^1.61.1",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.14.10",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
