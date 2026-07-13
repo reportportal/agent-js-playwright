@@ -21,7 +21,7 @@
     "/build"
   ],
   "devDependencies": {
-    "@playwright/test": "^1.55.1",
+    "@playwright/test": "^1.61.1",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.14.10",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
