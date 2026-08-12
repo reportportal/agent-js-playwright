@@ -112,9 +112,78 @@ describe('retries race: failing attempt with attachments must not orphan the ret
       { status: 'passed' },
     );
 
-    const finishedIds = finishTestItemSpy.mock.calls.map(([id]) => id);
+    const finishedIds = finishTestItemSpy.mock.calls.map((call) => call[0]);
 
     expect(finishedIds).toContain('item_0');
     expect(finishedIds).toContain('item_1');
+  });
+
+  test("attempt-0's onTestEnd must not finish the overlapping retry's active nested step", async () => {
+    reporter.config.includeTestSteps = true;
+
+    jest
+      .spyOn(reporter.client, 'startTestItem')
+      // onTestBegin(attempt0) -> item_0, onStepBegin(attempt0) -> step_0,
+      // onTestBegin(retry) -> item_1, onStepBegin(retry) -> step_1
+      .mockReturnValueOnce({ promise: Promise.resolve('ok'), tempId: 'item_0' } as any)
+      .mockReturnValueOnce({ promise: Promise.resolve('ok'), tempId: 'step_0' } as any)
+      .mockReturnValueOnce({ promise: Promise.resolve('ok'), tempId: 'item_1' } as any)
+      .mockReturnValueOnce({ promise: Promise.resolve('ok'), tempId: 'step_1' } as any);
+
+    const finishTestItemSpy = jest.spyOn(reporter.client, 'finishTestItem');
+
+    const deferredAttachments = createDeferred<Attachment[]>();
+    jest.spyOn(utils, 'getAttachments').mockReturnValue(deferredAttachments.promise);
+
+    const testCase = buildTestCase();
+    const buildStep = (id: string) => ({
+      title: 'stepName',
+      id,
+      titlePath: () => ['stepName'],
+    });
+
+    // Attempt 0 starts and opens a nested step that never ends (in-flight).
+    // @ts-ignore partial TestCase mock
+    reporter.onTestBegin(testCase);
+    // @ts-ignore partial mocks
+    reporter.onStepBegin(testCase, {}, buildStep('sA'));
+
+    // Attempt 0 fails WITH attachments -> onTestEnd suspends on getAttachments.
+    const attempt0End = reporter.onTestEnd(
+      // @ts-ignore partial TestCase mock
+      testCase,
+      // @ts-ignore partial TestResult mock
+      { status: 'failed', attachments: [{ name: 'shot', contentType: 'image/png', path: '/x.png' }] },
+    );
+    await Promise.resolve();
+
+    // Retry begins and opens its OWN nested step while attempt 0 is suspended.
+    // @ts-ignore partial TestCase mock
+    reporter.onTestBegin(testCase);
+    // @ts-ignore partial mocks
+    reporter.onStepBegin(testCase, {}, buildStep('sB'));
+
+    // Attempt 0 resumes.
+    deferredAttachments.resolve([]);
+    await attempt0End;
+
+    const finishedAfterAttempt0 = finishTestItemSpy.mock.calls.map((call) => call[0]);
+    // Attempt 0 finishes its own leftover step and item...
+    expect(finishedAfterAttempt0).toContain('step_0');
+    expect(finishedAfterAttempt0).toContain('item_0');
+    // ...but must NOT sweep the retry's still-active nested step (the #212 bug).
+    expect(finishedAfterAttempt0).not.toContain('step_1');
+
+    // Retry ends -> finishes its own step and item.
+    await reporter.onTestEnd(
+      // @ts-ignore partial TestCase mock
+      testCase,
+      // @ts-ignore partial TestResult mock
+      { status: 'passed' },
+    );
+
+    const finishedAll = finishTestItemSpy.mock.calls.map((call) => call[0]);
+    expect(finishedAll).toContain('step_1');
+    expect(finishedAll).toContain('item_1');
   });
 });

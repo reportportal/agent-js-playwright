@@ -58,6 +58,7 @@ export interface TestItem {
   attributes?: Attribute[];
   description?: string;
   testCaseId?: string;
+  ownerItemId?: string;
 }
 
 interface Suite extends TestItem {
@@ -469,6 +470,7 @@ export class RPReporter implements Reporter {
     this.nestedSteps.set(fullStepName, {
       name: step.title,
       id: tempId,
+      ownerItemId: this.testItems.get(test.id)?.id,
     });
 
     const activeStepStack = this.activeSteps.get(test.id) || [];
@@ -634,8 +636,8 @@ export class RPReporter implements Reporter {
       });
     }
 
-    const hasUnfinishedNestedSteps = [...this.nestedSteps.keys()].some((key) =>
-      key.includes(test.id),
+    const hasUnfinishedNestedSteps = [...this.nestedSteps.values()].some(
+      (value) => value.ownerItemId === testItemId,
     );
 
     if (result.error) {
@@ -654,8 +656,8 @@ export class RPReporter implements Reporter {
       }
     }
 
-    const unfinishedSteps = [...this.nestedSteps.entries()].filter(([key]) =>
-      key.includes(test.id),
+    const unfinishedSteps = [...this.nestedSteps.entries()].filter(
+      ([, value]) => value.ownerItemId === testItemId,
     );
 
     unfinishedSteps.reverse().forEach(([key, value]) => {
