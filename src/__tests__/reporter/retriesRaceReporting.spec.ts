@@ -153,7 +153,10 @@ describe('retries race: failing attempt with attachments must not orphan the ret
       // @ts-ignore partial TestCase mock
       testCase,
       // @ts-ignore partial TestResult mock
-      { status: 'failed', attachments: [{ name: 'shot', contentType: 'image/png', path: '/x.png' }] },
+      {
+        status: 'failed',
+        attachments: [{ name: 'shot', contentType: 'image/png', path: '/x.png' }],
+      },
     );
     await Promise.resolve();
 
