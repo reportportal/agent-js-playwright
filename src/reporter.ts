@@ -681,11 +681,12 @@ export class RPReporter implements Reporter {
     const { promise } = this.client.finishTestItem(testItemId, finishTestItemObj);
 
     this.addRequestToPromisesQueue(promise, 'Failed to finish test.');
-    this.testItems.delete(test.id);
-
-    this.activeSteps.delete(test.id);
-    this.loggedErrors.delete(test.id);
-    this.stepAttachments.delete(test.id);
+    if (this.testItems.get(test.id)?.id === testItemId) {
+      this.testItems.delete(test.id);
+      this.activeSteps.delete(test.id);
+      this.loggedErrors.delete(test.id);
+      this.stepAttachments.delete(test.id);
+    }
 
     this.updateAncestorsTestInvocations(test, result);
 
