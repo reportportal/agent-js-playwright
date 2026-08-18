@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-import helpers from '@reportportal/client-javascript/lib/helpers';
+import helpers from '@reportportal/client-javascript/helpers';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
@@ -31,7 +31,7 @@ describe('onStepBegin reporting', () => {
   beforeEach(() => {
     mockConfig.includeTestSteps = true;
     reporter = new RPReporter(mockConfig);
-    reporter.client = new RPClientMock(mockConfig);
+    reporter.client = new RPClientMock(mockConfig) as unknown as typeof reporter.client;
 
     reporter.launchId = 'launchId';
 
