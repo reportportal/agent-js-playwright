@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-import helpers from '@reportportal/client-javascript/lib/helpers';
+import helpers from '@reportportal/client-javascript/helpers';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
@@ -70,7 +70,7 @@ describe('finish test reporting', () => {
 
   beforeEach(() => {
     reporter = new RPReporter(mockConfig);
-    reporter.client = new RPClientMock(mockConfig);
+    reporter.client = new RPClientMock(mockConfig) as unknown as typeof reporter.client;
     reporter.launchId = 'tempLaunchId';
     reporter.testItems = new Map([['testItemId', { id: 'tempTestItemId', name: 'testTitle' }]]);
     reporter.suites = new Map([
@@ -106,7 +106,7 @@ describe('finish test reporting', () => {
     };
     const finishTestItemObj: FinishTestItemObjType = {
       endTime: mockedDate,
-      status: result.status,
+      status: result.status as STATUSES,
       attributes: [{ key: 'key', value: 'value' }],
       description: 'description',
     };
@@ -129,7 +129,7 @@ describe('finish test reporting', () => {
     };
     const finishTestItemObj: FinishTestItemObjType = {
       endTime: mockedDate,
-      status: result.status,
+      status: result.status as STATUSES,
       attributes: [{ key: 'key', value: 'value' }],
       description: 'description',
     };
@@ -255,7 +255,7 @@ describe('finish test reporting', () => {
       jest.clearAllMocks();
       // Reset reporter state
       reporter = new RPReporter(mockConfig);
-      reporter.client = new RPClientMock(mockConfig);
+      reporter.client = new RPClientMock(mockConfig) as unknown as typeof reporter.client;
       reporter.launchId = 'tempLaunchId';
       reporter.testItems = new Map([['testItemId', { id: 'tempTestItemId', name: 'testTitle' }]]);
       reporter.suites = new Map([
@@ -444,7 +444,9 @@ describe('finish test reporting', () => {
       };
 
       const reporterWithConfig = new RPReporter(customConfig);
-      reporterWithConfig.client = new RPClientMock(customConfig);
+      reporterWithConfig.client = new RPClientMock(
+        customConfig,
+      ) as unknown as typeof reporterWithConfig.client;
       reporterWithConfig.launchId = 'tempLaunchId';
       reporterWithConfig.testItems = new Map([
         ['testItemId', { id: 'tempTestItemId', name: 'testTitle' }],

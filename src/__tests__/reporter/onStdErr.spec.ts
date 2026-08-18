@@ -21,7 +21,7 @@ import { PREDEFINED_LOG_LEVELS } from '../../constants';
 
 describe('onStdErr testing', () => {
   const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
+  reporter.client = new RPClientMock(mockConfig) as unknown as typeof reporter.client;
   const testCase = {
     title: 'testTitle',
     id: 'testItemId',

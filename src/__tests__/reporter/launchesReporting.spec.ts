@@ -15,7 +15,7 @@
  *
  */
 
-import helpers from '@reportportal/client-javascript/lib/helpers';
+import helpers from '@reportportal/client-javascript/helpers';
 import { RPReporter } from '../../reporter';
 import { StartLaunchObjType } from '../../models';
 import { LAUNCH_MODES } from '../../constants';
@@ -29,7 +29,7 @@ describe('start launch', () => {
 
   describe('DEFAULT mode', () => {
     const reporter = new RPReporter(mockConfig);
-    reporter.client = new RPClientMock(mockConfig);
+    reporter.client = new RPClientMock(mockConfig) as unknown as typeof reporter.client;
     const startLaunchObj: StartLaunchObjType = {
       name: mockConfig.launch,
       startTime: mockedDate,
@@ -56,7 +56,7 @@ describe('start launch', () => {
       mode: LAUNCH_MODES.DEBUG,
     };
     const reporter = new RPReporter(customConfig);
-    reporter.client = new RPClientMock(customConfig);
+    reporter.client = new RPClientMock(customConfig) as unknown as typeof reporter.client;
     const startLaunchObj: StartLaunchObjType = {
       name: customConfig.launch,
       startTime: mockedDate,
@@ -83,7 +83,7 @@ describe('start launch', () => {
       launchId: 'id',
     };
     const reporter = new RPReporter(customConfig);
-    reporter.client = new RPClientMock(customConfig);
+    reporter.client = new RPClientMock(customConfig) as unknown as typeof reporter.client;
     const startLaunchObj: StartLaunchObjType = {
       name: customConfig.launch,
       startTime: mockedDate,
@@ -119,7 +119,7 @@ describe('start launch', () => {
     beforeAll(() => {
       process.env.RP_LAUNCH_ID = 'id';
       reporter = new RPReporter(mockConfig);
-      reporter.client = new RPClientMock(mockConfig);
+      reporter.client = new RPClientMock(mockConfig) as unknown as typeof reporter.client;
 
       reporter.onBegin();
     });
@@ -142,7 +142,7 @@ describe('start launch', () => {
 describe('finish launch', () => {
   describe('without existing launch id in config', () => {
     const reporter = new RPReporter(mockConfig);
-    reporter.client = new RPClientMock(mockConfig);
+    reporter.client = new RPClientMock(mockConfig) as unknown as typeof reporter.client;
     reporter.launchId = 'tempLaunchId';
 
     beforeAll(() => reporter.onEnd());
@@ -162,7 +162,7 @@ describe('finish launch', () => {
       launchId: 'id',
     };
     const reporter = new RPReporter(customConfig);
-    reporter.client = new RPClientMock(customConfig);
+    reporter.client = new RPClientMock(customConfig) as unknown as typeof reporter.client;
     reporter.launchId = 'tempLaunchId';
 
     beforeAll(() => reporter.onEnd());
@@ -179,7 +179,7 @@ describe('finish launch', () => {
     beforeAll(() => {
       process.env.RP_LAUNCH_ID = 'id';
       reporter = new RPReporter(mockConfig);
-      reporter.client = new RPClientMock(mockConfig);
+      reporter.client = new RPClientMock(mockConfig) as unknown as typeof reporter.client;
       reporter.launchId = 'tempLaunchId';
 
       reporter.onEnd();

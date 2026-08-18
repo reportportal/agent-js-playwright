@@ -16,7 +16,7 @@
  */
 
 import RPClient from '@reportportal/client-javascript';
-import clientHelpers from '@reportportal/client-javascript/lib/helpers';
+import clientHelpers from '@reportportal/client-javascript/helpers';
 import stripAnsi from 'strip-ansi';
 import { Reporter, Suite as PWSuite, TestCase, TestResult } from '@playwright/test/reporter';
 import {
@@ -48,7 +48,7 @@ import {
   promiseErrorHandler,
   safeParse,
 } from './utils';
-import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
+import { EVENTS } from '@reportportal/client-javascript/constants';
 import { randomUUID } from 'crypto';
 
 export interface TestItem {
@@ -87,7 +87,7 @@ export class RPReporter implements Reporter {
 
   testItems: Map<string, TestItem> = new Map();
 
-  customLaunchStatus = '';
+  customLaunchStatus: STATUSES | '' = '';
 
   launchLogs: Map<string, LogRQ> = new Map();
 
@@ -123,7 +123,7 @@ export class RPReporter implements Reporter {
     );
   }
 
-  addRequestToPromisesQueue(promise: Promise<void>, failMessage: string): void {
+  addRequestToPromisesQueue<T>(promise: Promise<T>, failMessage: string): void {
     this.promises.push(promiseErrorHandler(promise, failMessage));
   }
 
@@ -572,7 +572,7 @@ export class RPReporter implements Reporter {
 
   processAnnotations({ annotations, test }: { annotations: Annotation[]; test?: TestCase }): void {
     annotations.forEach(({ type, description }) => {
-      if (type && description && Object.values(EVENTS).includes(type)) {
+      if (type && description && Object.values<string>(EVENTS).includes(type)) {
         try {
           const data = safeParse(description);
           const reportData = {

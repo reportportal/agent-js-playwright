@@ -15,7 +15,7 @@
  *
  */
 
-import helpers from '@reportportal/client-javascript/lib/helpers';
+import helpers from '@reportportal/client-javascript/helpers';
 import { ReportingApi } from '../reportingApi';
 import * as utils from '../utils';
 import { PREDEFINED_LOG_LEVELS } from '../constants';

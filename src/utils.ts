@@ -47,10 +47,12 @@ const framework_version = getFrameworkVersion();
 export const isFalse = (value: string | boolean | undefined): boolean =>
   [false, 'false'].includes(value);
 
-export const promiseErrorHandler = (promise: Promise<void>, message = ''): Promise<void> =>
-  promise.catch((err) => {
-    console.error(message, err);
-  });
+export const promiseErrorHandler = <T>(promise: Promise<T>, message = ''): Promise<void> =>
+  promise
+    .then(() => {})
+    .catch((err) => {
+      console.error(message, err);
+    });
 
 export const getAgentInfo = (): { version: string; name: string; framework_version?: string } => ({
   version: pjsonVersion,

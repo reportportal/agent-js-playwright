@@ -15,8 +15,8 @@
  *
  */
 
-import { EVENTS } from '@reportportal/client-javascript/lib/constants/events';
-import clientHelpers from '@reportportal/client-javascript/lib/helpers';
+import { EVENTS } from '@reportportal/client-javascript/constants';
+import clientHelpers from '@reportportal/client-javascript/helpers';
 import { sendEventToReporter } from './utils';
 import { Attribute } from './models';
 import { STATUSES, PREDEFINED_LOG_LEVELS, LOG_LEVELS } from './constants';

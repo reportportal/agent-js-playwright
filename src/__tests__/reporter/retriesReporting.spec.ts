@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-import helpers from '@reportportal/client-javascript/lib/helpers';
+import helpers from '@reportportal/client-javascript/helpers';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
@@ -24,7 +24,7 @@ import { TEST_ITEM_TYPES } from '../../constants';
 describe('retries reporting', () => {
   jest.spyOn(helpers, 'now').mockReturnValue(mockedDate);
   const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
+  reporter.client = new RPClientMock(mockConfig) as unknown as typeof reporter.client;
 
   const testCase = {
     title: 'testTitle',
