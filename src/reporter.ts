@@ -636,9 +636,10 @@ export class RPReporter implements Reporter {
       });
     }
 
-    const hasUnfinishedNestedSteps = [...this.nestedSteps.values()].some(
-      (value) => value.ownerItemId === testItemId,
+    const unfinishedSteps = [...this.nestedSteps.entries()].filter(
+      ([, value]) => value.ownerItemId === testItemId,
     );
+    const hasUnfinishedNestedSteps = unfinishedSteps.length > 0;
 
     if (result.error) {
       const stacktrace = stripAnsi(result.error.stack || result.error.message);
@@ -655,10 +656,6 @@ export class RPReporter implements Reporter {
         testDescription = (testDescription || '').concat(`\n\`\`\`error\n${stacktrace}\n\`\`\``);
       }
     }
-
-    const unfinishedSteps = [...this.nestedSteps.entries()].filter(
-      ([, value]) => value.ownerItemId === testItemId,
-    );
 
     unfinishedSteps.reverse().forEach(([key, value]) => {
       const { id: stepId } = value;
