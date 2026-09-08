@@ -16,14 +16,11 @@
  */
 
 import { TestStep } from '@playwright/test/reporter';
+import type { ReportingApiInterface } from '@reportportal/client-javascript/models';
 
-export type {
-  StartLaunchOptions as StartLaunchObjType,
-  StartTestItemOptions as StartTestObjType,
-  FinishTestItemOptions as FinishTestItemObjType,
-  LogOptions as LogRQ,
-  Attachment,
-} from '@reportportal/client-javascript/models';
+type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+export type PlaywrightReportingApi = PartialBy<ReportingApiInterface, 'addLog' | 'addLaunchLog'>;
 
 export interface TestStepWithId extends TestStep {
   id: string;

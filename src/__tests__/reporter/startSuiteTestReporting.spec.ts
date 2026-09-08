@@ -18,7 +18,7 @@ import helpers from '@reportportal/client-javascript/helpers';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
-import { StartTestObjType } from '../../models';
+import type { StartTestItemOptions } from '@reportportal/client-javascript/models';
 import { TEST_ITEM_TYPES } from '../../constants';
 import path from 'path';
 
@@ -101,19 +101,19 @@ describe('start reporting suite/test', () => {
     const expectedTestItems = new Map([
       ['testItemId', { id: 'tempTestItemId', name: 'testTitle' }],
     ]);
-    const expectedRootParentSuiteObj: StartTestObjType = {
+    const expectedRootParentSuiteObj: StartTestItemOptions = {
       startTime: mockedDate,
       name: rootSuite,
       type: TEST_ITEM_TYPES.SUITE,
       codeRef: 'tests/example.js',
     };
-    const expectedParentSuiteObj: StartTestObjType = {
+    const expectedParentSuiteObj: StartTestItemOptions = {
       startTime: mockedDate,
       name: suiteName,
       type: TEST_ITEM_TYPES.TEST,
       codeRef: 'tests/example.js/suiteName',
     };
-    const expectedTestObj: StartTestObjType = {
+    const expectedTestObj: StartTestItemOptions = {
       startTime: mockedDate,
       name: 'testTitle',
       type: TEST_ITEM_TYPES.STEP,

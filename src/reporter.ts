@@ -19,15 +19,14 @@ import RPClient from '@reportportal/client-javascript';
 import clientHelpers from '@reportportal/client-javascript/helpers';
 import stripAnsi from 'strip-ansi';
 import { Reporter, Suite as PWSuite, TestCase, TestResult } from '@playwright/test/reporter';
-import {
+import type {
   Attribute,
-  FinishTestItemObjType,
-  LogRQ,
-  ReportPortalConfig,
-  StartLaunchObjType,
-  StartTestObjType,
-  TestStepWithId,
-} from './models';
+  FinishTestItemOptions,
+  LogOptions,
+  StartLaunchOptions,
+  StartTestItemOptions,
+} from '@reportportal/client-javascript/models';
+import { ReportPortalConfig, TestStepWithId } from './models';
 import {
   LAUNCH_MODES,
   PREDEFINED_LOG_LEVELS,
@@ -61,7 +60,7 @@ export interface TestItem {
 }
 
 interface Suite extends TestItem {
-  logs?: LogRQ[];
+  logs?: LogOptions[];
   testInvocationsLeft?: number;
   descendants?: string[];
   executedTestCount?: number;
@@ -89,7 +88,7 @@ export class RPReporter implements Reporter {
 
   customLaunchStatus: STATUSES | '' = '';
 
-  launchLogs: Map<string, LogRQ> = new Map();
+  launchLogs: Map<string, LogOptions> = new Map();
 
   nestedSteps: Map<string, TestItem> = new Map();
 
@@ -231,7 +230,7 @@ export class RPReporter implements Reporter {
     this.customLaunchStatus = status;
   }
 
-  sendTestItemLog(log: LogRQ, test: TestCase, suiteName?: string): void {
+  sendTestItemLog(log: LogOptions, test: TestCase, suiteName?: string): void {
     if (suiteName) {
       const suiteItem = this.suitesInfo.get(suiteName);
       const logs = (suiteItem?.logs || []).concat(log);
@@ -250,7 +249,7 @@ export class RPReporter implements Reporter {
     }
   }
 
-  sendLaunchLog(log: LogRQ): void {
+  sendLaunchLog(log: LogOptions): void {
     const currentLog = this.launchLogs.get(log.message);
     if (!currentLog) {
       this.sendLog(this.launchId, log);
@@ -260,7 +259,7 @@ export class RPReporter implements Reporter {
 
   sendLog(
     tempId: string,
-    { level = PREDEFINED_LOG_LEVELS.INFO, message = '', time, file }: LogRQ,
+    { level = PREDEFINED_LOG_LEVELS.INFO, message = '', time, file }: LogOptions,
   ): void {
     if (!time) {
       const now = clientHelpers.now();
@@ -293,7 +292,7 @@ export class RPReporter implements Reporter {
         });
       }
 
-      const finishSuiteObj: FinishTestItemObjType = {
+      const finishSuiteObj: FinishTestItemOptions = {
         endTime: clientHelpers.now(),
         ...(status && { status }),
       };
@@ -309,7 +308,7 @@ export class RPReporter implements Reporter {
     const { launch, description, attributes, rerun, rerunOf, mode, launchId } = this.config;
     const systemAttribute = getSystemAttribute();
 
-    const startLaunchObj: StartLaunchObjType = {
+    const startLaunchObj: StartLaunchOptions = {
       name: launch,
       startTime: clientHelpers.now(),
       description,
@@ -353,7 +352,7 @@ export class RPReporter implements Reporter {
       const { attributes, description, testCaseId, status, logs } =
         this.suitesInfo.get(currentSuiteTitle) || {};
 
-      const startSuiteObj: StartTestObjType = {
+      const startSuiteObj: StartTestItemOptions = {
         name: currentSuiteTitle,
         startTime: clientHelpers.now(),
         type: testItemType,
@@ -412,7 +411,7 @@ export class RPReporter implements Reporter {
         !includePlaywrightProjectNameToCodeReference && playwrightProjectName,
       );
       const { id: parentId } = parentSuiteObj;
-      const startTestItem: StartTestObjType = {
+      const startTestItem: StartTestItemOptions = {
         name: test.title,
         startTime: clientHelpers.now(),
         type: TEST_ITEM_TYPES.STEP,
@@ -671,7 +670,7 @@ export class RPReporter implements Reporter {
       this.nestedSteps.delete(key);
     });
 
-    const finishTestItemObj: FinishTestItemObjType = {
+    const finishTestItemObj: FinishTestItemOptions = {
       endTime: clientHelpers.now(),
       status,
       ...(attributes && { attributes }),

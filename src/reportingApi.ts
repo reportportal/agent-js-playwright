@@ -18,9 +18,9 @@
 import { EVENTS } from '@reportportal/client-javascript/constants';
 import clientHelpers from '@reportportal/client-javascript/helpers';
 import { sendEventToReporter } from './utils';
-import { Attribute } from './models';
 import { STATUSES, PREDEFINED_LOG_LEVELS, LOG_LEVELS } from './constants';
-import { Attachment } from './models/reporting';
+import type { Attachment, Attribute } from '@reportportal/client-javascript/models';
+import { PlaywrightReportingApi } from './models';
 
 export const ReportingApi = {
   addAttributes: (attrs: Attribute[], suite?: string): void =>
@@ -100,3 +100,5 @@ export const ReportingApi = {
   launchFatal: (message: string, file?: Attachment): void =>
     ReportingApi.launchLog(PREDEFINED_LOG_LEVELS.FATAL, message, file),
 };
+
+ReportingApi satisfies PlaywrightReportingApi;

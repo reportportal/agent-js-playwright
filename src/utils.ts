@@ -20,7 +20,8 @@ import fs from 'fs';
 import path from 'path';
 // @ts-ignore to not include copy of package.json to the build dir
 import { name as pjsonName, version as pjsonVersion } from '../package.json';
-import { Attachment, AttachmentsConfig, Attribute } from './models';
+import type { Attachment, Attribute } from '@reportportal/client-javascript/models';
+import { AttachmentsConfig } from './models';
 import {
   BASIC_ATTACHMENT_CONTENT_TYPES,
   BASIC_ATTACHMENT_NAMES,
