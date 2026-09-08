@@ -1,3 +1,5 @@
+### Fixed
+- Retry race condition where a failing attempt with attachments could orphan the retried test item and hang the whole launch at "IN PROGRESS", resolves [#212](https://github.com/reportportal/agent-js-playwright/issues/212).
 
 ## [5.4.2] - 2026-07-13
 ### Added

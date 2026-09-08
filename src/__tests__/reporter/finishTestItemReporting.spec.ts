@@ -206,7 +206,9 @@ describe('finish test reporting', () => {
   });
 
   test('client.finishTestItem should finish all unfinished steps and delete them from the this.nestedSteps', async () => {
-    reporter.nestedSteps = new Map([[`${testCase.id}/testTitle`, { name: 'name', id: '1214r1' }]]);
+    reporter.nestedSteps = new Map([
+      [`${testCase.id}/testTitle`, { name: 'name', id: '1214r1', ownerItemId: 'tempTestItemId' }],
+    ]);
 
     // @ts-ignore
     await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, {});
@@ -218,7 +220,9 @@ describe('finish test reporting', () => {
       status: 'timedOut',
     };
 
-    reporter.nestedSteps = new Map([[`${testCase.id}/testTitle`, { name: 'name', id: '1214r1' }]]);
+    reporter.nestedSteps = new Map([
+      [`${testCase.id}/testTitle`, { name: 'name', id: '1214r1', ownerItemId: 'tempTestItemId' }],
+    ]);
 
     // @ts-ignore
     await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
@@ -235,7 +239,9 @@ describe('finish test reporting', () => {
       status: 'failed',
     };
 
-    reporter.nestedSteps = new Map([[`${testCase.id}/testTitle`, { name: 'name', id: '1214r1' }]]);
+    reporter.nestedSteps = new Map([
+      [`${testCase.id}/testTitle`, { name: 'name', id: '1214r1', ownerItemId: 'tempTestItemId' }],
+    ]);
 
     // @ts-ignore
     await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
