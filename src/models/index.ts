@@ -15,25 +15,7 @@
  *
  */
 
-import {
-  StartLaunchObjType,
-  StartTestObjType,
-  FinishTestItemObjType,
-  LogRQ,
-  Attachment,
-  TestStepWithId,
-} from './reporting';
+import { TestStepWithId, PlaywrightReportingApi } from './reporting';
 import { ReportPortalConfig, AttachmentsConfig } from './configs';
-import { Attribute } from './common';
 
-export {
-  StartLaunchObjType,
-  StartTestObjType,
-  FinishTestItemObjType,
-  ReportPortalConfig,
-  AttachmentsConfig,
-  Attachment,
-  Attribute,
-  LogRQ,
-  TestStepWithId,
-};
+export { ReportPortalConfig, AttachmentsConfig, TestStepWithId, PlaywrightReportingApi };

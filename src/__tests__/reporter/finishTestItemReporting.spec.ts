@@ -18,7 +18,7 @@ import helpers from '@reportportal/client-javascript/helpers';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
-import { FinishTestItemObjType } from '../../models';
+import type { FinishTestItemOptions } from '@reportportal/client-javascript/models';
 import { STATUSES, TEST_ANNOTATION_TYPES } from '../../constants';
 import * as utils from '../../utils';
 
@@ -104,7 +104,7 @@ describe('finish test reporting', () => {
     const result = {
       status: 'passed',
     };
-    const finishTestItemObj: FinishTestItemObjType = {
+    const finishTestItemObj: FinishTestItemOptions = {
       endTime: mockedDate,
       status: result.status as STATUSES,
       attributes: [{ key: 'key', value: 'value' }],
@@ -127,7 +127,7 @@ describe('finish test reporting', () => {
     const result = {
       status: 'skipped',
     };
-    const finishTestItemObj: FinishTestItemObjType = {
+    const finishTestItemObj: FinishTestItemOptions = {
       endTime: mockedDate,
       status: result.status as STATUSES,
       attributes: [{ key: 'key', value: 'value' }],
@@ -227,7 +227,7 @@ describe('finish test reporting', () => {
     // @ts-ignore
     await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
 
-    const finishStepObject: FinishTestItemObjType = {
+    const finishStepObject: FinishTestItemOptions = {
       endTime: mockedDate,
       status: STATUSES.INTERRUPTED,
     };
@@ -246,7 +246,7 @@ describe('finish test reporting', () => {
     // @ts-ignore
     await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
 
-    const finishStepObject: FinishTestItemObjType = {
+    const finishStepObject: FinishTestItemOptions = {
       endTime: mockedDate,
       status: STATUSES.FAILED,
     };

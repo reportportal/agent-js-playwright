@@ -18,7 +18,7 @@ import helpers from '@reportportal/client-javascript/helpers';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
-import { StartTestObjType } from '../../models';
+import type { StartTestItemOptions } from '@reportportal/client-javascript/models';
 import { TEST_ITEM_TYPES } from '../../constants';
 
 describe('retries reporting', () => {
@@ -42,7 +42,7 @@ describe('retries reporting', () => {
 
   test('client.startTestItem should be called with retry=true params', () => {
     const parentId = 'tempTestItemId';
-    const expectedTestObj: StartTestObjType = {
+    const expectedTestObj: StartTestItemOptions = {
       startTime: mockedDate,
       name: 'testTitle',
       type: TEST_ITEM_TYPES.STEP,

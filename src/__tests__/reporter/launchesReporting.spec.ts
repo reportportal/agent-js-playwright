@@ -17,7 +17,7 @@
 
 import helpers from '@reportportal/client-javascript/helpers';
 import { RPReporter } from '../../reporter';
-import { StartLaunchObjType } from '../../models';
+import type { StartLaunchOptions } from '@reportportal/client-javascript/models';
 import { LAUNCH_MODES } from '../../constants';
 import { getSystemAttribute } from '../../utils';
 
@@ -30,7 +30,7 @@ describe('start launch', () => {
   describe('DEFAULT mode', () => {
     const reporter = new RPReporter(mockConfig);
     reporter.client = new RPClientMock(mockConfig) as unknown as typeof reporter.client;
-    const startLaunchObj: StartLaunchObjType = {
+    const startLaunchObj: StartLaunchOptions = {
       name: mockConfig.launch,
       startTime: mockedDate,
       attributes: [...(mockConfig.attributes || []), getSystemAttribute()],
@@ -57,7 +57,7 @@ describe('start launch', () => {
     };
     const reporter = new RPReporter(customConfig);
     reporter.client = new RPClientMock(customConfig) as unknown as typeof reporter.client;
-    const startLaunchObj: StartLaunchObjType = {
+    const startLaunchObj: StartLaunchOptions = {
       name: customConfig.launch,
       startTime: mockedDate,
       attributes: [...(customConfig.attributes || []), getSystemAttribute()],
@@ -84,7 +84,7 @@ describe('start launch', () => {
     };
     const reporter = new RPReporter(customConfig);
     reporter.client = new RPClientMock(customConfig) as unknown as typeof reporter.client;
-    const startLaunchObj: StartLaunchObjType = {
+    const startLaunchObj: StartLaunchOptions = {
       name: customConfig.launch,
       startTime: mockedDate,
       attributes: [...(customConfig.attributes || []), getSystemAttribute()],
@@ -107,7 +107,7 @@ describe('start launch', () => {
 
   describe('with existing launch id provided by ENV variable', () => {
     let reporter: RPReporter;
-    const startLaunchObj: StartLaunchObjType = {
+    const startLaunchObj: StartLaunchOptions = {
       name: mockConfig.launch,
       startTime: mockedDate,
       attributes: [...(mockConfig.attributes || []), getSystemAttribute()],
