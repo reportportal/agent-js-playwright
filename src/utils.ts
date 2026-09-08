@@ -20,7 +20,8 @@ import fs from 'fs';
 import path from 'path';
 // @ts-ignore to not include copy of package.json to the build dir
 import { name as pjsonName, version as pjsonVersion } from '../package.json';
-import { Attachment, AttachmentsConfig, Attribute } from './models';
+import type { Attachment, Attribute } from '@reportportal/client-javascript/models';
+import { AttachmentsConfig } from './models';
 import {
   BASIC_ATTACHMENT_CONTENT_TYPES,
   BASIC_ATTACHMENT_NAMES,
@@ -47,10 +48,12 @@ const framework_version = getFrameworkVersion();
 export const isFalse = (value: string | boolean | undefined): boolean =>
   [false, 'false'].includes(value);
 
-export const promiseErrorHandler = (promise: Promise<void>, message = ''): Promise<void> =>
-  promise.catch((err) => {
-    console.error(message, err);
-  });
+export const promiseErrorHandler = <T>(promise: Promise<T>, message = ''): Promise<void> =>
+  promise
+    .then(() => {})
+    .catch((err) => {
+      console.error(message, err);
+    });
 
 export const getAgentInfo = (): { version: string; name: string; framework_version?: string } => ({
   version: pjsonVersion,

@@ -14,11 +14,11 @@
  *  limitations under the License.
  */
 
-import helpers from '@reportportal/client-javascript/lib/helpers';
+import helpers from '@reportportal/client-javascript/helpers';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
-import { FinishTestItemObjType } from '../../models';
+import type { FinishTestItemOptions } from '@reportportal/client-javascript/models';
 import { STATUSES, TEST_ANNOTATION_TYPES } from '../../constants';
 import * as utils from '../../utils';
 
@@ -70,7 +70,7 @@ describe('finish test reporting', () => {
 
   beforeEach(() => {
     reporter = new RPReporter(mockConfig);
-    reporter.client = new RPClientMock(mockConfig);
+    reporter.client = new RPClientMock(mockConfig) as unknown as typeof reporter.client;
     reporter.launchId = 'tempLaunchId';
     reporter.testItems = new Map([['testItemId', { id: 'tempTestItemId', name: 'testTitle' }]]);
     reporter.suites = new Map([
@@ -104,9 +104,9 @@ describe('finish test reporting', () => {
     const result = {
       status: 'passed',
     };
-    const finishTestItemObj: FinishTestItemObjType = {
+    const finishTestItemObj: FinishTestItemOptions = {
       endTime: mockedDate,
-      status: result.status,
+      status: result.status as STATUSES,
       attributes: [{ key: 'key', value: 'value' }],
       description: 'description',
     };
@@ -127,9 +127,9 @@ describe('finish test reporting', () => {
     const result = {
       status: 'skipped',
     };
-    const finishTestItemObj: FinishTestItemObjType = {
+    const finishTestItemObj: FinishTestItemOptions = {
       endTime: mockedDate,
-      status: result.status,
+      status: result.status as STATUSES,
       attributes: [{ key: 'key', value: 'value' }],
       description: 'description',
     };
@@ -223,7 +223,7 @@ describe('finish test reporting', () => {
     // @ts-ignore
     await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
 
-    const finishStepObject: FinishTestItemObjType = {
+    const finishStepObject: FinishTestItemOptions = {
       endTime: mockedDate,
       status: STATUSES.INTERRUPTED,
     };
@@ -240,7 +240,7 @@ describe('finish test reporting', () => {
     // @ts-ignore
     await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
 
-    const finishStepObject: FinishTestItemObjType = {
+    const finishStepObject: FinishTestItemOptions = {
       endTime: mockedDate,
       status: STATUSES.FAILED,
     };
@@ -255,7 +255,7 @@ describe('finish test reporting', () => {
       jest.clearAllMocks();
       // Reset reporter state
       reporter = new RPReporter(mockConfig);
-      reporter.client = new RPClientMock(mockConfig);
+      reporter.client = new RPClientMock(mockConfig) as unknown as typeof reporter.client;
       reporter.launchId = 'tempLaunchId';
       reporter.testItems = new Map([['testItemId', { id: 'tempTestItemId', name: 'testTitle' }]]);
       reporter.suites = new Map([
@@ -444,7 +444,9 @@ describe('finish test reporting', () => {
       };
 
       const reporterWithConfig = new RPReporter(customConfig);
-      reporterWithConfig.client = new RPClientMock(customConfig);
+      reporterWithConfig.client = new RPClientMock(
+        customConfig,
+      ) as unknown as typeof reporterWithConfig.client;
       reporterWithConfig.launchId = 'tempLaunchId';
       reporterWithConfig.testItems = new Map([
         ['testItemId', { id: 'tempTestItemId', name: 'testTitle' }],

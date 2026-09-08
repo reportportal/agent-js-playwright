@@ -20,7 +20,7 @@ import { RPClientMock } from '../mocks/RPClientMock';
 
 describe('printsToStdio', () => {
   const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
+  reporter.client = new RPClientMock(mockConfig) as unknown as typeof reporter.client;
 
   test('should return "false" as the agent doesn\'t report anything to the console', () => {
     expect(reporter.printsToStdio()).toBe(false);

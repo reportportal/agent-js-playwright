@@ -9,7 +9,7 @@ describe('processAnnotations', () => {
 
   beforeEach(() => {
     reporter = new RPReporter(mockConfig);
-    reporter.client = new RPClientMock(mockConfig);
+    reporter.client = new RPClientMock(mockConfig) as unknown as typeof reporter.client;
     testCase = <TestCase>{
       title: 'testTitle',
       id: 'testItemId',

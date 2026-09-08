@@ -23,7 +23,7 @@ const suiteName = 'suiteName';
 
 describe('statuses reporting', () => {
   const reporter = new RPReporter(mockConfig);
-  reporter.client = new RPClientMock(mockConfig);
+  reporter.client = new RPClientMock(mockConfig) as unknown as typeof reporter.client;
 
   const testCase = {
     title: 'testTitle',

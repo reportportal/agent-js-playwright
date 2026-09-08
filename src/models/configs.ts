@@ -15,42 +15,7 @@
  *
  */
 
-import type { AxiosProxyConfig, AxiosRequestConfig } from 'axios';
-import type { IAxiosRetryConfig } from 'axios-retry';
-import type { AgentOptions } from 'https';
-
-import { Attribute } from './common';
-import { LAUNCH_MODES } from '../constants';
-
-// TODO: use types from client-javascript
-export interface RestClientConfig extends AxiosRequestConfig {
-  agent?: AgentOptions;
-  retry?: number | IAxiosRetryConfig;
-  proxy?: any | AxiosProxyConfig | false;
-  noProxy?: string;
-}
-
-interface ClientConfig {
-  project: string;
-  endpoint: string;
-  launch: string;
-  apiKey?: string;
-  oauth?: {
-    tokenEndpoint: string;
-    username: string;
-    password: string;
-    clientId: string;
-    clientSecret?: string;
-    scope?: string;
-  };
-
-  debug?: boolean;
-  isLaunchMergeRequired?: boolean; // not used for this agent
-  restClientConfig?: RestClientConfig;
-  headers?: Record<string, string>;
-  launchUuidPrint?: boolean;
-  launchUuidPrintOutput?: string;
-}
+import type { ReportPortalConfig as ClientConfig } from '@reportportal/client-javascript/models';
 
 export interface AttachmentsConfig {
   uploadVideo?: boolean;
@@ -60,11 +25,8 @@ export interface AttachmentsConfig {
 export interface ReportPortalConfig extends ClientConfig, AttachmentsConfig {
   // common options
   launchId?: string;
-  attributes?: Array<Attribute>;
-  description?: string;
   rerun?: boolean;
   rerunOf?: string;
-  mode?: LAUNCH_MODES;
 
   // agent specific options
   skippedIssue?: boolean;
