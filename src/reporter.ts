@@ -58,6 +58,7 @@ export interface TestItem {
   attributes?: Attribute[];
   description?: string;
   testCaseId?: string;
+  ownerItemId?: string;
 }
 
 interface Suite extends TestItem {
@@ -469,6 +470,7 @@ export class RPReporter implements Reporter {
     this.nestedSteps.set(fullStepName, {
       name: step.title,
       id: tempId,
+      ownerItemId: this.testItems.get(test.id)?.id,
     });
 
     const activeStepStack = this.activeSteps.get(test.id) || [];
@@ -634,9 +636,10 @@ export class RPReporter implements Reporter {
       });
     }
 
-    const hasUnfinishedNestedSteps = [...this.nestedSteps.keys()].some((key) =>
-      key.includes(test.id),
+    const unfinishedSteps = [...this.nestedSteps.entries()].filter(
+      ([, value]) => value.ownerItemId === testItemId,
     );
+    const hasUnfinishedNestedSteps = unfinishedSteps.length > 0;
 
     if (result.error) {
       const stacktrace = stripAnsi(result.error.stack || result.error.message);
@@ -653,10 +656,6 @@ export class RPReporter implements Reporter {
         testDescription = (testDescription || '').concat(`\n\`\`\`error\n${stacktrace}\n\`\`\``);
       }
     }
-
-    const unfinishedSteps = [...this.nestedSteps.entries()].filter(([key]) =>
-      key.includes(test.id),
-    );
 
     unfinishedSteps.reverse().forEach(([key, value]) => {
       const { id: stepId } = value;
@@ -681,11 +680,12 @@ export class RPReporter implements Reporter {
     const { promise } = this.client.finishTestItem(testItemId, finishTestItemObj);
 
     this.addRequestToPromisesQueue(promise, 'Failed to finish test.');
-    this.testItems.delete(test.id);
-
-    this.activeSteps.delete(test.id);
-    this.loggedErrors.delete(test.id);
-    this.stepAttachments.delete(test.id);
+    if (this.testItems.get(test.id)?.id === testItemId) {
+      this.testItems.delete(test.id);
+      this.activeSteps.delete(test.id);
+      this.loggedErrors.delete(test.id);
+      this.stepAttachments.delete(test.id);
+    }
 
     this.updateAncestorsTestInvocations(test, result);
 
