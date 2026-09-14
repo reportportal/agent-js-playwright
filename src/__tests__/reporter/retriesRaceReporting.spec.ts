@@ -14,12 +14,12 @@
  *  limitations under the License.
  */
 
-import helpers from '@reportportal/client-javascript/lib/helpers';
+import helpers from '@reportportal/client-javascript/helpers';
 import { RPReporter } from '../../reporter';
 import { mockConfig } from '../mocks/configMock';
 import { RPClientMock, mockedDate } from '../mocks/RPClientMock';
 import * as utils from '../../utils';
-import { Attachment } from '../../models';
+import type { Attachment } from '@reportportal/client-javascript/models';
 
 const suiteName = 'suiteName';
 const testId = 'testItemId';
