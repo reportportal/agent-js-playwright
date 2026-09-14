@@ -15,7 +15,7 @@
  *
  */
 
-jest.mock('@reportportal/client-javascript/lib/helpers', () => ({
+jest.mock('@reportportal/client-javascript/helpers', () => ({
   now: jest.fn(() => new Date().valueOf()),
   formatName: jest.fn((name: string) => {
     const MIN = 3;

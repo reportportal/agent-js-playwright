@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-import helpers from '@reportportal/client-javascript/lib/helpers';
+import helpers from '@reportportal/client-javascript/helpers';
 import { RPReporter } from '../../reporter';
 import { TEST_ANNOTATION_TYPES } from '../../constants';
 import { mockConfig } from '../mocks/configMock';
@@ -31,7 +31,7 @@ describe('onStepBegin reporting', () => {
     includeTestSteps: true,
   };
   const reporter = new RPReporter(config);
-  reporter.client = new RPClientMock(config);
+  reporter.client = new RPClientMock(config) as unknown as typeof reporter.client;
 
   reporter.launchId = 'launchId';
 
@@ -91,7 +91,7 @@ describe('onStepEnd reporting for skipped step', () => {
     includeTestSteps: true,
   };
   const reporter = new RPReporter(config);
-  reporter.client = new RPClientMock(config);
+  reporter.client = new RPClientMock(config) as unknown as typeof reporter.client;
   reporter.launchId = 'launchId';
 
   const testCase = {
