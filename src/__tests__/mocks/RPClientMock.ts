@@ -32,7 +32,7 @@ export class RPClientMock {
   });
 
   public finishLaunch = jest.fn().mockReturnValue({
-    promise: Promise.resolve('ok'),
+    promise: Promise.resolve({ link: 'http://reportportal.server/ui/#/project/launch/uuid' }),
   });
 
   public startTestItem = jest.fn().mockReturnValue({
