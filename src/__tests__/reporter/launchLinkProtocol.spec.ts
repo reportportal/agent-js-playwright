@@ -3,6 +3,16 @@ import { RPClientMock } from '../mocks/RPClientMock';
 import type { ReportPortalConfig } from '../../models';
 
 describe('launch link protocol correction', () => {
+  let consoleLogSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
+  });
+
+  afterEach(() => {
+    consoleLogSpy.mockRestore();
+  });
+
   describe('when endpoint is https and server returns http link', () => {
     it('should fix the link protocol to https', async () => {
       const config: ReportPortalConfig = {
@@ -28,6 +38,9 @@ describe('launch link protocol correction', () => {
       await reporter.onEnd();
 
       expect(responseObject.link).toBe('https://reportportal.server/ui/#/project/launch/uuid');
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining('https://reportportal.server/ui/#/project/launch/uuid'),
+      );
     });
   });
 
@@ -56,6 +69,9 @@ describe('launch link protocol correction', () => {
       await reporter.onEnd();
 
       expect(responseObject.link).toBe('http://reportportal.server/ui/#/project/launch/uuid');
+      expect(consoleLogSpy).not.toHaveBeenCalledWith(
+        expect.stringContaining('ReportPortal Launch Link:'),
+      );
     });
   });
 
@@ -84,6 +100,9 @@ describe('launch link protocol correction', () => {
       await reporter.onEnd();
 
       expect(responseObject.link).toBe('invalid-url');
+      expect(consoleLogSpy).not.toHaveBeenCalledWith(
+        expect.stringContaining('ReportPortal Launch Link:'),
+      );
     });
   });
 });
