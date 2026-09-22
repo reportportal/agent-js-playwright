@@ -103,6 +103,8 @@ export class RPReporter implements Reporter {
 
   stepAttachments: Map<string, Set<string>> = new Map();
 
+  private endpointProtocol?: string;
+
   constructor(config: ReportPortalConfig) {
     this.config = {
       uploadTrace: true,
@@ -121,6 +123,37 @@ export class RPReporter implements Reporter {
       },
       agentInfo,
     );
+
+    this.extractEndpointProtocol();
+  }
+
+  private extractEndpointProtocol(): void {
+    try {
+      if (this.config.endpoint) {
+        const url = new URL(this.config.endpoint);
+        this.endpointProtocol = url.protocol.replace(':', '');
+      }
+    } catch {
+      // endpoint is not a valid URL, skip protocol extraction
+    }
+  }
+
+  private fixLaunchLink(link: string): string {
+    if (!link || !this.endpointProtocol) {
+      return link;
+    }
+
+    try {
+      const url = new URL(link);
+      if (url.protocol.replace(':', '') !== this.endpointProtocol) {
+        url.protocol = `${this.endpointProtocol}:`;
+        return url.toString();
+      }
+    } catch {
+      // if link is not a valid URL, return as-is
+    }
+
+    return link;
   }
 
   addRequestToPromisesQueue<T>(promise: Promise<T>, failMessage: string): void {
@@ -780,7 +813,16 @@ export class RPReporter implements Reporter {
         endTime: clientHelpers.now(),
         ...(this.customLaunchStatus && { status: this.customLaunchStatus }),
       });
-      this.addRequestToPromisesQueue(promise, 'Failed to finish launch.');
+      const wrappedPromise = promise.then((response) => {
+        if (response?.link) {
+          const fixedLink = this.fixLaunchLink(response.link);
+          if (fixedLink !== response.link) {
+            response.link = fixedLink;
+          }
+        }
+        return response;
+      });
+      this.addRequestToPromisesQueue(wrappedPromise, 'Failed to finish launch.');
     }
 
     this.isLaunchFinishSend = true;
