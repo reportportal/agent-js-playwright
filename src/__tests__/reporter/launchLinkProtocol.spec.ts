@@ -38,8 +38,9 @@ describe('launch link protocol correction', () => {
       await reporter.onEnd();
 
       expect(responseObject.link).toBe('https://reportportal.server/ui/#/project/launch/uuid');
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        expect.stringContaining('https://reportportal.server/ui/#/project/launch/uuid'),
+      // Verify the link was fixed internally without duplicate logging
+      expect(consoleLogSpy).not.toHaveBeenCalledWith(
+        expect.stringContaining('ReportPortal Launch Link:'),
       );
     });
   });

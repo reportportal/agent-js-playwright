@@ -125,28 +125,6 @@ export class RPReporter implements Reporter {
     );
 
     this.extractEndpointProtocol();
-    this.interceptConsoleForLaunchLink();
-  }
-
-  private interceptConsoleForLaunchLink(): void {
-    const originalLog = console.log;
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const reporter = this;
-    console.log = function (...args: any[]) {
-      if (args.length > 0 && typeof args[0] === 'string') {
-        const message = args[0];
-        if (message.includes('ReportPortal Launch Link:') && message.includes('http://')) {
-          const linkMatch = message.match(/http:\/\/[^\s]+/);
-          if (linkMatch) {
-            const fixedLink = reporter.fixLaunchLink(linkMatch[0]);
-            if (fixedLink !== linkMatch[0]) {
-              args[0] = message.replace(linkMatch[0], fixedLink);
-            }
-          }
-        }
-      }
-      originalLog.apply(console, args);
-    };
   }
 
   private extractEndpointProtocol(): void {
@@ -839,7 +817,6 @@ export class RPReporter implements Reporter {
         if (response?.link) {
           const fixedLink = this.fixLaunchLink(response.link);
           if (fixedLink !== response.link) {
-            console.log(`\nReportPortal Launch Link: ${fixedLink}`);
             response.link = fixedLink;
           }
         }
