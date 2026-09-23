@@ -356,7 +356,7 @@ describe('finish test reporting', () => {
       });
     });
 
-    test('should filter out attachments already in stepAttachmentNames', async () => {
+    test('should filter out attachments already reported at step level (by raw attachment key)', async () => {
       const mockAttachments = [
         {
           name: 'screenshot.png',
@@ -372,11 +372,6 @@ describe('finish test reporting', () => {
 
       const mockAttachmentFiles = [
         {
-          name: 'testtitle_screenshot.png',
-          type: 'image/png',
-          content: Buffer.from('screenshot content'),
-        },
-        {
           name: 'testtitle_video.webm',
           type: 'video/webm',
           content: Buffer.from('video content'),
@@ -388,7 +383,8 @@ describe('finish test reporting', () => {
         .mockResolvedValue(mockAttachmentFiles);
       const sendLogSpy = jest.spyOn(reporter, 'sendLog');
 
-      reporter.stepAttachments.set(testCase.id, new Set(['testtitle_screenshot.png']));
+      // Seed with the raw attachment identity (path), matching what onStepEnd now stores.
+      reporter.stepAttachments.set(testCase.id, new Set(['/path/to/screenshot.png']));
 
       const result = {
         status: 'passed',
@@ -398,10 +394,22 @@ describe('finish test reporting', () => {
       // @ts-ignore
       await reporter.onTestEnd({ ...testCase, outcome: () => 'expected' }, result);
 
+      // getAttachments must be invoked with the pre-filtered raw array so we
+      // don't pay the read-file cost for attachments already reported at the
+      // step layer.
+      expect(utils.getAttachments).toHaveBeenCalledWith(
+        [mockAttachments[1]],
+        {
+          uploadVideo: true,
+          uploadTrace: true,
+        },
+        testCase.title,
+      );
+
       expect(sendLogSpy).toHaveBeenCalledTimes(1);
       expect(sendLogSpy).toHaveBeenCalledWith('tempTestItemId', {
         message: 'Attachment testtitle_video.webm with type video/webm',
-        file: mockAttachmentFiles[1],
+        file: mockAttachmentFiles[0],
       });
     });
 

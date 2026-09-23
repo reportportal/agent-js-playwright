@@ -50,6 +50,16 @@ import {
 import { EVENTS } from '@reportportal/client-javascript/constants';
 import { randomUUID } from 'crypto';
 
+// Produces a stable identity for a Playwright attachment that is invariant
+// between `step.attachments` and `result.attachments`. Playwright surfaces the
+// same attachment object in both places, so its `path` (present for every
+// disk-backed attachment) is a reliable dedup key. For in-memory attachments
+// without a `path`, fall back to `name` + `body.length` so distinct buffers do
+// not collide. The display name computed by `getAttachments` depends on the
+// caller's `testTitle` and therefore is not a valid dedup key.
+const getAttachmentKey = (a: TestResult['attachments'][number]): string =>
+  a.path ?? `${a.name}::${(a.body as Buffer | undefined)?.length ?? 0}`;
+
 export interface TestItem {
   id: string;
   name: string;
@@ -522,6 +532,13 @@ export class RPReporter implements Reporter {
     }
 
     if (step.attachments?.length) {
+      // Record raw-attachment identity for every step attachment (even those
+      // filtered out by `uploadVideo`/`uploadTrace`) so `onTestEnd` never
+      // re-emits an attachment that was already handled at the step layer.
+      const attachmentKeys = this.stepAttachments.get(test.id) || new Set<string>();
+      step.attachments.forEach((a) => attachmentKeys.add(getAttachmentKey(a)));
+      this.stepAttachments.set(test.id, attachmentKeys);
+
       try {
         const { uploadVideo, uploadTrace } = this.config;
         const attachmentsFiles = await getAttachments(
@@ -532,16 +549,13 @@ export class RPReporter implements Reporter {
           },
           step.title,
         );
-        const attachmentNames = this.stepAttachments.get(test.id) || new Set();
 
         attachmentsFiles.forEach((file) => {
           this.sendLog(nestedStep.id, {
             message: `Attachment ${file.name} with type ${file.type}`,
             file,
           });
-          attachmentNames.add(file.name);
         });
-        this.stepAttachments.set(test.id, attachmentNames);
       } catch (error) {
         console.error(`Failed to process attachments for step "${step.title}":`, error);
       }
@@ -615,24 +629,32 @@ export class RPReporter implements Reporter {
     const status = predefinedStatus || calculatedStatus;
 
     if (result.attachments?.length) {
-      const { uploadVideo, uploadTrace } = this.config;
-      const attachmentsFiles = await getAttachments(
-        result.attachments,
-        {
-          uploadVideo,
-          uploadTrace,
-        },
-        test.title,
+      // Playwright propagates step-level attachments into `result.attachments`,
+      // so filter them out by raw identity *before* invoking `getAttachments`
+      // to avoid duplicating logs under the parent test item.
+      const reportedKeys = this.stepAttachments.get(test.id) || new Set<string>();
+      const remainingRawAttachments = result.attachments.filter(
+        (a) => !reportedKeys.has(getAttachmentKey(a)),
       );
-      // TODO: use bulk log request
-      const stepAttachmentNames = this.stepAttachments.get(test.id) || new Set();
-      const filteredFiles = attachmentsFiles.filter((file) => !stepAttachmentNames.has(file.name));
-      filteredFiles.forEach((file) => {
-        this.sendLog(testItemId, {
-          message: `Attachment ${file.name} with type ${file.type}`,
-          file,
+
+      if (remainingRawAttachments.length) {
+        const { uploadVideo, uploadTrace } = this.config;
+        const attachmentsFiles = await getAttachments(
+          remainingRawAttachments,
+          {
+            uploadVideo,
+            uploadTrace,
+          },
+          test.title,
+        );
+        // TODO: use bulk log request
+        attachmentsFiles.forEach((file) => {
+          this.sendLog(testItemId, {
+            message: `Attachment ${file.name} with type ${file.type}`,
+            file,
+          });
         });
-      });
+      }
     }
 
     const unfinishedSteps = [...this.nestedSteps.entries()].filter(
