@@ -91,17 +91,11 @@ const buildStep = () => ({
 
 // Thin wrappers to bypass the strict `TestCase` / `TestResult` shape checks
 // in tests without scattering `@ts-ignore` across multi-line calls.
-const callOnStepEnd = (
-  reporter: RPReporter,
-  testCase: any,
-  step: any,
-): Promise<void> => (reporter as any).onStepEnd(testCase, undefined, step);
+const callOnStepEnd = (reporter: RPReporter, testCase: any, step: any): Promise<void> =>
+  (reporter as any).onStepEnd(testCase, undefined, step);
 
-const callOnTestEnd = (
-  reporter: RPReporter,
-  testCase: any,
-  result: any,
-): Promise<void> => (reporter as any).onTestEnd(testCase, result);
+const callOnTestEnd = (reporter: RPReporter, testCase: any, result: any): Promise<void> =>
+  (reporter as any).onTestEnd(testCase, result);
 
 const seedReporterWithNestedStep = (reporter: RPReporter) => {
   reporter.launchId = 'tempLaunchId';
@@ -246,17 +240,13 @@ describe('attachment deduplication between nested step and parent test (EPMRPP-1
 
       const stepA = {
         ...buildStep(),
-        attachments: [
-          { name: 'a.png', contentType: 'image/png', path: '/tmp/a.png' },
-        ],
+        attachments: [{ name: 'a.png', contentType: 'image/png', path: '/tmp/a.png' }],
       };
       const stepB = {
         title: 'typeInSearch',
         id: stepUuidB,
         titlePath: () => ['typeInSearch'],
-        attachments: [
-          { name: 'b.png', contentType: 'image/png', path: '/tmp/b.png' },
-        ],
+        attachments: [{ name: 'b.png', contentType: 'image/png', path: '/tmp/b.png' }],
       };
 
       await callOnStepEnd(reporter, buildTestCase(), stepA);
@@ -270,10 +260,7 @@ describe('attachment deduplication between nested step and parent test (EPMRPP-1
   describe('onTestEnd filters attachments already reported at the step level', () => {
     test('does not re-emit a step attachment that reappears in result.attachments (path-keyed)', async () => {
       // Simulate what onStepEnd would have done: seed the raw-key set.
-      reporter.stepAttachments.set(
-        testItemId,
-        new Set(['/tmp/pw-artifacts/screenshot.png']),
-      );
+      reporter.stepAttachments.set(testItemId, new Set(['/tmp/pw-artifacts/screenshot.png']));
 
       // getAttachments should only be called with the *test-only* attachment.
       getAttachmentsSpy = jest.spyOn(utils, 'getAttachments').mockResolvedValue([
@@ -333,10 +320,7 @@ describe('attachment deduplication between nested step and parent test (EPMRPP-1
     });
 
     test('skips getAttachments entirely when every result.attachment was already reported at step level', async () => {
-      reporter.stepAttachments.set(
-        testItemId,
-        new Set(['/tmp/pw-artifacts/only.png']),
-      );
+      reporter.stepAttachments.set(testItemId, new Set(['/tmp/pw-artifacts/only.png']));
 
       getAttachmentsSpy = jest.spyOn(utils, 'getAttachments');
       const sendLogSpy = jest.spyOn(reporter, 'sendLog');
@@ -393,10 +377,7 @@ describe('attachment deduplication between nested step and parent test (EPMRPP-1
 
     test('lets a test-only attachment through even when other attachments were reported at step level', async () => {
       // Screenshot reported inside a step.
-      reporter.stepAttachments.set(
-        testItemId,
-        new Set(['/tmp/pw-artifacts/screenshot.png']),
-      );
+      reporter.stepAttachments.set(testItemId, new Set(['/tmp/pw-artifacts/screenshot.png']));
 
       getAttachmentsSpy = jest.spyOn(utils, 'getAttachments').mockResolvedValue([
         {
